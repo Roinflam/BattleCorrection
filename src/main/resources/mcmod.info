@@ -1,0 +1,18 @@
+[
+  {
+    "modid": "battlecorrection",
+    "name": "BattleCorrection",
+    "description": "A better fit for RPG!",
+    "version": "1.0.0",
+    "mcversion": "1.12.2",
+    "url": "",
+    "updateUrl": "",
+    "authorList": [
+      "Roinflam"
+    ],
+    "credits": "",
+    "logoFile": "logo.png",
+    "screenshots": [],
+    "dependencies": []
+  }
+]
