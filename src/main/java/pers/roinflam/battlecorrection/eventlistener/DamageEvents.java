@@ -19,7 +19,7 @@ public class DamageEvents {
 
     @SubscribeEvent
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
-        if (!evt.getEntity().world.isRemote && !ConfigLoader.comboCorrection) {
+        if (!evt.getEntity().world.isRemote && ConfigLoader.comboCorrection) {
             if (evt.getSource().getImmediateSource() instanceof EntityPlayer) {
                 @Nullable EntityPlayer attacker = (EntityPlayer) evt.getSource().getImmediateSource();
                 evt.setAmount(evt.getAmount() * Math.max(EntityLivingUtil.getTicksSinceLastSwing(attacker), 0.5f));
