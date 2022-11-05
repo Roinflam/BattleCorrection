@@ -18,7 +18,7 @@ public class AttributeMagicDamage {
     public static final UUID ID = UUID.fromString("af42b33d-f767-b71d-9ca4-92fc0ce0f04a");
     public static final String NAME = "battlecorrection.magicDamage";
 
-    public static final IAttribute MAGIC_DAMAGE = (new RangedAttribute(null, NAME, 1, 0, Float.MAX_VALUE)).setDescription("Extra Magic Damage");
+    public static final IAttribute MAGIC_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Extra Magic Damage");
 
     @SubscribeEvent
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
@@ -26,7 +26,7 @@ public class AttributeMagicDamage {
             DamageSource damageSource = evt.getSource();
             if (damageSource.isMagicDamage() && damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(attacker, MAGIC_DAMAGE));
+                evt.setAmount(AttributesUtil.getAttributeValue(attacker, MAGIC_DAMAGE, evt.getAmount()));
             }
         }
     }

@@ -19,7 +19,7 @@ public class AttributeArrowDamage {
     public static final UUID ID = UUID.fromString("821b6535-b592-6d97-6e89-78d1f76dd7f2");
     public static final String NAME = "battlecorrection.arrowDamage";
 
-    public static final IAttribute ARROW_DAMAGE = (new RangedAttribute(null, NAME, 1, 0, Float.MAX_VALUE)).setDescription("Extra Arrow Damage");
+    public static final IAttribute ARROW_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Extra Arrow Damage");
 
     @SubscribeEvent
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
@@ -27,7 +27,7 @@ public class AttributeArrowDamage {
             DamageSource damageSource = evt.getSource();
             if (damageSource.getImmediateSource() instanceof EntityArrow && damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE));
+                evt.setAmount(AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE, evt.getAmount()));
             }
         }
     }

@@ -7,6 +7,7 @@ attribute.name.battlecorrection.bowSpeed=Bow Speed
 attribute.name.battlecorrection.preparationSpeed=Preparation Speed
 attribute.name.battlecorrection.bloodthirsty=Bloodthirsty
 attribute.name.battlecorrection.almightyBloodthirsty=Almighty Bloodthirsty
+attribute.name.battlecorrection.ignoreDamage=Ignore Damage
 
 config.battlecorrection.general.pvp=PVP
 config.battlecorrection.general.pvp.tooltip=Set the player pvp damage multiplier, adjust this value will affect the final damage, such as 0.5 will be 50%% of the original damage, if 0 is equivalent to prohibit pvp.

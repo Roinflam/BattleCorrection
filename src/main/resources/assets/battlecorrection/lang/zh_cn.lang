@@ -7,6 +7,7 @@ attribute.name.battlecorrection.bowSpeed=拉弓速度
 attribute.name.battlecorrection.preparationSpeed=准备速度
 attribute.name.battlecorrection.bloodthirsty=吸血
 attribute.name.battlecorrection.almightyBloodthirsty=全能吸血
+attribute.name.battlecorrection.ignoreDamage=无视伤害
 
 config.battlecorrection.general.pvp=PVP伤害
 config.battlecorrection.general.pvp.tooltip=设置玩家pvp伤害倍数，调整这个值会影响最终的伤害，比如0.5会是原伤害的50%%，如果为0就相当于禁止pvp。

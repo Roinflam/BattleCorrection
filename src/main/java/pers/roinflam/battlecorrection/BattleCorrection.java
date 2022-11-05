@@ -26,11 +26,11 @@ public class BattleCorrection {
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent evt) {
-
+        proxy.setInfinityItemEditor();
     }
 
     @Mod.EventHandler
     public static void postInit(FMLPostInitializationEvent evt) {
-
+        proxy.setInfinityItemEditor();
     }
 }

@@ -20,7 +20,7 @@ public class AttributeProjectileDamage {
     public static final UUID ID = UUID.fromString("ab4edc53-93b4-c83c-c498-0c0be85d458e");
     public static final String NAME = "battlecorrection.projectileDamage";
 
-    public static final IAttribute PROJECTILE_DAMAGE = (new RangedAttribute(null, NAME, 1, 0, Float.MAX_VALUE)).setDescription("Extra Projectile Damage");
+    public static final IAttribute PROJECTILE_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Extra Projectile Damage");
 
     @SubscribeEvent
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
@@ -28,7 +28,7 @@ public class AttributeProjectileDamage {
             DamageSource damageSource = evt.getSource();
             if (damageSource.getImmediateSource() instanceof IProjectile && !(damageSource.getImmediateSource() instanceof EntityArrow) && !damageSource.isMagicDamage() && damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(attacker, PROJECTILE_DAMAGE));
+                evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(attacker, PROJECTILE_DAMAGE, evt.getAmount()));
             }
         }
     }

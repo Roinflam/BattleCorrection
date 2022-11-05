@@ -1,8 +1,17 @@
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import pers.roinflam.battlecorrection.utils.Reference;
 
+import javax.annotation.Nonnull;
+
+@Mod.EventBusSubscriber
 @Config(modid = Reference.MOD_ID)
 @Config.LangKey("config." + Reference.MOD_ID + ".general")
 public final class ConfigLoader {
@@ -77,4 +86,11 @@ public final class ConfigLoader {
     @Config.RangeDouble(min = 0)
     public static float extraHungerPercentageHeal = 0;
 
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public static void onConfigChanged(@Nonnull ConfigChangedEvent.OnConfigChangedEvent evt) {
+        if (evt.getModID().equals(Reference.MOD_ID)) {
+            ConfigManager.sync(Reference.MOD_ID, Config.Type.INSTANCE);
+        }
+    }
 }

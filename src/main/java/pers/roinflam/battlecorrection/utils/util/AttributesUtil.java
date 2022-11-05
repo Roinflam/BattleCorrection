@@ -13,7 +13,11 @@ import java.util.List;
 
 public class AttributesUtil {
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase, @Nonnull IAttribute attribute) {
-        double base = attribute.getDefaultValue();
+        return getAttributeValue(entityLivingBase, attribute, 0);
+    }
+
+    public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase, @Nonnull IAttribute attribute, double value) {
+        double base = attribute.getDefaultValue() + value;
         if (entityLivingBase.getEntityAttribute(attribute) != null) {
             base = entityLivingBase.getEntityAttribute(attribute).getAttributeValue();
         }

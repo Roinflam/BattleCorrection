@@ -19,15 +19,8 @@ import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Set;
 
-@Mod.EventBusSubscriber
 @SideOnly(Side.CLIENT)
 public class ConfigGuiFactory implements IModGuiFactory {
-    @SubscribeEvent
-    public static void onConfigChanged(@Nonnull ConfigChangedEvent.OnConfigChangedEvent evt) {
-        if (evt.getModID().equals(Reference.MOD_ID)) {
-            ConfigManager.sync(Reference.MOD_ID, Config.Type.INSTANCE);
-        }
-    }
 
     @Override
     public void initialize(Minecraft minecraft) {

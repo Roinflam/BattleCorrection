@@ -15,11 +15,11 @@ public class CommonProxy {
 //            field.setAccessible(true);
 //            IAttribute[] sharedAttributes = (IAttribute[]) field.get(null);
 //            List<IAttribute> list = new ArrayList<>(Arrays.asList(sharedAttributes));
-//            list.add(AttributesMagicDamage.MAGIC_DAMAGE);
+//            list.add(AttributeMagicDamage.MAGIC_DAMAGE);
 //
 //            field = guiAttributes.getDeclaredField("sharedAttributes");
 //            field.setAccessible(true);
-//            System.out.println(Arrays.toString(new IAttribute[]{AttributesMagicDamage.MAGIC_DAMAGE}));
+////            field.set(guiAttributes, list.toArray(new IAttribute[0]));
 //            field.set(guiAttributes, new IAttribute[]{});
 //        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
 //            throw new RuntimeException(e);
