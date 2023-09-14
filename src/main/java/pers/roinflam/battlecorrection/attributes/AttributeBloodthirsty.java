@@ -9,6 +9,7 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
 
@@ -34,7 +35,7 @@ public class AttributeBloodthirsty {
                         return;
                     }
                 }
-                attacker.heal(evt.getAmount() * (AttributesUtil.getAttributeValue(attacker, BLOODTHIRSTY) - 1));
+                attacker.heal(evt.getAmount() * ((AttributesUtil.getAttributeValue(attacker, BLOODTHIRSTY) - 1) + ConfigAttribute.bloodthirsty));
             }
         }
     }

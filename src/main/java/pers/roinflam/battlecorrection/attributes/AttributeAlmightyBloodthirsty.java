@@ -9,6 +9,7 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
 
@@ -29,12 +30,12 @@ public class AttributeAlmightyBloodthirsty {
             DamageSource damageSource = evt.getSource();
             if (damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                if (damageSource.getImmediateSource().equals(attacker) && attacker instanceof EntityPlayer) {
+                if (attacker.equals(damageSource.getImmediateSource()) && attacker instanceof EntityPlayer) {
                     if (EntityLivingUtil.getTicksSinceLastSwing((EntityPlayer) attacker) != 1) {
                         return;
                     }
                 }
-                attacker.heal(evt.getAmount() * (AttributesUtil.getAttributeValue(attacker, ALMIGHTY_BLOODTHIRSTY) - 1));
+                attacker.heal(evt.getAmount() * ((AttributesUtil.getAttributeValue(attacker, ALMIGHTY_BLOODTHIRSTY) - 1) + ConfigAttribute.almightyBloodthirsty));
             }
         }
     }

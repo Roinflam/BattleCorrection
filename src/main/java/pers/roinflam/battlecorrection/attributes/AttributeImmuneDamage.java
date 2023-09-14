@@ -8,6 +8,7 @@ import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.java.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -28,7 +29,7 @@ public class AttributeImmuneDamage {
             DamageSource damageSource = evt.getSource();
             if (!damageSource.canHarmInCreative()) {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
-                if (RandomUtil.percentageChance((AttributesUtil.getAttributeValue(hurter, IMMUNE_DAMAGE) - 1) * 100)) {
+                if (RandomUtil.percentageChance((AttributesUtil.getAttributeValue(hurter, IMMUNE_DAMAGE) - 1 + ConfigAttribute.immuneDamage) * 100)) {
                     evt.setCanceled(true);
                 }
             }

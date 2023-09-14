@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
@@ -23,7 +24,7 @@ public class AttributeRestoreHeal {
     public static void onLivingHeal(@Nonnull LivingHealEvent evt) {
         if (!evt.getEntity().world.isRemote) {
             @Nullable EntityLivingBase entityLivingBase = evt.getEntityLiving();
-            evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(entityLivingBase, RESTORE_HEAL));
+            evt.setAmount(evt.getAmount() * (AttributesUtil.getAttributeValue(entityLivingBase, RESTORE_HEAL) + ConfigAttribute.restoreHeal));
         }
     }
 

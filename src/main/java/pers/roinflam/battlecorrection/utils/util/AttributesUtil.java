@@ -1,11 +1,15 @@
 package pers.roinflam.battlecorrection.utils.util;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -123,5 +127,20 @@ public class AttributesUtil {
         }
 
         return (float) number;
+    }
+
+    @Nonnull
+    public static Multimap<String, AttributeModifier> getAnyAttributeModifiers(@Nonnull ItemStack itemStack) {
+        Multimap<String, AttributeModifier> multimap = HashMultimap.create();
+        NBTTagCompound nbtTagCompound = itemStack.getTagCompound();
+        if (itemStack.hasTagCompound() && nbtTagCompound.hasKey("AttributeModifiers", 9)) {
+            NBTTagList nbttaglist = nbtTagCompound.getTagList("AttributeModifiers", 10);
+            for (int i = nbttaglist.tagCount() - 1; i >= 0; --i) {
+                NBTTagCompound nbttagcompound = nbttaglist.getCompoundTagAt(i);
+                AttributeModifier attributemodifier = SharedMonsterAttributes.readAttributeModifierFromNBT(nbttagcompound);
+                multimap.put(nbttagcompound.getString("AttributeName"), attributemodifier);
+            }
+        }
+        return multimap;
     }
 }

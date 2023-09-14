@@ -16,23 +16,23 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber
-public class AttributeIgnoreDamage {
-    public static final UUID ID = UUID.fromString("d444f13a-b3c7-a700-52b7-47677d723207");
-    public static final String NAME = "battlecorrection.ignoreDamage";
+public class AttributeReducedFallDamage {
+    public static final UUID ID = UUID.fromString("a0054dfc-c4ba-b1df-cce7-9526b5981b9c");
+    public static final String NAME = "battlecorrection.reducedFallDamage";
 
-    public static final IAttribute IGNORE_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Ignore Damage");
+    public static final IAttribute REDUCED_FALL_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Reduced Fall Damage");
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
         if (!evt.getEntity().world.isRemote) {
             DamageSource damageSource = evt.getSource();
-            if (!damageSource.canHarmInCreative()) {
+            if (damageSource.equals(DamageSource.FALL)) {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
-                double ignore = AttributesUtil.getAttributeValue(hurter, IGNORE_DAMAGE) + ConfigAttribute.ignoreDamage;
-                if (evt.getAmount() <= ignore) {
+                double reducedFallDamage = AttributesUtil.getAttributeValue(hurter, REDUCED_FALL_DAMAGE) + ConfigAttribute.reducedFallDamage;
+                if (evt.getAmount() <= reducedFallDamage) {
                     evt.setCanceled(true);
                 } else {
-                    evt.setAmount((float) (evt.getAmount() - ignore));
+                    evt.setAmount((float) (evt.getAmount() - reducedFallDamage));
                 }
             }
         }

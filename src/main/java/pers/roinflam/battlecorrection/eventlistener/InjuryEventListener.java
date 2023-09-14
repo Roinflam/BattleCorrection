@@ -11,13 +11,13 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import pers.roinflam.battlecorrection.config.ConfigLoader;
+import pers.roinflam.battlecorrection.config.ConfigBattle;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber
-public class InjuryEvents {
+public class InjuryEventListener {
     public static final UUID ID = UUID.fromString("a05141e5-4898-7440-0615-9ac825922a2a");
     public static final String NAME = "battlecorrection.attack_cooldown";
 
@@ -25,9 +25,9 @@ public class InjuryEvents {
     public static void onLivingAttack(@Nonnull LivingAttackEvent evt) {
         if (!evt.getEntity().world.isRemote) {
             if (evt.getEntity() instanceof EntityPlayer) {
-                if (ConfigLoader.pvpHurtItself <= 0 && evt.getEntity().equals(evt.getSource().getTrueSource())) {
+                if (ConfigBattle.pvpHurtItself <= 0 && evt.getEntity().equals(evt.getSource().getTrueSource())) {
                     evt.setCanceled(true);
-                } else if (ConfigLoader.pvp <= 0 && evt.getSource().getTrueSource() instanceof EntityPlayer) {
+                } else if (ConfigBattle.pvp <= 0 && evt.getSource().getTrueSource() instanceof EntityPlayer) {
                     evt.setCanceled(true);
                 }
             }
@@ -40,13 +40,13 @@ public class InjuryEvents {
             EntityLivingBase hurter = evt.getEntityLiving();
             if (hurter instanceof EntityPlayer) {
                 if (hurter.equals(evt.getSource().getTrueSource())) {
-                    evt.setAmount(evt.getAmount() * ConfigLoader.pvpHurtItself);
+                    evt.setAmount(evt.getAmount() * ConfigBattle.pvpHurtItself);
                 } else if (evt.getSource().getTrueSource() instanceof EntityPlayer) {
-                    evt.setAmount(evt.getAmount() * ConfigLoader.pvp);
+                    evt.setAmount(evt.getAmount() * ConfigBattle.pvp);
                 }
-                hurter.hurtResistantTime = (int) (hurter.maxHurtResistantTime / 2 + hurter.maxHurtResistantTime / 2 * ConfigLoader.hurtTimePlayer);
+                hurter.hurtResistantTime = (int) (hurter.maxHurtResistantTime / 2 + hurter.maxHurtResistantTime / 2 * ConfigBattle.hurtTimePlayer);
             } else {
-                hurter.hurtResistantTime = (int) (hurter.maxHurtResistantTime / 2 + hurter.maxHurtResistantTime / 2 * ConfigLoader.hurtTimeEntity);
+                hurter.hurtResistantTime = (int) (hurter.maxHurtResistantTime / 2 + hurter.maxHurtResistantTime / 2 * ConfigBattle.hurtTimeEntity);
             }
         }
     }
@@ -56,7 +56,7 @@ public class InjuryEvents {
         if (!evt.getWorld().isRemote && evt.getEntity() instanceof EntityPlayer) {
             EntityPlayer entityPlayer = (EntityPlayer) evt.getEntity();
             @Nonnull IAttributeInstance attributeInstance = entityPlayer.getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED);
-            if (!ConfigLoader.attackCooldown) {
+            if (!ConfigBattle.attackCooldown) {
                 if (attributeInstance.getModifier(ID) == null) {
                     attributeInstance.applyModifier(new AttributeModifier(ID, NAME, Double.MAX_VALUE / 2, 0));
                 }

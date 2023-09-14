@@ -12,9 +12,9 @@ import pers.roinflam.battlecorrection.utils.Reference;
 import javax.annotation.Nonnull;
 
 @Mod.EventBusSubscriber
-@Config(modid = Reference.MOD_ID)
-@Config.LangKey("config." + Reference.MOD_ID + ".general")
-public final class ConfigLoader {
+@Config(modid = Reference.MOD_ID, category = "Battle")
+@Config.LangKey("config." + Reference.MOD_ID + ".general.battle")
+public final class ConfigBattle {
     @Config.Comment("Set the player pvp damage multiplier, adjust this value will affect the final damage, such as 0.5 will be 50% of the original damage, if 0 is equivalent to prohibit pvp.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.pvp")
     @Config.RangeDouble(min = 0)
@@ -42,10 +42,14 @@ public final class ConfigLoader {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerMeleeAttack")
     @Config.RangeDouble(min = 0)
     public static float playerMeleeAttack = 1;
-    @Config.Comment("Globally adjusted the damage of player remote attacks.")
-    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerRemoteAttack")
+    @Config.Comment("Globally adjusted the damage of player arrow attacks.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerArrowAttack")
     @Config.RangeDouble(min = 0)
-    public static float playerRemoteAttack = 1;
+    public static float playerArrowAttack = 1;
+    @Config.Comment("Globally adjusted the damage of player projectile attacks.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerProjectileAttack")
+    @Config.RangeDouble(min = 0)
+    public static float playerProjectileAttack = 1;
     @Config.Comment("Globally adjusted the damage of player magic attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerMagicAttack")
     @Config.RangeDouble(min = 0)
@@ -55,10 +59,14 @@ public final class ConfigLoader {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersMelee")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersMelee = 1;
-    @Config.Comment("Global adjustment of damage to players from remote attacks.")
-    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersRemote")
+    @Config.Comment("Global adjustment of damage to players from arrow attacks.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersArrow")
     @Config.RangeDouble(min = 0)
-    public static float playerSuffersRemote = 1;
+    public static float playerSuffersArrow = 1;
+    @Config.Comment("Global adjustment of damage to players from projectile attacks.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersProjectile")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersProjectile = 1;
     @Config.Comment("Global adjustment of damage to players from magic attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersMagic")
     @Config.RangeDouble(min = 0)
@@ -85,6 +93,16 @@ public final class ConfigLoader {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.extraHungerPercentageHeal")
     @Config.RangeDouble(min = 0)
     public static float extraHungerPercentageHeal = 0;
+
+    @Config.Comment("Set the percentage of damage attenuation for each lesser hunger value.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.hungerDamageDecay")
+    @Config.RangeDouble(min = 0)
+    public static float hungerDamageDecay = 0.05f;
+
+    @Config.Comment("Set the upper limit of damage reduction due to starvation, 0.7 means that damage is reduced by up to 70% due to starvation.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.hungerDamageDecayLimit")
+    @Config.RangeDouble(min = 0)
+    public static float hungerDamageDecayLimit = 0.05f;
 
     @SideOnly(Side.CLIENT)
     @SubscribeEvent

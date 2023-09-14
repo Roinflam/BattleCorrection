@@ -10,27 +10,26 @@ import pers.roinflam.battlecorrection.utils.Reference;
 
 import javax.annotation.Nonnull;
 
-@Mod(modid = Reference.MOD_ID, useMetadata = true, guiFactory = "pers.roinflam.battlecorrection.gui.ConfigGuiFactory")
+//, dependencies = "required-after:potioncore;after:baubles"
+// dependencies = "after:baubles"
+
+@Mod(modid = Reference.MOD_ID, useMetadata = true, guiFactory = "pers.roinflam.battlecorrection.gui.ConfigGuiFactory", dependencies = "before:infinityeditor")
 public class BattleCorrection {
 
     @Mod.Instance
     public static BattleCorrection instance;
-
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.COMMON_PROXY_CLASS)
     public static CommonProxy proxy;
 
     @Mod.EventHandler
     public static void preInit(@Nonnull FMLPreInitializationEvent evt) {
-        proxy.setInfinityItemEditor();
     }
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent evt) {
-        proxy.setInfinityItemEditor();
     }
 
     @Mod.EventHandler
     public static void postInit(FMLPostInitializationEvent evt) {
-        proxy.setInfinityItemEditor();
     }
 }

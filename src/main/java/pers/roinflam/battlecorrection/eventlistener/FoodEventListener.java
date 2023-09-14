@@ -6,12 +6,12 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import pers.roinflam.battlecorrection.config.ConfigLoader;
+import pers.roinflam.battlecorrection.config.ConfigBattle;
 
 import javax.annotation.Nonnull;
 
 @Mod.EventBusSubscriber
-public class FoodEvents {
+public class FoodEventListener {
 
     @SubscribeEvent
     public static void onPlayerTick(@Nonnull TickEvent.PlayerTickEvent evt) {
@@ -26,14 +26,14 @@ public class FoodEvents {
             }
             if (entityPlayer.world.getGameRules().getBoolean("naturalRegeneration") && entityPlayer.shouldHeal()) {
                 if (foodStats.getSaturationLevel() > 0.0F && foodStats.getFoodLevel() >= 20 && foodTimer == 9) {
-                    entityPlayer.heal(ConfigLoader.extraSaturationHeal);
-                    entityPlayer.heal(entityPlayer.getMaxHealth() * ConfigLoader.extraSaturationPercentageHeal);
+                    entityPlayer.heal(ConfigBattle.extraSaturationHeal);
+                    entityPlayer.heal(entityPlayer.getMaxHealth() * ConfigBattle.extraSaturationPercentageHeal);
                     if (!entityPlayer.shouldHeal()) {
                         resetFoodTimer(entityPlayer);
                     }
                 } else if (foodStats.getFoodLevel() >= 18 && foodTimer == 79) {
-                    entityPlayer.heal(ConfigLoader.extraHungerHeal);
-                    entityPlayer.heal(entityPlayer.getMaxHealth() * ConfigLoader.extraHungerPercentageHeal);
+                    entityPlayer.heal(ConfigBattle.extraHungerHeal);
+                    entityPlayer.heal(entityPlayer.getMaxHealth() * ConfigBattle.extraHungerPercentageHeal);
                     if (!entityPlayer.shouldHeal()) {
                         resetFoodTimer(entityPlayer);
                     }

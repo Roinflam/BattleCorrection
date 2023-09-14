@@ -9,6 +9,7 @@ import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.java.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
@@ -29,7 +30,7 @@ public class AttributeBowSpeed {
         if (entityLivingBase.isHandActive()) {
             @Nonnull ItemStack itemStack = entityLivingBase.getHeldItem(entityLivingBase.getActiveHand());
             if (!itemStack.isEmpty() && itemStack.getItem() instanceof ItemBow) {
-                float speed = AttributesUtil.getAttributeValue(entityLivingBase, BOW_SPEED);
+                float speed = AttributesUtil.getAttributeValue(entityLivingBase, BOW_SPEED) + ConfigAttribute.bowSpeed;
                 if (speed > 1) {
                     int number = (int) (speed - 1);
                     for (int i = 0; i < number; i++) {
@@ -48,7 +49,7 @@ public class AttributeBowSpeed {
         EntityLivingBase entityLivingBase = evt.getEntityLiving();
         @Nonnull ItemStack itemStack = evt.getItem();
         if (!itemStack.isEmpty() && itemStack.getItem() instanceof ItemBow) {
-            float speed = AttributesUtil.getAttributeValue(entityLivingBase, BOW_SPEED);
+            float speed = AttributesUtil.getAttributeValue(entityLivingBase, BOW_SPEED) + ConfigAttribute.bowSpeed;
             if (speed < 1) {
                 if (RandomUtil.percentageChance((1 - speed) * 100)) {
                     evt.setDuration(evt.getDuration() + 1);

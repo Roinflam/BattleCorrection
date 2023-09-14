@@ -9,6 +9,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
@@ -28,7 +29,7 @@ public class AttributeProjectileDamage {
             DamageSource damageSource = evt.getSource();
             if (damageSource.getImmediateSource() instanceof IProjectile && !(damageSource.getImmediateSource() instanceof EntityArrow) && !damageSource.isMagicDamage() && damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                evt.setAmount(evt.getAmount() * AttributesUtil.getAttributeValue(attacker, PROJECTILE_DAMAGE, evt.getAmount()));
+                evt.setAmount(AttributesUtil.getAttributeValue(attacker, PROJECTILE_DAMAGE, evt.getAmount() + ConfigAttribute.projectileDamage));
             }
         }
     }
