@@ -56,3 +56,21 @@ config.battlecorrection.general.hungerDamageDecay=Hunger Damage Decay
 config.battlecorrection.general.hungerDamageDecay.tooltip=Set the percentage of damage attenuation for each lesser hunger value.
 config.battlecorrection.general.hungerDamageDecayLimit=unger Damage Decay Limit
 config.battlecorrection.general.hungerDamageDecayLimit.tooltip=Set the upper limit of damage reduction due to starvation, 0.7 means that damage is reduced by up to 70% due to starvation.
+
+key.battlecorrection.openModList=Open mod list
+
+item.enemy_staff.name=Enemy Staff
+item.rebel_staff.name=Rebel Staff
+item.riot_staff.name=Riot Staff
+item.brawl_staff.name=Brawl Staff
+item.elimination_staff.name=Elimination Staff
+
+item.enemy_staff.tooltip=Right-click two creatures to make them hate each other and attack each other
+item.rebel_staff.tooltip=Right-clicking on a creature will cause all surrounding creatures to attack it
+item.riot_staff.tooltip=Right-clicking on a creature will cause the target creature to start attacking surrounding creatures indiscriminately
+item.brawl_staff.tooltip=After right-clicking, all surrounding creatures will begin to attack other surrounding creatures indiscriminately
+item.elimination_staff.tooltip=After right-clicking, all surrounding creatures will start attacking other surrounding creatures that are not of the same kind
+
+message.battlecorrection.select_first=After successfully selecting the first creature, choose the next one to make them hate~
+message.battlecorrection.select_second=Successfully caused hatred between these two creatures~
+message.battlecorrection.select_cancel=The previous creature has died, please choose again!
