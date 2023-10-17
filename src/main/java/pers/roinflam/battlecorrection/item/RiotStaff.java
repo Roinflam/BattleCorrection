@@ -4,7 +4,6 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -50,6 +49,15 @@ public class RiotStaff extends ItemStaff {
                     targetEntityLiving.removeActivePotionEffect(BrawlStaff.MobEffectRiot.RIOT);
                     targetEntityLiving.removeActivePotionEffect(EliminationStaff.MobEffectRiot.RIOT);
                     targetEntityLiving.addPotionEffect(new PotionEffect(MobEffectRiot.RIOT, 12000, 0));
+
+                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, targetEntityLiving, 64, entityLiving -> !entityLiving.equals(targetEntityLiving));
+                    if (entities.size() > 0) {
+                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
+                        if (entityLiving.isEntityAlive()) {
+                            targetEntityLiving.setAttackTarget(entityLiving);
+                            entityLiving.setAttackTarget(targetEntityLiving);
+                        }
+                    }
                     return true;
                 }
             }
@@ -68,15 +76,14 @@ public class RiotStaff extends ItemStaff {
         public void performEffect(@Nonnull EntityLivingBase entityLivingBaseIn, int amplifier) {
             if (entityLivingBaseIn instanceof EntityLiving) {
                 EntityLiving attacker = (EntityLiving) entityLivingBaseIn;
-                if ((attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive()) || RandomUtil.percentageChance(1 / 20)) {
-                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
-                            EntityLiving.class,
-                            attacker,
-                            64,
-                            entityLiving -> !entityLiving.equals(attacker)
-                    );
+                if (attacker.world.getTotalWorldTime() % 100 == 0 || (attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive())) {
+                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, attacker, 64, entityLiving -> !entityLiving.equals(attacker));
                     if (entities.size() > 0) {
-                        attacker.setAttackTarget(entities.get(RandomUtil.getInt(0, entities.size() - 1)));
+                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
+                        if (entityLiving.isEntityAlive()) {
+                            attacker.setAttackTarget(entityLiving);
+                            entityLiving.setAttackTarget(attacker);
+                        }
                     }
                 }
             }

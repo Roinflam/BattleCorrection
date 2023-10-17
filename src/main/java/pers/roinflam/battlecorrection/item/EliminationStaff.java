@@ -56,6 +56,20 @@ public class EliminationStaff extends ItemStaff {
                 entityLiving.removeActivePotionEffect(BrawlStaff.MobEffectRiot.RIOT);
                 entityLiving.removeActivePotionEffect(EliminationStaff.MobEffectRiot.RIOT);
                 entityLiving.addPotionEffect(new PotionEffect(MobEffectRiot.RIOT, 12000, 0));
+
+                @Nonnull List<EntityLiving> nearbyEntities = EntityUtil.getNearbyEntities(
+                        EntityLiving.class,
+                        entityLiving,
+                        64,
+                        otherEntityLiving -> !otherEntityLiving.equals(entityLiving) && otherEntityLiving.getClass() != entityLiving.getClass()
+                );
+                if (nearbyEntities.size() > 0) {
+                    EntityLiving otherEntityLiving = nearbyEntities.get(RandomUtil.getInt(0, nearbyEntities.size() - 1));
+                    if (otherEntityLiving.isEntityAlive()) {
+                        entityLiving.setAttackTarget(otherEntityLiving);
+                        otherEntityLiving.setAttackTarget(entityLiving);
+                    }
+                }
             }
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
         }
@@ -73,7 +87,7 @@ public class EliminationStaff extends ItemStaff {
         public void performEffect(@Nonnull EntityLivingBase entityLivingBaseIn, int amplifier) {
             if (entityLivingBaseIn instanceof EntityLiving) {
                 EntityLiving attacker = (EntityLiving) entityLivingBaseIn;
-                if ((attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive()) || RandomUtil.percentageChance(1 / 20)) {
+                if (attacker.world.getTotalWorldTime() % 100 == 0 || (attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive())) {
                     @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
                             EntityLiving.class,
                             attacker,
@@ -81,7 +95,11 @@ public class EliminationStaff extends ItemStaff {
                             entityLiving -> !entityLiving.equals(attacker) && entityLiving.getClass() != attacker.getClass()
                     );
                     if (entities.size() > 0) {
-                        attacker.setAttackTarget(entities.get(RandomUtil.getInt(0, entities.size() - 1)));
+                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
+                        if (entityLiving.isEntityAlive()) {
+                            attacker.setAttackTarget(entityLiving);
+                            entityLiving.setAttackTarget(attacker);
+                        }
                     }
                 }
             }

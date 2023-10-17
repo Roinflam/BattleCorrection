@@ -46,16 +46,26 @@ public class BrawlStaff extends ItemStaff {
     @Override
     public ActionResult<ItemStack> onItemRightClick(@Nonnull World worldIn, @Nonnull EntityPlayer playerIn, @Nonnull EnumHand handIn) {
         if (handIn.equals(EnumHand.MAIN_HAND) && !playerIn.world.isRemote) {
-            @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
-                    EntityLiving.class,
-                    playerIn,
-                    64
-            );
+            @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, playerIn, 64);
             for (@Nonnull EntityLiving entityLiving : entities) {
                 entityLiving.removeActivePotionEffect(RiotStaff.MobEffectRiot.RIOT);
                 entityLiving.removeActivePotionEffect(BrawlStaff.MobEffectRiot.RIOT);
                 entityLiving.removeActivePotionEffect(EliminationStaff.MobEffectRiot.RIOT);
                 entityLiving.addPotionEffect(new PotionEffect(MobEffectRiot.RIOT, 12000, 0));
+
+                @Nonnull List<EntityLiving> nearbyEntities = EntityUtil.getNearbyEntities(
+                        EntityLiving.class,
+                        entityLiving,
+                        64,
+                        otherEntityLiving -> !otherEntityLiving.equals(entityLiving)
+                );
+                if (nearbyEntities.size() > 0) {
+                    EntityLiving otherEntityLiving = nearbyEntities.get(RandomUtil.getInt(0, nearbyEntities.size() - 1));
+                    if (otherEntityLiving.isEntityAlive()) {
+                        entityLiving.setAttackTarget(otherEntityLiving);
+                        otherEntityLiving.setAttackTarget(entityLiving);
+                    }
+                }
             }
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
         }
@@ -73,15 +83,14 @@ public class BrawlStaff extends ItemStaff {
         public void performEffect(@Nonnull EntityLivingBase entityLivingBaseIn, int amplifier) {
             if (entityLivingBaseIn instanceof EntityLiving) {
                 EntityLiving attacker = (EntityLiving) entityLivingBaseIn;
-                if ((attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive()) || RandomUtil.percentageChance(1 / 20)) {
-                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
-                            EntityLiving.class,
-                            attacker,
-                            64,
-                            entityLiving -> !entityLiving.equals(attacker)
-                    );
+                if (attacker.world.getTotalWorldTime() % 100 == 0 || (attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive())) {
+                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, attacker, 64, entityLiving -> !entityLiving.equals(attacker));
                     if (entities.size() > 0) {
-                        attacker.setAttackTarget(entities.get(RandomUtil.getInt(0, entities.size() - 1)));
+                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
+                        if (entityLiving.isEntityAlive()) {
+                            attacker.setAttackTarget(entityLiving);
+                            entityLiving.setAttackTarget(attacker);
+                        }
                     }
                 }
             }
