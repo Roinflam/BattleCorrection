@@ -16,11 +16,8 @@ public class KeyEventListener {
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public static void onKeyInput(InputEvent.KeyInputEvent event) {
-        // 如果按下了K键，并且当前没有打开其他GUI
         if (BattleCorrection.keyOpenModList.isPressed() && Minecraft.getMinecraft().currentScreen == null) {
-            // 获取Forge自带的mod list界面的对象
             GuiScreen gui = new GuiModList(Minecraft.getMinecraft().currentScreen);
-            // 显示GUI
             Minecraft.getMinecraft().displayGuiScreen(gui);
         }
     }

@@ -44,7 +44,7 @@ public class BrawlStaff extends ItemStaff {
 
     @Nonnull
     @Override
-    public ActionResult<ItemStack> onItemRightClick(@Nonnull World worldIn, @Nonnull EntityPlayer playerIn, EnumHand handIn) {
+    public ActionResult<ItemStack> onItemRightClick(@Nonnull World worldIn, @Nonnull EntityPlayer playerIn, @Nonnull EnumHand handIn) {
         if (handIn.equals(EnumHand.MAIN_HAND) && !playerIn.world.isRemote) {
             @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
                     EntityLiving.class,
