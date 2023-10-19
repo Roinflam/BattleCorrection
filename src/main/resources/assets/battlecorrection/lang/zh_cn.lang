@@ -64,13 +64,28 @@ item.rebel_staff.name=叛乱法杖
 item.riot_staff.name=暴动法杖
 item.brawl_staff.name=乱斗法杖
 item.elimination_staff.name=排异法杖
+item.sacrificial_staff.name=牺牲法杖
+item.range_sacrificial_staff.name=范围牺牲法杖
+item.healing_staff.name=治愈法杖
+item.range_healing_staff.name=范围治愈法杖
+item.restoration_staff.name=回归性原理法杖
+item.base_sword.name=基础之剑
+item.advanced_sword.name=进阶之剑
+item.master_sword.name=大师之剑
 
 item.enemy_staff.tooltip=右键两个生物，让它们互相产生仇恨，互相攻击
 item.rebel_staff.tooltip=右键生物，会让周围的生物都主动攻击它
 item.riot_staff.tooltip=右键生物，会让目标生物开始无差别攻击周围生物
 item.brawl_staff.tooltip=右键后让周围所有生物开始无差别攻击周围其他生物
 item.elimination_staff.tooltip=右键后让周围所有生物开始攻击周围非同类的其他生物
+item.sacrificial_staff.tooltip=消除右键的生物
+item.range_sacrificial_staff.tooltip=右键生物后，消除大范围内所有非玩家生物
+item.healing_staff.tooltip=治愈右键的生物
+item.range_healing_staff.tooltip=右键生物后，治愈大范围内所有生物
+item.restoration_staff.tooltip=清空右键生物的所有增益负面药水效果
 
 message.battlecorrection.select_first=「战斗修正」成功选择第一个生物，选择下一个让它们产生仇恨吧~
 message.battlecorrection.select_second=「战斗修正」成功让这两个生物产生仇恨了~
 message.battlecorrection.select_cancel=「战斗修正」先前一个生物已经死亡，请重新选择！
+
+itemGroup.battlecorrection_tab=战斗修正测试工具

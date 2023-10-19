@@ -69,6 +69,7 @@ public class EliminationStaff extends ItemStaff {
                         entityLiving.setAttackTarget(otherEntityLiving);
                         otherEntityLiving.setAttackTarget(entityLiving);
                     }
+                    playerIn.getCooldownTracker().setCooldown(this, 20);
                 }
             }
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));

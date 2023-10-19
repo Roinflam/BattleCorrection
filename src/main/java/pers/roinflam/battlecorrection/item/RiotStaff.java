@@ -58,6 +58,7 @@ public class RiotStaff extends ItemStaff {
                             entityLiving.setAttackTarget(targetEntityLiving);
                         }
                     }
+                    playerIn.getCooldownTracker().setCooldown(this, 20);
                     return true;
                 }
             }

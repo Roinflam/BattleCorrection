@@ -4,11 +4,9 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.util.text.TextFormatting;
@@ -17,12 +15,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pers.roinflam.battlecorrection.base.potion.hide.PrivateHideBase;
-import pers.roinflam.battlecorrection.utils.util.EntityUtil;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 
 @Mod.EventBusSubscriber
@@ -70,6 +65,7 @@ public class EnemyStaff extends ItemStaff {
                         textComponentString.getStyle().setColor(TextFormatting.RED);
                         playerIn.sendMessage(textComponentString);
                     }
+                    playerIn.getCooldownTracker().setCooldown(this, 20);
                     return true;
                 }
             }

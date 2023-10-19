@@ -64,13 +64,28 @@ item.rebel_staff.name=Rebel Staff
 item.riot_staff.name=Riot Staff
 item.brawl_staff.name=Brawl Staff
 item.elimination_staff.name=Elimination Staff
+item.sacrificial_staff.name=Sacrificial Staff
+item.range_sacrificial_staff.name=Range Sacrificial Staff
+item.healing_staff.name=Healing Staff
+item.range_healing_staff.name=Range Healing Staff
+item.restoration_staff.name=Restoration Staff
+item.base_sword.name=Base Sword
+item.advanced_sword.name=Advanced Sword
+item.master_sword.name=Master Sword
 
 item.enemy_staff.tooltip=Right-click two creatures to make them hate each other and attack each other
 item.rebel_staff.tooltip=Right-clicking on a creature will cause all surrounding creatures to attack it
 item.riot_staff.tooltip=Right-clicking on a creature will cause the target creature to start attacking surrounding creatures indiscriminately
 item.brawl_staff.tooltip=After right-clicking, all surrounding creatures will begin to attack other surrounding creatures indiscriminately
 item.elimination_staff.tooltip=After right-clicking, all surrounding creatures will start attacking other surrounding creatures that are not of the same kind
+item.sacrificial_staff.tooltip=Eliminate the right-clicked creature
+item.range_sacrificial_staff.tooltip=After right-clicking on a creature, all non-player creatures in a large area will be eliminated.
+item.healing_staff.tooltip=Heals the right-clicked creature
+item.range_healing_staff.tooltip=After right-clicking on a creature, all creatures in a large area will be healed
+item.restoration_staff.tooltip=Clear all buffs and enchantments on the right-clicked creature
 
 message.battlecorrection.select_first=After successfully selecting the first creature, choose the next one to make them hate~
 message.battlecorrection.select_second=Successfully caused hatred between these two creatures~
 message.battlecorrection.select_cancel=The previous creature has died, please choose again!
+
+itemGroup.battlecorrection_tab=BattleCorrection Test Tools

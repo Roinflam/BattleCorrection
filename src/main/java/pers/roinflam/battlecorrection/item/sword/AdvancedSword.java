@@ -1,27 +1,27 @@
-package pers.roinflam.battlecorrection.item;
+package pers.roinflam.battlecorrection.item.sword;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.EnumRarity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemSword;
+import net.minecraftforge.common.util.EnumHelper;
 import pers.roinflam.battlecorrection.init.BattleCorrectionItems;
 import pers.roinflam.battlecorrection.utils.IHasModel;
 import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
-import javax.annotation.Nonnull;
+public class AdvancedSword extends ItemSword implements IHasModel {
+    public static final ToolMaterial ADVANCED = EnumHelper.addToolMaterial("battlecorrection_advanced", 3, 10000, 200.0f, 96f, 100);
 
-public abstract class ItemStaff extends Item implements IHasModel {
-    public ItemStaff(@Nonnull String name, @Nonnull CreativeTabs creativeTabs) {
+    public AdvancedSword(String name, CreativeTabs creativeTabs) {
+        super(ADVANCED);
         ItemUtil.registerItem(this, name, creativeTabs);
-
-        setMaxStackSize(1);
 
         BattleCorrectionItems.ITEMS.add(this);
     }
 
-    @Nonnull
     @Override
     public EnumRarity getRarity(ItemStack stack) {
-        return EnumRarity.EPIC;
+        return EnumRarity.RARE;
     }
+
 }
