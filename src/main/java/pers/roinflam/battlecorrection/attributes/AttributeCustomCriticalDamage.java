@@ -18,12 +18,17 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
+/**
+ * 自定义暴击伤害属性
+ * 支持超额暴击机制：
+ * - 每层暴击使伤害翻倍
+ * - 最终伤害 = 原始伤害 × 暴击伤害倍率^暴击层数
+ */
 @Mod.EventBusSubscriber
 public class AttributeCustomCriticalDamage {
     public static final UUID ID = UUID.fromString("8d4fa0b6-4b8d-11ef-9c3a-0242ac120002");
     public static final String NAME = "battlecorrection.customCriticalDamage";
 
-    // 暴击伤害，默认0，通过配置文件和装备加成
     public static final IAttribute CUSTOM_CRITICAL_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Custom Critical Hit Damage (Multiplier)");
 
     @SubscribeEvent(priority = EventPriority.NORMAL)
@@ -42,21 +47,24 @@ public class AttributeCustomCriticalDamage {
 
         @Nullable EntityLivingBase attacker = (EntityLivingBase) trueSource;
 
-        boolean isCritical = AttributeCustomCriticalChance.isCriticalHit(immediateSource);
+        // 获取暴击层数
+        int criticalLayers = AttributeCustomCriticalChance.getCriticalLayers(immediateSource, attacker);
 
-        if (!isCritical) {
+        if (criticalLayers <= 0) {
             return;
         }
 
-        // 属性基础值0 + 装备加成 + 配置文件全局加成
-        double criticalDamage = AttributesUtil.getAttributeValue(attacker, CUSTOM_CRITICAL_DAMAGE);
-        criticalDamage += ConfigAttribute.customCriticalDamage;
+        // 获取基础暴击伤害倍率
+        double baseCriticalDamage = AttributesUtil.getAttributeValue(attacker, CUSTOM_CRITICAL_DAMAGE);
+        baseCriticalDamage += ConfigAttribute.customCriticalDamage;
+        baseCriticalDamage = Math.max(1.0, baseCriticalDamage);
 
-        // 确保暴击伤害至少为100%（即不减少伤害）
-        criticalDamage = Math.max(1.0, criticalDamage);
+        // 计算最终暴击伤害：基础倍率的暴击层数次方
+        // 例如：200%暴击伤害，2层暴击 = 2.0^2 = 4.0倍
+        double finalCriticalDamage = Math.pow(baseCriticalDamage, criticalLayers);
 
         float originalDamage = evt.getAmount();
-        float newDamage = (float) (originalDamage * criticalDamage);
+        float newDamage = (float) (originalDamage * finalCriticalDamage);
 
         evt.setAmount(newDamage);
     }
