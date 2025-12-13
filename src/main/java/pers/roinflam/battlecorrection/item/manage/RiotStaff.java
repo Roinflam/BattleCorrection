@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.item;
+package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
@@ -8,8 +8,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.Mod;
-import pers.roinflam.battlecorrection.base.potion.hide.PrivateHideBase;
-import pers.roinflam.battlecorrection.utils.java.random.RandomUtil;
+import pers.roinflam.battlecorrection.base.potion.HiddenPotionBase;
+import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityUtil;
 
 import javax.annotation.Nonnull;
@@ -49,7 +49,7 @@ public class RiotStaff extends ItemStaff {
         return false;
     }
 
-    static class MobEffectRiot extends PrivateHideBase {
+    static class MobEffectRiot extends HiddenPotionBase {
         public static final MobEffectRiot RIOT = new MobEffectRiot(true, 0, "riot_staff_MobEffectRiot");
 
         protected MobEffectRiot(boolean isBadEffectIn, int liquidColorIn, @Nonnull String name) {

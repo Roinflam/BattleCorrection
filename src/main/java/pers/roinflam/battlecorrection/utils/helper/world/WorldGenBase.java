@@ -8,7 +8,7 @@ import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.gen.IChunkGenerator;
 import net.minecraft.world.gen.feature.WorldGenMinable;
 import net.minecraftforge.fml.common.IWorldGenerator;
-import pers.roinflam.battlecorrection.utils.java.random.RandomUtil;
+import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Random;

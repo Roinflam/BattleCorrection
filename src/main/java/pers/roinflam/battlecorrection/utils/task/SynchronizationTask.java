@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.utils.helper.task;
+package pers.roinflam.battlecorrection.utils.task;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;

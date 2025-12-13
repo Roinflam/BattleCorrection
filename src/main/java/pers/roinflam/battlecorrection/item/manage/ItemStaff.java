@@ -1,10 +1,10 @@
-package pers.roinflam.battlecorrection.item;
+package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.EnumRarity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import pers.roinflam.battlecorrection.init.BattleCorrectionItems;
+import pers.roinflam.battlecorrection.init.ModItems;
 import pers.roinflam.battlecorrection.utils.IHasModel;
 import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
@@ -16,7 +16,7 @@ public abstract class ItemStaff extends Item implements IHasModel {
 
         setMaxStackSize(1);
 
-        BattleCorrectionItems.ITEMS.add(this);
+        ModItems.ITEMS.add(this);
     }
 
     @Nonnull

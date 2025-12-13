@@ -6,7 +6,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.Mod;
-import pers.roinflam.battlecorrection.item.ItemStaff;
 
 import javax.annotation.Nonnull;
 

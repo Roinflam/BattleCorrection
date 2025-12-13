@@ -2,12 +2,12 @@ package pers.roinflam.battlecorrection.tabs;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
-import pers.roinflam.battlecorrection.init.BattleCorrectionItems;
+import pers.roinflam.battlecorrection.init.ModItems;
 
-public class BattleCorrectionTab extends CreativeTabs {
-    private static final BattleCorrectionTab BATTLE_CORRECTION_TAB = new BattleCorrectionTab();
+public class ModCreativeTab extends CreativeTabs {
+    private static final ModCreativeTab BATTLE_CORRECTION_TAB = new ModCreativeTab();
 
-    private BattleCorrectionTab() {
+    private ModCreativeTab() {
         super("battlecorrection_tab");
     }
 
@@ -17,6 +17,6 @@ public class BattleCorrectionTab extends CreativeTabs {
 
     @Override
     public ItemStack getTabIconItem() {
-        return new ItemStack(BattleCorrectionItems.ENEMY_STAFF);
+        return new ItemStack(ModItems.ENEMY_STAFF);
     }
 }

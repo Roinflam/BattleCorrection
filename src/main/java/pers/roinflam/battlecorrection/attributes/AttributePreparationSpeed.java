@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.LogUtil;
-import pers.roinflam.battlecorrection.utils.java.random.RandomUtil;
+import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
 

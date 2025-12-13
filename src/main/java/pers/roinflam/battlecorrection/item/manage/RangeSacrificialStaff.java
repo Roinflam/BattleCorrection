@@ -8,7 +8,6 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.Mod;
-import pers.roinflam.battlecorrection.item.ItemStaff;
 import pers.roinflam.battlecorrection.utils.util.EntityUtil;
 
 import javax.annotation.Nonnull;

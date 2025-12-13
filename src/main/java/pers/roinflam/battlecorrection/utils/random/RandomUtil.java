@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.utils.java.random;
+package pers.roinflam.battlecorrection.utils.random;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;

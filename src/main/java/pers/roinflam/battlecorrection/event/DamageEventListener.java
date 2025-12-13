@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.eventlistener;
+package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IProjectile;

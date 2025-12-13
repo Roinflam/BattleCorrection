@@ -5,7 +5,7 @@ import net.minecraft.item.EnumRarity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraftforge.common.util.EnumHelper;
-import pers.roinflam.battlecorrection.init.BattleCorrectionItems;
+import pers.roinflam.battlecorrection.init.ModItems;
 import pers.roinflam.battlecorrection.utils.IHasModel;
 import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
@@ -16,7 +16,7 @@ public class MasterSword extends ItemSword implements IHasModel {
         super(MASTER);
         ItemUtil.registerItem(this, name, creativeTabs);
 
-        BattleCorrectionItems.ITEMS.add(this);
+        ModItems.ITEMS.add(this);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.item;
+package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;

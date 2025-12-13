@@ -9,7 +9,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.LogUtil;
-import pers.roinflam.battlecorrection.utils.helper.task.SynchronizationTask;
+import pers.roinflam.battlecorrection.utils.task.SynchronizationTask;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;

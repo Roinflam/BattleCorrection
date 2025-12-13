@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.eventlistener;
+package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -10,7 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
-import pers.roinflam.battlecorrection.utils.helper.task.SynchronizationTask;
+import pers.roinflam.battlecorrection.utils.task.SynchronizationTask;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;

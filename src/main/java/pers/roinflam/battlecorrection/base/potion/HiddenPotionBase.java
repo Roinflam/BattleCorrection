@@ -1,4 +1,4 @@
-package pers.roinflam.battlecorrection.base.potion.hide;
+package pers.roinflam.battlecorrection.base.potion;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.potion.Potion;
@@ -7,9 +7,9 @@ import pers.roinflam.battlecorrection.utils.util.PotionUtil;
 
 import javax.annotation.Nonnull;
 
-public abstract class PrivateHideBase extends Potion {
+public abstract class HiddenPotionBase extends Potion {
 
-    protected PrivateHideBase(boolean isBadEffectIn, int liquidColorIn, @Nonnull String name) {
+    protected HiddenPotionBase(boolean isBadEffectIn, int liquidColorIn, @Nonnull String name) {
         super(isBadEffectIn, liquidColorIn);
         PotionUtil.registerPotion(this, name);
     }
