@@ -1,91 +1,114 @@
-attribute.name.battlecorrection.magicDamage=魔法伤害
-attribute.name.battlecorrection.arrowDamage=箭矢伤害
-attribute.name.battlecorrection.projectileDamage=弹射物伤害
-attribute.name.battlecorrection.restoreHeal=恢复生命值
-attribute.name.battlecorrection.immuneDamage=免疫伤害几率
-attribute.name.battlecorrection.bowSpeed=拉弓速度
-attribute.name.battlecorrection.preparationSpeed=准备速度
-attribute.name.battlecorrection.bloodthirsty=吸血
-attribute.name.battlecorrection.almightyBloodthirsty=全能吸血
-attribute.name.battlecorrection.ignoreDamage=无视伤害
-attribute.name.battlecorrection.criticalHitDamage=跳跃暴击伤害
-attribute.name.battlecorrection.jumpLift=跳跃提升
-attribute.name.battlecorrection.reducedFallDamage=摔落伤害减免
+# 文件：zh_cn.lang
+# 路径：src/main/resources/assets/battlecorrection/lang/zh_cn.lang
 
-config.battlecorrection.general.battle=战斗配置
-config.battlecorrection.general.attribute=属性配置
-config.battlecorrection.general.pvp=PVP伤害
-config.battlecorrection.general.pvp.tooltip=设置玩家pvp伤害倍数，调整这个值会影响最终的伤害，比如0.5会是原伤害的50%%，如果为0就相当于禁止pvp。
-config.battlecorrection.general.pvpHurtItself=自我伤害
-config.battlecorrection.general.pvpHurtItself.tooltip=设置玩家自我伤害的伤害倍数，调整该值会影响最终伤害，例如0.5为原伤害的50%%，为0相当于禁用自我伤害。
-config.battlecorrection.general.comboCorrection=连击平衡
-config.battlecorrection.general.comboCorrection.tooltip=启用后，未做好充分准备的攻击造成的伤害将低于原版，通常配合无敌时间很短一同使用。
-config.battlecorrection.general.hurtTimeEntity=无敌时间
-config.battlecorrection.general.hurtTimeEntity.tooltip=设置生物受伤后获得无敌的持续时间。比如0.5是原时间的50%%，0相当于禁用无敌时间。
-config.battlecorrection.general.hurtTimePlayer=无敌时间·玩家
-config.battlecorrection.general.hurtTimePlayer.tooltip=设置玩家受伤后获得无敌的持续时间。比如0.5是原时间的50%%，0相当于禁用无敌时间。
-config.battlecorrection.general.attackCooldown=攻击冷却
-config.battlecorrection.general.attackCooldown.tooltip=禁用后攻击将会回到1.8版本及以前的攻击模式
-config.battlecorrection.general.playerMeleeAttack=玩家全局近战伤害
-config.battlecorrection.general.playerMeleeAttack.tooltip=全局调整玩家近战攻击的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerArrowAttack=玩家全局箭矢伤害
-config.battlecorrection.general.playerArrowAttack.tooltip=全局调整玩家箭矢的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerProjectileAttack=玩家全局弹射物伤害
-config.battlecorrection.general.playerProjectileAttack.tooltip=全局调整玩家弹射物（如子弹）的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerMagicAttack=玩家全局魔法伤害
-config.battlecorrection.general.playerMagicAttack.tooltip=全局调整玩家魔法攻击的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerSuffersMelee=玩家全局受到近战伤害
-config.battlecorrection.general.playerSuffersMelee.tooltip=全局调整玩家受到近战攻击的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerSuffersArrow=玩家全局受到箭矢伤害
-config.battlecorrection.general.playerSuffersArrow.tooltip=全局调整玩家受到箭矢的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerSuffersProjectile=玩家全局受到弹射物伤害
-config.battlecorrection.general.playerSuffersProjectile.tooltip=全局调整玩家受到弹射物的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.playerSuffersMagic=玩家全局受到魔法伤害
-config.battlecorrection.general.playerSuffersMagic.tooltip=全局调整玩家受到魔法攻击的伤害倍率，默认1为100%%，0.5则为原来50%%。
-config.battlecorrection.general.extraMaxHealth=生物额外最大生命值
-config.battlecorrection.general.extraMaxHealth.tooltip=调整生物生成时的基础最大生命值，如果是1，基础生命值翻倍，-0.5，基础生命值减少50%%。
-config.battlecorrection.general.extraSaturationHeal=额外饱和度恢复效果
-config.battlecorrection.general.extraSaturationHeal.tooltip=额外增加消耗饥饿值回复生命值的效果。填5，额外恢复5点生命值，一共6点。
-config.battlecorrection.general.extraSaturationPercentageHeal=额外饱和度百分比恢复效果
-config.battlecorrection.general.extraSaturationPercentageHeal.tooltip=增加消耗饱和的健康效果并额外恢复。如果设置0.05，将额外恢复5%%的最大生命值。
-config.battlecorrection.general.extraHungerHeal=额外饥饿值恢复效果
-config.battlecorrection.general.extraHungerHeal.tooltip=额外增加消耗饥饿值恢复生命值的效果。填5，额外恢复5点生命值，一共6点。
-config.battlecorrection.general.extraHungerPercentageHeal=额外饥饿值百分比恢复效果
-config.battlecorrection.general.extraHungerPercentageHeal.tooltip=增加消耗饥饿的健康效果并额外恢复。如果设置0.05，将额外恢复5%%的最大生命值。
-config.battlecorrection.general.hungerDamageDecay=饥饿伤害衰减
-config.battlecorrection.general.hungerDamageDecay.tooltip=设置每饥饿一点伤害衰减的百分比，比如填0.1就每少一点饥饿值伤害衰减10%
-config.battlecorrection.general.hungerDamageDecayLimit=饥饿伤害衰减上限
-config.battlecorrection.general.hungerDamageDecayLimit.tooltip=设置因为饥饿值伤害衰减的上限，填0.7则为伤害最多因为饥饿值降低减少70%
+# ═══════════════════════════════════════════════════════════════
+# 创造模式标签
+# ═══════════════════════════════════════════════════════════════
+itemGroup.battlecorrection_tab=战斗修正
 
-key.battlecorrection.openModList=打开模组列表（配置）
+# ═══════════════════════════════════════════════════════════════
+# 配置分类
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.battle=战斗系统
+config.battlecorrection.attribute=RPG属性
 
-item.enemy_staff.name=仇恨法杖
+# ═══════════════════════════════════════════════════════════════
+# 战斗配置
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.battle.pvp=PVP伤害倍率
+config.battlecorrection.battle.pvpHurtItself=自伤倍率
+config.battlecorrection.battle.comboCorrection=启用连击修正
+config.battlecorrection.battle.hurtTimeEntity=实体无敌时间
+config.battlecorrection.battle.hurtTimePlayer=玩家无敌时间
+config.battlecorrection.battle.attackCooldown=启用攻击冷却
+config.battlecorrection.battle.playerMeleeAttack=玩家近战伤害
+config.battlecorrection.battle.playerArrowAttack=玩家箭矢伤害
+config.battlecorrection.battle.playerProjectileAttack=玩家弹射物伤害
+config.battlecorrection.battle.playerMagicAttack=玩家魔法伤害
+config.battlecorrection.battle.playerSuffersMelee=玩家近战抗性
+config.battlecorrection.battle.playerSuffersArrow=玩家箭矢抗性
+config.battlecorrection.battle.playerSuffersProjectile=玩家弹射物抗性
+config.battlecorrection.battle.playerSuffersMagic=玩家魔法抗性
+config.battlecorrection.battle.extraMaxHealth=实体最大生命倍率
+config.battlecorrection.battle.extraSaturationHeal=饱和度恢复加成(固定)
+config.battlecorrection.battle.extraSaturationPercentageHeal=饱和度恢复加成(%)
+config.battlecorrection.battle.extraHungerHeal=饥饿值恢复加成(固定)
+config.battlecorrection.battle.extraHungerPercentageHeal=饥饿值恢复加成(%)
+config.battlecorrection.battle.hungerDamageDecay=饥饿伤害衰减
+config.battlecorrection.battle.hungerDamageDecayLimit=饥饿衰减上限
+config.battlecorrection.battle.enableDetailedLogging=启用详细日志
+
+# ═══════════════════════════════════════════════════════════════
+# 属性配置
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.attribute.magicDamage=魔法伤害加成
+config.battlecorrection.attribute.arrowDamage=箭矢伤害加成
+config.battlecorrection.attribute.projectileDamage=弹射物伤害加成
+config.battlecorrection.attribute.restoreHeal=治疗倍率
+config.battlecorrection.attribute.immuneDamage=闪避几率
+config.battlecorrection.attribute.bowSpeed=拉弓速度
+config.battlecorrection.attribute.preparationSpeed=物品使用速度
+config.battlecorrection.attribute.bloodthirsty=近战吸血
+config.battlecorrection.attribute.almightyBloodthirsty=全能吸血
+config.battlecorrection.attribute.ignoreDamage=伤害减免
+config.battlecorrection.attribute.vanillaCriticalHitDamage=原版暴击加成
+config.battlecorrection.attribute.customCriticalChance=暴击率
+config.battlecorrection.attribute.customCriticalDamage=暴击伤害
+config.battlecorrection.attribute.jumpLift=跳跃提升
+config.battlecorrection.attribute.reducedFallDamage=摔落伤害减免
+
+# ═══════════════════════════════════════════════════════════════
+# 物品 - 战斗管理法杖
+# ═══════════════════════════════════════════════════════════════
+item.enemy_staff.name=仇敌法杖
+item.enemy_staff.tooltip=右键点击两个实体使它们互相攻击。第一次点击选择目标，第二次点击开始战斗。
+
 item.rebel_staff.name=叛乱法杖
-item.riot_staff.name=暴动法杖
-item.brawl_staff.name=乱斗法杖
-item.elimination_staff.name=排异法杖
-item.sacrificial_staff.name=牺牲法杖
-item.range_sacrificial_staff.name=范围牺牲法杖
-item.healing_staff.name=治愈法杖
-item.range_healing_staff.name=范围治愈法杖
-item.restoration_staff.name=回归性原理法杖
+item.rebel_staff.tooltip=右键点击一个实体，使附近所有实体(64格半径)攻击它。将一个实体变成所有人的目标。
+
+item.riot_staff.name=暴乱法杖
+item.riot_staff.tooltip=右键点击一个实体，使它随机攻击附近的实体。效果持续10分钟，会定期重新选择目标。
+
+item.brawl_staff.name=混战法杖
+item.brawl_staff.tooltip=右键使用，让附近所有实体(64格半径)随机互相攻击。制造完全混乱！
+
+item.elimination_staff.name=种族清洗法杖
+item.elimination_staff.tooltip=右键使用，让实体只攻击不同种类的生物。在该区域开始种族间战争。
+
+# ═══════════════════════════════════════════════════════════════
+# 物品 - 功能性法杖
+# ═══════════════════════════════════════════════════════════════
+item.sacrificial_staff.name=献祭法杖
+item.sacrificial_staff.tooltip=右键点击一个实体立即将其击杀。造成巨额伤害确保死亡。
+
+item.range_sacrificial_staff.name=范围献祭法杖
+item.range_sacrificial_staff.tooltip=右键点击一个实体，击杀附近所有非玩家实体(64格半径)。玩家免疫。
+
+item.healing_staff.name=治疗法杖
+item.healing_staff.tooltip=右键点击一个实体，完全恢复其生命值至最大值。
+
+item.range_healing_staff.name=范围治疗法杖
+item.range_healing_staff.tooltip=右键点击一个实体，完全治疗附近所有实体(64格半径)，包括玩家。
+
+item.restoration_staff.name=净化法杖
+item.restoration_staff.tooltip=右键点击一个实体，移除其所有激活的药水效果。清除好的和坏的效果。
+
+# ═══════════════════════════════════════════════════════════════
+# 物品 - 剑(无工具提示 - 它们没有特殊效果)
+# ═══════════════════════════════════════════════════════════════
 item.base_sword.name=基础之剑
-item.advanced_sword.name=进阶之剑
+item.advanced_sword.name=高级之剑
 item.master_sword.name=大师之剑
 
-item.enemy_staff.tooltip=右键两个生物，让它们互相产生仇恨，互相攻击
-item.rebel_staff.tooltip=右键生物，会让周围的生物都主动攻击它
-item.riot_staff.tooltip=右键生物，会让目标生物开始无差别攻击周围生物
-item.brawl_staff.tooltip=右键后让周围所有生物开始无差别攻击周围其他生物
-item.elimination_staff.tooltip=右键后让周围所有生物开始攻击周围非同类的其他生物
-item.sacrificial_staff.tooltip=消除右键的生物
-item.range_sacrificial_staff.tooltip=右键生物后，消除大范围内所有非玩家生物
-item.healing_staff.tooltip=治愈右键的生物
-item.range_healing_staff.tooltip=右键生物后，治愈大范围内所有生物
-item.restoration_staff.tooltip=清空右键生物的所有增益负面药水效果
+# ═══════════════════════════════════════════════════════════════
+# 消息
+# ═══════════════════════════════════════════════════════════════
+message.battlecorrection.select_first=已选择第一个目标！右键点击另一个实体使它们战斗。
+message.battlecorrection.select_second=战斗开始！两个实体将互相攻击。
+message.battlecorrection.select_cancel=选择已取消 - 第一个目标已不再存活。
 
-message.battlecorrection.select_first=「战斗修正」成功选择第一个生物，选择下一个让它们产生仇恨吧~
-message.battlecorrection.select_second=「战斗修正」成功让这两个生物产生仇恨了~
-message.battlecorrection.select_cancel=「战斗修正」先前一个生物已经死亡，请重新选择！
-
-itemGroup.battlecorrection_tab=战斗修正测试工具
+# ═══════════════════════════════════════════════════════════════
+# 按键绑定
+# ═══════════════════════════════════════════════════════════════
+key.battlecorrection.openModList=打开模组列表
+key.categories.misc=杂项

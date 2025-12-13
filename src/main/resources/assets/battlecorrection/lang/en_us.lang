@@ -1,91 +1,114 @@
-attribute.name.battlecorrection.magicDamage=Magic Damage
-attribute.name.battlecorrection.arrowDamage=Arrow Damage
-attribute.name.battlecorrection.projectileDamage=Projectile Damage
-attribute.name.battlecorrection.restoreHeal=Restore Heal
-attribute.name.battlecorrection.immuneDamage=Chance to be immune to damage
-attribute.name.battlecorrection.bowSpeed=Bow Speed
-attribute.name.battlecorrection.preparationSpeed=Preparation Speed
-attribute.name.battlecorrection.bloodthirsty=Bloodthirsty
-attribute.name.battlecorrection.almightyBloodthirsty=Almighty Bloodthirsty
-attribute.name.battlecorrection.ignoreDamage=Ignore Damage
-attribute.name.battlecorrection.criticalHitDamage=Critical Hit Damage
-attribute.name.battlecorrection.jumpLift=Jump Lift
-attribute.name.battlecorrection.reducedFallDamage=Reduced Fall Damage
+# 文件：en_us.lang
+# 路径：src/main/resources/assets/battlecorrection/lang/en_us.lang
 
-config.battlecorrection.general.battle=Battle
-config.battlecorrection.general.attribute=Attribute
-config.battlecorrection.general.pvp=PVP
-config.battlecorrection.general.pvp.tooltip=Set the player pvp damage multiplier, adjust this value will affect the final damage, such as 0.5 will be 50%% of the original damage, if 0 is equivalent to prohibit pvp.
-config.battlecorrection.general.pvpHurtItself=Pvp Hurt Itself
-config.battlecorrection.general.pvpHurtItself.tooltip=Set the damage multiplier for player self damage, adjusting this value will affect the final damage, e.g. 0.5 will be 50%% of the original damage, if it is 0 it is equivalent to disable self damage.
-config.battlecorrection.general.comboCorrection=Combo Correction
-config.battlecorrection.general.comboCorrection.tooltip=When enabled, attacks when not fully prepared will deal less damage than vanilla.
-config.battlecorrection.general.hurtTimeEntity=Hurt Time
-config.battlecorrection.general.hurtTimeEntity.tooltip=Set the duration of the creature's invulnerability. For example, 0.5 is 50%% of the original time, and 0 is equivalent to disabling the invincibility time.
-config.battlecorrection.general.hurtTimePlayer=Hurt Time Player
-config.battlecorrection.general.hurtTimePlayer.tooltip=Set the duration of the player invulnerability. For example, 0.5 is 50%% of the original time, and 0 is equivalent to disabling the invincibility time.
-config.battlecorrection.general.attackCooldown=Attack Cooldown
-config.battlecorrection.general.attackCooldown.tooltip=Disable will return the attack to the no attack cooldown in version 1.8.
-config.battlecorrection.general.playerMeleeAttack=Player Melee Attack
-config.battlecorrection.general.playerMeleeAttack.tooltip=Globally adjusted the damage of player melee attacks.
-config.battlecorrection.general.playerArrowAttack=Player Arrow Attack
-config.battlecorrection.general.playerArrowAttack.tooltip=Globally adjusted the damage of player arrow attacks.
-config.battlecorrection.general.playerProjectileAttack=Player Projectile Attack
-config.battlecorrection.general.playerProjectileAttack.tooltip=Globally adjusted the damage of player projectile attacks.
-config.battlecorrection.general.playerMagicAttack=Player Magic Attack
-config.battlecorrection.general.playerMagicAttack.tooltip=Globally adjusted the damage of player magic attacks.
-config.battlecorrection.general.playerSuffersMelee=Player Suffers Melee
-config.battlecorrection.general.playerSuffersMelee.tooltip=Global adjustment of damage to players from melee attacks.
-config.battlecorrection.general.playerSuffersArrow=Player Suffers Arrow
-config.battlecorrection.general.playerSuffersArrow.tooltip=Global adjustment of damage to players from arrow attacks.
-config.battlecorrection.general.playerSuffersProjectile=Player Suffers Projectile
-config.battlecorrection.general.playerSuffersProjectile.tooltip=Global adjustment of damage to players from projectlie attacks.
-config.battlecorrection.general.playerSuffersMagic=Player Suffers Magic
-config.battlecorrection.general.playerSuffersMagic.tooltip=Global adjustment of damage to players from magic attacks.
-config.battlecorrection.general.extraMaxHealth=Extra Max Health
-config.battlecorrection.general.extraMaxHealth.tooltip=Adjust the base maximum health of the entity, if it is 1, the base health is doubled, and -0.5, the base health is reduced by 50%%.
-config.battlecorrection.general.extraSaturationHeal=Extra Saturation Heal
-config.battlecorrection.general.extraSaturationHeal.tooltip=The effect of the health value recovered by consuming hunger value will be increased additionally. If you fill in 5, you will recover an additional 5 points of health, for a total of 6 points.
-config.battlecorrection.general.extraSaturationPercentageHeal=Extra Saturation Percentage Heal
-config.battlecorrection.general.extraSaturationPercentageHeal.tooltip=Increases the health effect of consuming saturation and recovers additionally. If it is set to 0.05, an additional 5%% of the maximum health will be recovered.
-config.battlecorrection.general.extraHungerHeal=Extra Hunger Heal
-config.battlecorrection.general.extraHungerHeal.tooltip=The effect of the health value recovered by consuming hunger value will be increased additionally. If you fill in 5, you will recover an additional 5 points of health, for a total of 6 points.
-config.battlecorrection.general.extraHungerPercentageHeal=Extra Hunger Percentage Heal
-config.battlecorrection.general.extraHungerPercentageHeal.tooltip=Increases the health effect of consuming hunger and recovers additionally. If it is set to 0.05, an additional 5%% of the maximum health will be recovered.
-config.battlecorrection.general.hungerDamageDecay=Hunger Damage Decay
-config.battlecorrection.general.hungerDamageDecay.tooltip=Set the percentage of damage attenuation for each lesser hunger value.
-config.battlecorrection.general.hungerDamageDecayLimit=unger Damage Decay Limit
-config.battlecorrection.general.hungerDamageDecayLimit.tooltip=Set the upper limit of damage reduction due to starvation, 0.7 means that damage is reduced by up to 70% due to starvation.
+# ═══════════════════════════════════════════════════════════════
+# CREATIVE TAB
+# ═══════════════════════════════════════════════════════════════
+itemGroup.battlecorrection_tab=Battle Correction
 
-key.battlecorrection.openModList=Open mod list
+# ═══════════════════════════════════════════════════════════════
+# CONFIG CATEGORIES
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.battle=Combat System
+config.battlecorrection.attribute=RPG Attributes
 
+# ═══════════════════════════════════════════════════════════════
+# BATTLE CONFIG
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.battle.pvp=PVP Damage Multiplier
+config.battlecorrection.battle.pvpHurtItself=Self-Damage Multiplier
+config.battlecorrection.battle.comboCorrection=Enable Combo Correction
+config.battlecorrection.battle.hurtTimeEntity=Entity Invulnerability Duration
+config.battlecorrection.battle.hurtTimePlayer=Player Invulnerability Duration
+config.battlecorrection.battle.attackCooldown=Enable Attack Cooldown
+config.battlecorrection.battle.playerMeleeAttack=Player Melee Damage
+config.battlecorrection.battle.playerArrowAttack=Player Arrow Damage
+config.battlecorrection.battle.playerProjectileAttack=Player Projectile Damage
+config.battlecorrection.battle.playerMagicAttack=Player Magic Damage
+config.battlecorrection.battle.playerSuffersMelee=Player Melee Resistance
+config.battlecorrection.battle.playerSuffersArrow=Player Arrow Resistance
+config.battlecorrection.battle.playerSuffersProjectile=Player Projectile Resistance
+config.battlecorrection.battle.playerSuffersMagic=Player Magic Resistance
+config.battlecorrection.battle.extraMaxHealth=Entity Max Health Multiplier
+config.battlecorrection.battle.extraSaturationHeal=Saturation Healing Bonus (Flat)
+config.battlecorrection.battle.extraSaturationPercentageHeal=Saturation Healing Bonus (%)
+config.battlecorrection.battle.extraHungerHeal=Hunger Healing Bonus (Flat)
+config.battlecorrection.battle.extraHungerPercentageHeal=Hunger Healing Bonus (%)
+config.battlecorrection.battle.hungerDamageDecay=Hunger Damage Penalty
+config.battlecorrection.battle.hungerDamageDecayLimit=Max Hunger Penalty
+config.battlecorrection.battle.enableDetailedLogging=Enable Debug Logging
+
+# ═══════════════════════════════════════════════════════════════
+# ATTRIBUTE CONFIG
+# ═══════════════════════════════════════════════════════════════
+config.battlecorrection.attribute.magicDamage=Magic Damage Bonus
+config.battlecorrection.attribute.arrowDamage=Arrow Damage Bonus
+config.battlecorrection.attribute.projectileDamage=Projectile Damage Bonus
+config.battlecorrection.attribute.restoreHeal=Healing Multiplier
+config.battlecorrection.attribute.immuneDamage=Dodge Chance
+config.battlecorrection.attribute.bowSpeed=Bow Draw Speed
+config.battlecorrection.attribute.preparationSpeed=Item Use Speed
+config.battlecorrection.attribute.bloodthirsty=Melee Lifesteal
+config.battlecorrection.attribute.almightyBloodthirsty=Universal Lifesteal
+config.battlecorrection.attribute.ignoreDamage=Damage Reduction
+config.battlecorrection.attribute.vanillaCriticalHitDamage=Vanilla Crit Bonus
+config.battlecorrection.attribute.customCriticalChance=Critical Hit Chance
+config.battlecorrection.attribute.customCriticalDamage=Critical Hit Damage
+config.battlecorrection.attribute.jumpLift=Jump Height Boost
+config.battlecorrection.attribute.reducedFallDamage=Fall Damage Reduction
+
+# ═══════════════════════════════════════════════════════════════
+# ITEMS - MANAGEMENT STAFFS
+# ═══════════════════════════════════════════════════════════════
 item.enemy_staff.name=Enemy Staff
+item.enemy_staff.tooltip=Right-click two entities to make them fight each other. First click selects target, second click initiates combat.
+
 item.rebel_staff.name=Rebel Staff
+item.rebel_staff.tooltip=Right-click an entity to make all nearby entities (64 block radius) attack it. Turns one entity into everyone's target.
+
 item.riot_staff.name=Riot Staff
+item.riot_staff.tooltip=Right-click an entity to make it randomly attack nearby entities. Effect lasts 10 minutes and reselects targets periodically.
+
 item.brawl_staff.name=Brawl Staff
+item.brawl_staff.tooltip=Right-click to make ALL nearby entities (64 block radius) attack each other randomly. Creates total chaos!
+
 item.elimination_staff.name=Elimination Staff
+item.elimination_staff.tooltip=Right-click to make entities attack different species only. Starts an inter-species war in the area.
+
+# ═══════════════════════════════════════════════════════════════
+# ITEMS - UTILITY STAFFS
+# ═══════════════════════════════════════════════════════════════
 item.sacrificial_staff.name=Sacrificial Staff
-item.range_sacrificial_staff.name=Range Sacrificial Staff
+item.sacrificial_staff.tooltip=Right-click an entity to instantly kill it. Deals massive damage to ensure death.
+
+item.range_sacrificial_staff.name=Area Sacrificial Staff
+item.range_sacrificial_staff.tooltip=Right-click an entity to kill ALL nearby non-player entities (64 block radius). Players are immune.
+
 item.healing_staff.name=Healing Staff
-item.range_healing_staff.name=Range Healing Staff
+item.healing_staff.tooltip=Right-click an entity to fully restore its health to maximum.
+
+item.range_healing_staff.name=Area Healing Staff
+item.range_healing_staff.tooltip=Right-click an entity to fully heal ALL nearby entities (64 block radius), including players.
+
 item.restoration_staff.name=Restoration Staff
+item.restoration_staff.tooltip=Right-click an entity to remove all active potion effects. Cleanses both good and bad effects.
+
+# ═══════════════════════════════════════════════════════════════
+# ITEMS - SWORDS (No tooltips - they have no special effects)
+# ═══════════════════════════════════════════════════════════════
 item.base_sword.name=Base Sword
 item.advanced_sword.name=Advanced Sword
 item.master_sword.name=Master Sword
 
-item.enemy_staff.tooltip=Right-click two creatures to make them hate each other and attack each other
-item.rebel_staff.tooltip=Right-clicking on a creature will cause all surrounding creatures to attack it
-item.riot_staff.tooltip=Right-clicking on a creature will cause the target creature to start attacking surrounding creatures indiscriminately
-item.brawl_staff.tooltip=After right-clicking, all surrounding creatures will begin to attack other surrounding creatures indiscriminately
-item.elimination_staff.tooltip=After right-clicking, all surrounding creatures will start attacking other surrounding creatures that are not of the same kind
-item.sacrificial_staff.tooltip=Eliminate the right-clicked creature
-item.range_sacrificial_staff.tooltip=After right-clicking on a creature, all non-player creatures in a large area will be eliminated.
-item.healing_staff.tooltip=Heals the right-clicked creature
-item.range_healing_staff.tooltip=After right-clicking on a creature, all creatures in a large area will be healed
-item.restoration_staff.tooltip=Clear all buffs and enchantments on the right-clicked creature
+# ═══════════════════════════════════════════════════════════════
+# MESSAGES
+# ═══════════════════════════════════════════════════════════════
+message.battlecorrection.select_first=First target selected! Right-click another entity to make them fight.
+message.battlecorrection.select_second=Battle initiated! Both entities will now attack each other.
+message.battlecorrection.select_cancel=Selection canceled - first target is no longer alive.
 
-message.battlecorrection.select_first=After successfully selecting the first creature, choose the next one to make them hate~
-message.battlecorrection.select_second=Successfully caused hatred between these two creatures~
-message.battlecorrection.select_cancel=The previous creature has died, please choose again!
-
-itemGroup.battlecorrection_tab=BattleCorrection Test Tools
+# ═══════════════════════════════════════════════════════════════
+# KEYBINDINGS
+# ═══════════════════════════════════════════════════════════════
+key.battlecorrection.openModList=Open Mod List
+key.categories.misc=Miscellaneous

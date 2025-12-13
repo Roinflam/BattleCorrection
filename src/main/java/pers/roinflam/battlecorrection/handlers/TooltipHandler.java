@@ -24,6 +24,7 @@ public class TooltipHandler {
 
     /**
      * 为继承自 ItemStaff 的物品自动添加工具提示
+     * 剑类物品不添加tooltip，因为它们没有特殊效果
      */
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
@@ -31,6 +32,7 @@ public class TooltipHandler {
         ItemStack itemStack = evt.getItemStack();
         Item item = itemStack.getItem();
 
+        // 只为ItemStaff添加tooltip
         if (item instanceof ItemStaff) {
             String unlocalizedName = item.getUnlocalizedName();
             String tooltipKey = "item." + unlocalizedName.substring(5) + ".tooltip";
