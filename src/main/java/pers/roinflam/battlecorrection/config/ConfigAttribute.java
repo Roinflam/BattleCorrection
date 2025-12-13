@@ -1,3 +1,5 @@
+// 文件：ConfigAttribute.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.config.Config;
@@ -42,9 +44,17 @@ public final class ConfigAttribute {
     @Config.RangeDouble(min = 0)
     public static float ignoreDamage = 0;
 
-    @Config.Comment("A multiplier for the original blast damage.")
+    @Config.Comment("Additional damage multiplier for vanilla critical hits (falling attack). Default 0 means vanilla 150% damage (50% bonus).")
     @Config.RangeDouble(min = 0)
-    public static float criticalHitDamage = 0;
+    public static float vanillaCriticalHitDamage = 0;
+
+    @Config.Comment("Custom critical hit chance (percentage). Default 2% base chance. Range: 0-100.")
+    @Config.RangeDouble(min = 0, max = 100)
+    public static float customCriticalChance = 2;
+
+    @Config.Comment("Custom critical hit damage multiplier. Default 2.0 means 200% damage (100% bonus). Minimum is 1.0 (100% damage).")
+    @Config.RangeDouble(min = 1)
+    public static float customCriticalDamage = 2;
 
     @Config.Comment("Improve the height of the jump, can refer to the original jump lift effect 0.75 level = 0.1 value.")
     @Config.RangeDouble(min = 0)

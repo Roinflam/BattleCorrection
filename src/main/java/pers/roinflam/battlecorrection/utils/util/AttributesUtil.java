@@ -21,10 +21,15 @@ public class AttributesUtil {
     }
 
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase, @Nonnull IAttribute attribute, double value) {
-        double base = attribute.getDefaultValue() + value;
+        // 修改：如果属性已注册，返回注册值加上value参数
         if (entityLivingBase.getEntityAttribute(attribute) != null) {
-            base = entityLivingBase.getEntityAttribute(attribute).getAttributeValue();
+            double attributeValue = entityLivingBase.getEntityAttribute(attribute).getAttributeValue();
+            double finalValue = attributeValue + value;
+            return (float) finalValue;
         }
+
+        // 以下代码只在属性未注册时执行
+        double base = attribute.getDefaultValue() + value;
 
         @Nonnull List<Double> zero = new ArrayList<>();
         @Nonnull List<Double> one = new ArrayList<>();

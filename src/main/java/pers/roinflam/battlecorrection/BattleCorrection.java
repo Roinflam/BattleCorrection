@@ -1,8 +1,8 @@
 package pers.roinflam.battlecorrection;
 
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AbstractAttributeMap;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
@@ -17,6 +17,7 @@ import pers.roinflam.battlecorrection.proxy.CommonProxy;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 import javax.annotation.Nonnull;
+import java.util.logging.Logger;
 
 @Mod.EventBusSubscriber
 @Mod(modid = Reference.MOD_ID, useMetadata = true, guiFactory = "pers.roinflam.battlecorrection.gui.ConfigGuiFactory", dependencies = "before:infinityeditor")
@@ -31,28 +32,38 @@ public class BattleCorrection {
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.COMMON_PROXY_CLASS)
     public static CommonProxy proxy;
 
+    // 添加一个日志记录器
+    public static final Logger LOGGER = Logger.getLogger("BattleCorrection");
+
     @Mod.EventHandler
     public static void preInit(@Nonnull FMLPreInitializationEvent evt) {
         proxy.bindKey();
+        LOGGER.info("BattleCorrection 预初始化完成");
     }
 
     @Mod.EventHandler
     public static void init(FMLInitializationEvent evt) {
+        LOGGER.info("BattleCorrection 初始化完成");
     }
 
     @Mod.EventHandler
     public static void postInit(FMLPostInitializationEvent evt) {
+        LOGGER.info("BattleCorrection 后初始化完成");
     }
 
     /**
-     * 当实体（特别是玩家）进入世界时，确保它们获得所有自定义属性
-     * 这使得SetBonus模组能够识别和修改这些属性
+     * 当实体（不仅是玩家，所有生物实体）进入世界时，确保它们获得所有自定义属性
+     * 修改：现在为所有EntityLivingBase注册属性，不仅仅是玩家
      */
     @SubscribeEvent
     public static void onEntityJoinWorld(EntityJoinWorldEvent event) {
-        if (event.getEntity() instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer) event.getEntity();
-            registerCustomAttributes(player.getAttributeMap());
+        if (event.getEntity() instanceof EntityLivingBase) {
+            EntityLivingBase entity = (EntityLivingBase) event.getEntity();
+            registerCustomAttributes(entity.getAttributeMap());
+
+            if (!event.getWorld().isRemote) {
+                LOGGER.info("为实体注册属性: " + entity.getName() + " [" + entity.getClass().getSimpleName() + "]");
+            }
         }
     }
 
@@ -82,6 +93,7 @@ public class BattleCorrection {
     private static void ensureAttributeExists(AbstractAttributeMap attributeMap, net.minecraft.entity.ai.attributes.IAttribute attribute) {
         if (attributeMap.getAttributeInstance(attribute) == null) {
             attributeMap.registerAttribute(attribute);
+            LOGGER.info("注册属性: " + attribute.getName());
         }
     }
 }

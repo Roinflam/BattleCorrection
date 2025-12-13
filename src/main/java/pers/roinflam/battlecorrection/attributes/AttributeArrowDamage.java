@@ -8,6 +8,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import pers.roinflam.battlecorrection.BattleCorrection;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -28,9 +29,18 @@ public class AttributeArrowDamage {
             DamageSource damageSource = evt.getSource();
             if (damageSource.getImmediateSource() instanceof EntityArrow && damageSource.getTrueSource() instanceof EntityLivingBase) {
                 @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                evt.setAmount(AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE, evt.getAmount() + ConfigAttribute.arrowDamage));
+                float originalAmount = evt.getAmount();
+                float configDamage = ConfigAttribute.arrowDamage;
+
+                BattleCorrection.LOGGER.info("箭矢伤害处理 - 攻击者: " + attacker.getName() +
+                        ", 原始伤害: " + originalAmount +
+                        ", 配置伤害加成: " + configDamage);
+
+                float newAmount = AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE, originalAmount + configDamage);
+
+                BattleCorrection.LOGGER.info("箭矢伤害最终计算 - 从 " + originalAmount + " 变为 " + newAmount);
+                evt.setAmount(newAmount);
             }
         }
     }
-
 }
