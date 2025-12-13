@@ -1,5 +1,3 @@
-// 文件：AttributeCriticalHitDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeCriticalHitDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -9,6 +7,7 @@ import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
@@ -24,7 +23,6 @@ public class AttributeCriticalHitDamage {
     public static final UUID ID = UUID.fromString("d4b4598c-3bf3-6c67-f0d1-419da33d23aa");
     public static final String NAME = "battlecorrection.vanillaCriticalHitDamage";
 
-    // 原版暴击伤害加成，默认1.0表示100%额外伤害（即原版的150%伤害）
     public static final IAttribute VANILLA_CRITICAL_HIT_DAMAGE = (new RangedAttribute(null, NAME, 1, 1, Float.MAX_VALUE)).setDescription("Vanilla Critical Hit Damage");
 
     /**
@@ -36,12 +34,19 @@ public class AttributeCriticalHitDamage {
         if (!evt.getEntity().world.isRemote) {
             @Nullable EntityLivingBase attacker = evt.getEntityLiving();
 
-            // 获取属性值并加上配置值
-            double criticalDamageBonus = AttributesUtil.getAttributeValue(attacker, VANILLA_CRITICAL_HIT_DAMAGE) - 1;
-            criticalDamageBonus += ConfigAttribute.vanillaCriticalHitDamage;
+            float attributeValue = AttributesUtil.getAttributeValue(attacker, VANILLA_CRITICAL_HIT_DAMAGE);
+            float configValue = ConfigAttribute.vanillaCriticalHitDamage;
+            double criticalDamageBonus = attributeValue - 1 + configValue;
 
-            // 设置暴击伤害倍率（原版默认是0.5，即150%伤害）
             evt.setDamageModifier((float) criticalDamageBonus);
+
+            LogUtil.debugAttribute("原版暴击伤害", attacker.getName(), attributeValue, configValue, criticalDamageBonus);
+
+            if (evt.getTarget() != null) {
+                LogUtil.debugEvent("原版暴击触发", attacker.getName(),
+                        String.format("对 %s 造成暴击，伤害倍率: %.2fx (原版默认1.5x)",
+                                evt.getTarget().getName(), 1 + criticalDamageBonus));
+            }
         }
     }
 }

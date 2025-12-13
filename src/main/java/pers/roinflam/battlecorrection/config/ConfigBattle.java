@@ -19,21 +19,26 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.pvp")
     @Config.RangeDouble(min = 0)
     public static float pvp = 1;
+
     @Config.Comment("Set the player pvp damage multiplier, adjust this value will affect the final damage, such as 0.5 will be 50% of the original damage, if 0 is equivalent to prohibit pvp.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.pvpHurtItself")
     @Config.RangeDouble(min = 0)
     public static float pvpHurtItself = 1;
+
     @Config.Comment("When enabled, attacks when not fully prepared will deal less damage than vanilla.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.comboCorrection")
     public static boolean comboCorrection = false;
+
     @Config.Comment("Set the duration of the creature's invulnerability. For example, 0.5 is 50% of the original time, and 0 is equivalent to disabling the invincibility time.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.hurtTimeEntity")
     @Config.RangeDouble(min = 0)
     public static float hurtTimeEntity = 1;
+
     @Config.Comment("Set the duration of the player invulnerability. For example, 0.5 is 50% of the original time, and 0 is equivalent to disabling the invincibility time.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.hurtTimePlayer")
     @Config.RangeDouble(min = 0)
     public static float hurtTimePlayer = 1;
+
     @Config.Comment("Disable will return the attack to the no attack cooldown in version 1.8.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.attackCooldown")
     public static boolean attackCooldown = true;
@@ -42,14 +47,17 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerMeleeAttack")
     @Config.RangeDouble(min = 0)
     public static float playerMeleeAttack = 1;
+
     @Config.Comment("Globally adjusted the damage of player arrow attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerArrowAttack")
     @Config.RangeDouble(min = 0)
     public static float playerArrowAttack = 1;
+
     @Config.Comment("Globally adjusted the damage of player projectile attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerProjectileAttack")
     @Config.RangeDouble(min = 0)
     public static float playerProjectileAttack = 1;
+
     @Config.Comment("Globally adjusted the damage of player magic attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerMagicAttack")
     @Config.RangeDouble(min = 0)
@@ -59,14 +67,17 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersMelee")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersMelee = 1;
+
     @Config.Comment("Global adjustment of damage to players from arrow attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersArrow")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersArrow = 1;
+
     @Config.Comment("Global adjustment of damage to players from projectile attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersProjectile")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersProjectile = 1;
+
     @Config.Comment("Global adjustment of damage to players from magic attacks.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.playerSuffersMagic")
     @Config.RangeDouble(min = 0)
@@ -81,14 +92,17 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.extraSaturationHeal")
     @Config.RangeDouble(min = 0)
     public static float extraSaturationHeal = 0;
+
     @Config.Comment("Increases the health effect of consuming saturation and recovers additionally. If it is set to 0.05, an additional 5% of the maximum health will be recovered.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.extraSaturationPercentageHeal")
     @Config.RangeDouble(min = 0)
     public static float extraSaturationPercentageHeal = 0;
+
     @Config.Comment("The effect of the health value recovered by consuming hunger value will be increased additionally. If you fill in 5, you will recover an additional 5 points of health, for a total of 6 points.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.extraHungerHeal")
     @Config.RangeDouble(min = 0)
     public static float extraHungerHeal = 0;
+
     @Config.Comment("Increases the health effect of consuming hunger and recovers additionally. If it is set to 0.05, an additional 5% of the maximum health will be recovered.")
     @Config.LangKey("config." + Reference.MOD_ID + ".general.extraHungerPercentageHeal")
     @Config.RangeDouble(min = 0)
@@ -103,6 +117,10 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".general.hungerDamageDecayLimit")
     @Config.RangeDouble(min = 0)
     public static float hungerDamageDecayLimit = 0.05f;
+
+    @Config.Comment("Enable detailed logging for debugging. This will log all attribute calculations and combat mechanics.")
+    @Config.LangKey("config." + Reference.MOD_ID + ".general.enableDetailedLogging")
+    public static boolean enableDetailedLogging = false;
 
     @SideOnly(Side.CLIENT)
     @SubscribeEvent

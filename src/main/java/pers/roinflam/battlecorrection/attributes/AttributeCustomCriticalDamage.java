@@ -1,5 +1,3 @@
-// 文件：AttributeCustomCriticalDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeCustomCriticalDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.Entity;
@@ -12,6 +10,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
@@ -31,6 +30,9 @@ public class AttributeCustomCriticalDamage {
 
     public static final IAttribute CUSTOM_CRITICAL_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Custom Critical Hit Damage (Multiplier)");
 
+    /**
+     * 处理受伤事件以应用暴击伤害
+     */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
         if (evt.getEntity().world.isRemote) {
@@ -46,26 +48,29 @@ public class AttributeCustomCriticalDamage {
         }
 
         @Nullable EntityLivingBase attacker = (EntityLivingBase) trueSource;
+        @Nullable EntityLivingBase victim = evt.getEntityLiving();
 
-        // 获取暴击层数
         int criticalLayers = AttributeCustomCriticalChance.getCriticalLayers(immediateSource, attacker);
 
         if (criticalLayers <= 0) {
             return;
         }
 
-        // 获取基础暴击伤害倍率
-        double baseCriticalDamage = AttributesUtil.getAttributeValue(attacker, CUSTOM_CRITICAL_DAMAGE);
-        baseCriticalDamage += ConfigAttribute.customCriticalDamage;
+        double attributeValue = AttributesUtil.getAttributeValue(attacker, CUSTOM_CRITICAL_DAMAGE);
+        double configValue = ConfigAttribute.customCriticalDamage;
+        double baseCriticalDamage = attributeValue + configValue;
         baseCriticalDamage = Math.max(1.0, baseCriticalDamage);
 
-        // 计算最终暴击伤害：基础倍率的暴击层数次方
-        // 例如：200%暴击伤害，2层暴击 = 2.0^2 = 4.0倍
         double finalCriticalDamage = Math.pow(baseCriticalDamage, criticalLayers);
 
         float originalDamage = evt.getAmount();
         float newDamage = (float) (originalDamage * finalCriticalDamage);
 
         evt.setAmount(newDamage);
+
+        LogUtil.debugAttribute("暴击伤害倍率", attacker.getName(), attributeValue, configValue, baseCriticalDamage);
+        LogUtil.debugCritical(attacker.getName(), victim.getName(),
+                AttributesUtil.getAttributeValue(attacker, AttributeCustomCriticalChance.CUSTOM_CRITICAL_CHANCE) + ConfigAttribute.customCriticalChance,
+                criticalLayers, finalCriticalDamage, originalDamage, newDamage);
     }
 }
