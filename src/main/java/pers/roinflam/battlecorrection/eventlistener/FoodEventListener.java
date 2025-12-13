@@ -8,6 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.ReflectionCache;
 
 import javax.annotation.Nonnull;
 
@@ -26,13 +27,7 @@ public class FoodEventListener {
         if (!evt.player.world.isRemote && evt.phase.equals(TickEvent.Phase.START)) {
             @Nonnull EntityPlayer entityPlayer = evt.player;
             @Nonnull FoodStats foodStats = entityPlayer.getFoodStats();
-            int foodTimer = 0;
-
-            try {
-                foodTimer = ObfuscationReflectionHelper.getPrivateValue(FoodStats.class, foodStats, "foodTimer");
-            } catch (Exception e) {
-                foodTimer = ObfuscationReflectionHelper.getPrivateValue(FoodStats.class, foodStats, "field_75123_d");
-            }
+            int foodTimer = ReflectionCache.getFoodTimer(foodStats);
 
             if (entityPlayer.world.getGameRules().getBoolean("naturalRegeneration") && entityPlayer.shouldHeal()) {
                 if (foodStats.getSaturationLevel() > 0.0F && foodStats.getFoodLevel() >= 20 && foodTimer == 9) {

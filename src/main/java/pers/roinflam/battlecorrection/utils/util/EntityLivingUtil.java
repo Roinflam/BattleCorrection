@@ -4,14 +4,12 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.ReflectionHelper;
+import pers.roinflam.battlecorrection.utils.ReflectionCache;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -33,19 +31,11 @@ public class EntityLivingUtil {
     }
 
     public static void setJumped(EntityLivingBase entityLivingBase) {
-        try {
-            ObfuscationReflectionHelper.setPrivateValue(EntityLivingBase.class, entityLivingBase, 10, "jumpTicks");
-        } catch (Exception exception) {
-            ObfuscationReflectionHelper.setPrivateValue(EntityLivingBase.class, entityLivingBase, 10, "field_70773_bE");
-        }
+        ReflectionCache.setJumpTicks(entityLivingBase, 10);
     }
 
     public static void updateHeld(EntityLivingBase entityLivingBase) {
-        try {
-            ReflectionHelper.findMethod(EntityLivingBase.class, "updateActiveHand", "func_184608_ct").invoke(entityLivingBase);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        ReflectionCache.invokeUpdateActiveHand(entityLivingBase);
     }
 
     public static void kill(@Nullable EntityLivingBase entityLivingBase, @Nonnull DamageSource damageSource) {
