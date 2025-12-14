@@ -1,12 +1,14 @@
+// 文件：AttributeCriticalHitDamage.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeCriticalHitDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -23,7 +25,7 @@ public class AttributeCriticalHitDamage {
     public static final UUID ID = UUID.fromString("d4b4598c-3bf3-6c67-f0d1-419da33d23aa");
     public static final String NAME = "battlecorrection.vanillaCriticalHitDamage";
 
-    public static final IAttribute VANILLA_CRITICAL_HIT_DAMAGE = (new RangedAttribute(null, NAME, 1, 1, Float.MAX_VALUE)).setDescription("Vanilla Critical Hit Damage");
+    public static final IAttribute VANILLA_CRITICAL_HIT_DAMAGE = ModAttributes.VANILLA_CRITICAL_HIT_DAMAGE;
 
     /**
      * 处理原版暴击事件

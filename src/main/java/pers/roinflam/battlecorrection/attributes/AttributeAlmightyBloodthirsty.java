@@ -1,8 +1,9 @@
+// 文件：AttributeAlmightyBloodthirsty.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeAlmightyBloodthirsty.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
@@ -10,6 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
@@ -27,7 +29,7 @@ public class AttributeAlmightyBloodthirsty {
     public static final UUID ID = UUID.fromString("f8b6bb16-c5e8-69b7-e994-a8f51ce67be5");
     public static final String NAME = "battlecorrection.almightyBloodthirsty";
 
-    public static final IAttribute ALMIGHTY_BLOODTHIRSTY = (new RangedAttribute(null, NAME, 1, 1, Float.MAX_VALUE)).setDescription("Almighty Bloodthirsty");
+    public static final IAttribute ALMIGHTY_BLOODTHIRSTY = ModAttributes.ALMIGHTY_BLOODTHIRSTY;
 
     /**
      * 处理伤害事件以触发全能吸血效果

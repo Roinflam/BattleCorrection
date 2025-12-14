@@ -4,13 +4,13 @@ package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -27,7 +27,7 @@ public class AttributeIgnoreDamage {
     public static final UUID ID = UUID.fromString("d444f13a-b3c7-a700-52b7-47677d723207");
     public static final String NAME = "battlecorrection.ignoreDamage";
 
-    public static final IAttribute IGNORE_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Ignore Damage");
+    public static final IAttribute IGNORE_DAMAGE = ModAttributes.IGNORE_DAMAGE;
 
     /**
      * 处理受伤事件以减少或忽略伤害
@@ -43,7 +43,6 @@ public class AttributeIgnoreDamage {
                 float originalDamage = evt.getAmount();
 
                 // 修复：统一使用三参数版本，避免重复计算
-                // 只从装备获取属性加成，配置值单独处理
                 float equipmentIgnore = AttributesUtil.getAttributeValue(hurter, IGNORE_DAMAGE, 0);
                 float configIgnore = ConfigAttribute.ignoreDamage;
                 float totalIgnore = equipmentIgnore + configIgnore;

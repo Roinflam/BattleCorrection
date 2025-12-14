@@ -1,8 +1,9 @@
+// 文件：AttributePreparationSpeed.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributePreparationSpeed.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.item.ItemBow;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
@@ -10,6 +11,7 @@ import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
@@ -27,7 +29,7 @@ public class AttributePreparationSpeed {
     public static final UUID ID = UUID.fromString("585cc013-a0b6-c8e2-9001-6b55c10caf6d");
     public static final String NAME = "battlecorrection.preparationSpeed";
 
-    public static final IAttribute PREPARATION_SPEED = (new RangedAttribute(null, NAME, 1, 0, Float.MAX_VALUE)).setDescription("Extra Preparation Speed");
+    public static final IAttribute PREPARATION_SPEED = ModAttributes.PREPARATION_SPEED;
 
     /**
      * 处理实体更新事件以加快使用物品速度

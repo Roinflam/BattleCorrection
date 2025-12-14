@@ -14,8 +14,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import pers.roinflam.battlecorrection.attributes.*;
 import pers.roinflam.battlecorrection.compat.BaublesIntegration;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.proxy.CommonProxy;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -92,6 +92,9 @@ public class BattleCorrection {
         proxy.bindKey();
         LogUtil.info("快捷键绑定完成");
 
+        // ★ 重要：在最早期注册全局属性
+        ModAttributes.init();
+
         // 初始化Baubles集成（可选依赖）
         BaublesIntegration.init();
 
@@ -157,29 +160,29 @@ public class BattleCorrection {
      */
     public static void registerCustomAttributes(@Nonnull AbstractAttributeMap attributeMap) {
         // ===== 伤害增强属性 =====
-        ensureAttributeExists(attributeMap, AttributeMagicDamage.MAGIC_DAMAGE);
-        ensureAttributeExists(attributeMap, AttributeArrowDamage.ARROW_DAMAGE);
-        ensureAttributeExists(attributeMap, AttributeProjectileDamage.PROJECTILE_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.MAGIC_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.ARROW_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.PROJECTILE_DAMAGE);
 
         // ===== 防御与减伤属性 =====
-        ensureAttributeExists(attributeMap, AttributeImmuneDamage.IMMUNE_DAMAGE);
-        ensureAttributeExists(attributeMap, AttributeIgnoreDamage.IGNORE_DAMAGE);
-        ensureAttributeExists(attributeMap, AttributeReducedFallDamage.REDUCED_FALL_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.IMMUNE_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.IGNORE_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.REDUCED_FALL_DAMAGE);
 
         // ===== 生命恢复属性 =====
-        ensureAttributeExists(attributeMap, AttributeRestoreHeal.RESTORE_HEAL);
-        ensureAttributeExists(attributeMap, AttributeBloodthirsty.BLOODTHIRSTY);
-        ensureAttributeExists(attributeMap, AttributeAlmightyBloodthirsty.ALMIGHTY_BLOODTHIRSTY);
+        ensureAttributeExists(attributeMap, ModAttributes.RESTORE_HEAL);
+        ensureAttributeExists(attributeMap, ModAttributes.BLOODTHIRSTY);
+        ensureAttributeExists(attributeMap, ModAttributes.ALMIGHTY_BLOODTHIRSTY);
 
         // ===== 速度与机动性属性 =====
-        ensureAttributeExists(attributeMap, AttributeBowSpeed.BOW_SPEED);
-        ensureAttributeExists(attributeMap, AttributePreparationSpeed.PREPARATION_SPEED);
-        ensureAttributeExists(attributeMap, AttributeJumpLift.JUMP_LIFT);
+        ensureAttributeExists(attributeMap, ModAttributes.BOW_SPEED);
+        ensureAttributeExists(attributeMap, ModAttributes.PREPARATION_SPEED);
+        ensureAttributeExists(attributeMap, ModAttributes.JUMP_LIFT);
 
         // ===== 暴击系统属性 =====
-        ensureAttributeExists(attributeMap, AttributeCriticalHitDamage.VANILLA_CRITICAL_HIT_DAMAGE);
-        ensureAttributeExists(attributeMap, AttributeCustomCriticalChance.CUSTOM_CRITICAL_CHANCE);
-        ensureAttributeExists(attributeMap, AttributeCustomCriticalDamage.CUSTOM_CRITICAL_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.VANILLA_CRITICAL_HIT_DAMAGE);
+        ensureAttributeExists(attributeMap, ModAttributes.CUSTOM_CRITICAL_CHANCE);
+        ensureAttributeExists(attributeMap, ModAttributes.CUSTOM_CRITICAL_DAMAGE);
 
         LogUtil.debug("已为实体注册 15 个自定义属性");
     }

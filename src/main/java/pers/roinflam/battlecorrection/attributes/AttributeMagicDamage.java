@@ -1,13 +1,15 @@
+// 文件：AttributeMagicDamage.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeMagicDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -24,7 +26,7 @@ public class AttributeMagicDamage {
     public static final UUID ID = UUID.fromString("af42b33d-f767-b71d-9ca4-92fc0ce0f04a");
     public static final String NAME = "battlecorrection.magicDamage";
 
-    public static final IAttribute MAGIC_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Extra Magic Damage");
+    public static final IAttribute MAGIC_DAMAGE = ModAttributes.MAGIC_DAMAGE;
 
     /**
      * 处理魔法伤害事件

@@ -1,15 +1,17 @@
+// 文件：AttributeProjectileDamage.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeProjectileDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IProjectile;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.RangedAttribute;
 import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
+import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
@@ -26,7 +28,7 @@ public class AttributeProjectileDamage {
     public static final UUID ID = UUID.fromString("ab4edc53-93b4-c83c-c498-0c0be85d458e");
     public static final String NAME = "battlecorrection.projectileDamage";
 
-    public static final IAttribute PROJECTILE_DAMAGE = (new RangedAttribute(null, NAME, 0, 0, Float.MAX_VALUE)).setDescription("Extra Projectile Damage");
+    public static final IAttribute PROJECTILE_DAMAGE = ModAttributes.PROJECTILE_DAMAGE;
 
     /**
      * 处理弹射物伤害事件
