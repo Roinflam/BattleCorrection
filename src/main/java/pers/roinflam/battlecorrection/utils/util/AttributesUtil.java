@@ -1,4 +1,5 @@
-// 文件：AttributesUtil.java（优化版本）
+// 文件：AttributesUtil.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/AttributesUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
 import com.google.common.collect.HashMultimap;
@@ -11,6 +12,8 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import pers.roinflam.battlecorrection.compat.BaublesIntegration;
+import pers.roinflam.battlecorrection.utils.LogUtil;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -18,12 +21,12 @@ import java.util.List;
 
 /**
  * 属性工具类
- * 提供属性值计算和修改器管理功能
+ * 提供属性值计算和修改器管理功能（支持Baubles饰品栏）
  */
 public class AttributesUtil {
 
     /**
-     * 获取实体的属性值（包含装备加成）
+     * 获取实体的属性值（包含装备加成，含饰品栏）
      */
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase,
                                           @Nonnull IAttribute attribute) {
@@ -31,7 +34,7 @@ public class AttributesUtil {
     }
 
     /**
-     * 获取实体的属性值（包含装备加成和额外值）
+     * 获取实体的属性值（包含装备加成和额外值，含饰品栏）
      */
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase,
                                           @Nonnull IAttribute attribute,
@@ -48,7 +51,7 @@ public class AttributesUtil {
     }
 
     /**
-     * 从装备中收集属性修改器
+     * 从装备中收集属性修改器（包括饰品栏）
      * 返回三个列表：[0]=加法修改器, [1]=乘法修改器1, [2]=乘法修改器2
      */
     @Nonnull
@@ -60,9 +63,11 @@ public class AttributesUtil {
         result[1] = new ArrayList<>(); // 乘法修改器1（operation 1）
         result[2] = new ArrayList<>(); // 乘法修改器2（operation 2）
 
+        // 主手和副手
         collectFromSlot(entity.getHeldItemMainhand(), EntityEquipmentSlot.MAINHAND, attribute, result);
         collectFromSlot(entity.getHeldItemOffhand(), EntityEquipmentSlot.OFFHAND, attribute, result);
 
+        // 盔甲槽
         EntityEquipmentSlot[] armorSlots = {
                 EntityEquipmentSlot.FEET,
                 EntityEquipmentSlot.LEGS,
@@ -75,6 +80,23 @@ public class AttributesUtil {
             if (index < armorSlots.length) {
                 collectFromSlot(armorPiece, armorSlots[index], attribute, result);
                 index++;
+            }
+        }
+
+        // 饰品栏（如果Baubles已加载）
+        if (BaublesIntegration.isBaublesLoaded()) {
+            List<Double>[] baublesModifiers = BaublesIntegration.collectModifiersFromBaubles(
+                    entity, attribute.getName()
+            );
+
+            // 合并饰品栏的修改器
+            result[0].addAll(baublesModifiers[0]);
+            result[1].addAll(baublesModifiers[1]);
+            result[2].addAll(baublesModifiers[2]);
+
+            if (!baublesModifiers[0].isEmpty() || !baublesModifiers[1].isEmpty() || !baublesModifiers[2].isEmpty()) {
+                LogUtil.debug(String.format("实体 %s 从饰品栏获取到属性 %s 的加成",
+                        entity.getName(), attribute.getName()));
             }
         }
 
@@ -107,15 +129,18 @@ public class AttributesUtil {
                                               @Nonnull List<Double> additive,
                                               @Nonnull List<Double> multiplicative1,
                                               @Nonnull List<Double> multiplicative2) {
+        // 加法修改器
         for (double amount : additive) {
             base += amount;
         }
 
+        // 乘法修改器1（基于原始基础值）
         double result = base;
         for (double amount : multiplicative1) {
             result += base * amount;
         }
 
+        // 乘法修改器2（基于当前值）
         for (double amount : multiplicative2) {
             result *= (1.0D + amount);
         }

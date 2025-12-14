@@ -1,3 +1,5 @@
+// 文件：AttributeIgnoreDamage.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeIgnoreDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -39,25 +41,31 @@ public class AttributeIgnoreDamage {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
 
                 float originalDamage = evt.getAmount();
-                float attributeValue = AttributesUtil.getAttributeValue(hurter, IGNORE_DAMAGE);
-                float configValue = ConfigAttribute.ignoreDamage;
-                double ignore = attributeValue + configValue;
 
-                LogUtil.debugAttribute("忽略伤害", hurter.getName(), attributeValue, configValue, ignore);
+                // 修复：统一使用三参数版本，避免重复计算
+                // 只从装备获取属性加成，配置值单独处理
+                float equipmentIgnore = AttributesUtil.getAttributeValue(hurter, IGNORE_DAMAGE, 0);
+                float configIgnore = ConfigAttribute.ignoreDamage;
+                float totalIgnore = equipmentIgnore + configIgnore;
 
                 String attackerName = damageSource.getTrueSource() != null ?
                         damageSource.getTrueSource().getName() : "未知";
 
-                if (originalDamage <= ignore) {
+                LogUtil.debugAttribute("忽略伤害", hurter.getName(),
+                        equipmentIgnore, configIgnore, totalIgnore);
+
+                if (originalDamage <= totalIgnore) {
                     evt.setCanceled(true);
                     LogUtil.debugEvent("伤害完全忽略", hurter.getName(),
-                            String.format("来自 %s 的攻击，伤害 %.2f 被完全忽略 (忽略值: %.2f)",
-                                    attackerName, originalDamage, ignore));
+                            String.format("来自 %s 的攻击，伤害 %.2f 被完全忽略 (装备忽略: %.2f, 配置忽略: %.2f, 总计: %.2f)",
+                                    attackerName, originalDamage, equipmentIgnore, configIgnore, totalIgnore));
                 } else {
-                    float newDamage = (float) (originalDamage - ignore);
+                    float newDamage = originalDamage - totalIgnore;
                     evt.setAmount(newDamage);
-                    LogUtil.debugDamage("伤害部分忽略", attackerName, hurter.getName(), originalDamage, newDamage,
-                            String.format("忽略了 %.2f 点伤害", ignore));
+                    LogUtil.debugDamage("伤害部分忽略", attackerName, hurter.getName(),
+                            originalDamage, newDamage,
+                            String.format("忽略了 %.2f 点伤害 (装备: %.2f + 配置: %.2f)",
+                                    totalIgnore, equipmentIgnore, configIgnore));
                 }
             }
         }

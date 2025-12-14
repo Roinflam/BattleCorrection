@@ -1,18 +1,21 @@
 [
   {
     "modid": "battlecorrection",
-    "name": "BattleCorrection",
-    "description": "A better fit for RPG!",
-    "version": "1.0.6",
+    "name": "Battle Correction",
+    "description": "§6[战斗修正]§r - 全面的RPG战斗系统增强模组\n\n§e核心功能：§r\n• 超额暴击系统 - 支持多层暴击，伤害呈指数增长\n• 15种自定义属性 - 魔法伤害、吸血、免伤、跳跃增强等\n• 全局伤害调整 - 精细控制PVP/PVE伤害倍率\n• 连击修正机制 - 未蓄力攻击伤害衰减，防止无脑点击\n• 饥饿影响系统 - 饥饿值影响伤害输出\n• Baubles联动 - 支持饰品栏物品属性加成\n\n§e配置系统：§r\n• 双配置文件设计（战斗/属性分离）\n• 中英文详细注释\n• 可选的详细日志输出\n• 游戏内配置GUI\n\n§e特色物品：§r\n• 3种战斗剑（基础/高级/大师）\n• 9种管理法杖（控制生物仇恨、生命操控等）\n\n§b特别鸣谢：§r\n• §a建议重开§r - 为本项目提供的支持和帮助\n\n§7适用于需要深度战斗定制的RPG整合包",
+    "version": "1.1.0",
     "mcversion": "1.12.2",
-    "url": "https://www.curseforge.com/minecraft/mc-mods/battlecorrection",
+    "url": "",
     "updateUrl": "",
     "authorList": [
       "Roinflam"
     ],
-    "credits": "",
-    "logoFile": "logo.png",
+    "credits": "特别感谢 建议重开 为本项目提供的支持和帮助",
+    "logoFile": "",
     "screenshots": [],
-    "dependencies": []
+    "dependencies": [
+      "after:baubles"
+    ],
+    "useDependencyInformation": true
   }
 ]
