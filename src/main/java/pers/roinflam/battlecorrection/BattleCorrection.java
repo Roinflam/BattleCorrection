@@ -44,8 +44,6 @@ import javax.annotation.Nonnull;
 @Mod.EventBusSubscriber
 @Mod(
         modid = Reference.MOD_ID,
-        name = Reference.NAME,
-        version = "1.1.0",
         useMetadata = true,
         guiFactory = "pers.roinflam.battlecorrection.gui.ConfigGuiFactory",
         dependencies = "after:baubles;before:infinityeditor"
