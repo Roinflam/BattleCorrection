@@ -1,26 +1,98 @@
-# 文件：zh_cn.lang
-# 路径：src/main/resources/assets/battlecorrection/lang/zh_cn.lang
+# ========================================
+# 属性本地化 - Attribute Localization
+# ========================================
 
-# ═══════════════════════════════════════════════════════════════
-# 创造模式标签
-# ═══════════════════════════════════════════════════════════════
+# 伤害增强属性
+attribute.name.battlecorrection.magicDamage=魔法伤害
+attribute.name.battlecorrection.arrowDamage=箭矢伤害
+attribute.name.battlecorrection.projectileDamage=弹射物伤害
+
+# 防御与减伤属性
+attribute.name.battlecorrection.immuneDamage=伤害免疫
+attribute.name.battlecorrection.ignoreDamage=伤害减免
+attribute.name.battlecorrection.reducedFallDamage=摔落伤害减免
+
+# 生命恢复属性
+attribute.name.battlecorrection.restoreHeal=治疗恢复
+attribute.name.battlecorrection.bloodthirsty=近战吸血
+attribute.name.battlecorrection.almightyBloodthirsty=全能吸血
+
+# 速度与机动性属性
+attribute.name.battlecorrection.bowSpeed=拉弓速度
+attribute.name.battlecorrection.preparationSpeed=使用速度
+attribute.name.battlecorrection.jumpLift=跳跃提升
+
+# 暴击系统属性
+attribute.name.battlecorrection.vanillaCriticalHitDamage=暴击伤害
+attribute.name.battlecorrection.customCriticalChance=暴击率
+attribute.name.battlecorrection.customCriticalDamage=暴击伤害
+
+# ========================================
+# 创造标签页
+# ========================================
 itemGroup.battlecorrection_tab=战斗修正
 
-# ═══════════════════════════════════════════════════════════════
-# 配置分类
-# ═══════════════════════════════════════════════════════════════
-config.battlecorrection.battle=战斗系统
-config.battlecorrection.attribute=RPG属性
+# ========================================
+# 物品名称
+# ========================================
 
-# ═══════════════════════════════════════════════════════════════
-# 战斗配置
-# ═══════════════════════════════════════════════════════════════
+# 管理法杖
+item.enemy_staff.name=敌对法杖
+item.rebel_staff.name=叛乱法杖
+item.riot_staff.name=暴动法杖
+item.brawl_staff.name=混战法杖
+item.elimination_staff.name=歼灭法杖
+
+# 特殊法杖
+item.sacrificial_staff.name=献祭法杖
+item.range_sacrificial_staff.name=范围献祭法杖
+item.healing_staff.name=治疗法杖
+item.range_healing_staff.name=范围治疗法杖
+item.restoration_staff.name=净化法杖
+
+# 剑类武器
+item.base_sword.name=基础之剑
+item.advanced_sword.name=进阶之剑
+item.master_sword.name=大师之剑
+
+# ========================================
+# 物品提示
+# ========================================
+
+item.enemy_staff.tooltip=右键点击两个实体使它们互相攻击
+item.rebel_staff.tooltip=右键点击一个实体使周围所有实体攻击它
+item.riot_staff.tooltip=右键点击一个实体使它攻击附近随机实体
+item.brawl_staff.tooltip=右键使周围所有实体互相攻击
+item.elimination_staff.tooltip=右键使不同种类的实体互相攻击
+
+item.sacrificial_staff.tooltip=右键点击实体立即杀死它
+item.range_sacrificial_staff.tooltip=右键点击实体杀死附近所有非玩家实体
+item.healing_staff.tooltip=右键点击实体完全治愈它
+item.range_healing_staff.tooltip=右键点击实体治愈附近所有实体
+item.restoration_staff.tooltip=右键点击实体移除所有药水效果
+
+# ========================================
+# 消息
+# ========================================
+
+message.battlecorrection.select_first=已选择第一个实体
+message.battlecorrection.select_second=实体开始战斗！
+message.battlecorrection.select_cancel=第一个实体已死亡，选择已取消
+
+# ========================================
+# 配置界面
+# ========================================
+
+config.battlecorrection.battle=战斗配置
+config.battlecorrection.attribute=属性配置
+
+# 战斗配置项
 config.battlecorrection.battle.pvp=PVP伤害倍率
 config.battlecorrection.battle.pvpHurtItself=自伤倍率
-config.battlecorrection.battle.comboCorrection=启用连击修正
+config.battlecorrection.battle.comboCorrection=连击修正
 config.battlecorrection.battle.hurtTimeEntity=实体无敌时间
 config.battlecorrection.battle.hurtTimePlayer=玩家无敌时间
-config.battlecorrection.battle.attackCooldown=启用攻击冷却
+config.battlecorrection.battle.attackCooldown=攻击冷却
 config.battlecorrection.battle.playerMeleeAttack=玩家近战伤害
 config.battlecorrection.battle.playerArrowAttack=玩家箭矢伤害
 config.battlecorrection.battle.playerProjectileAttack=玩家弹射物伤害
@@ -30,85 +102,34 @@ config.battlecorrection.battle.playerSuffersArrow=玩家箭矢抗性
 config.battlecorrection.battle.playerSuffersProjectile=玩家弹射物抗性
 config.battlecorrection.battle.playerSuffersMagic=玩家魔法抗性
 config.battlecorrection.battle.extraMaxHealth=实体最大生命倍率
-config.battlecorrection.battle.extraSaturationHeal=饱和度恢复加成(固定)
-config.battlecorrection.battle.extraSaturationPercentageHeal=饱和度恢复加成(%)
-config.battlecorrection.battle.extraHungerHeal=饥饿值恢复加成(固定)
-config.battlecorrection.battle.extraHungerPercentageHeal=饥饿值恢复加成(%)
+config.battlecorrection.battle.extraSaturationHeal=额外饱和度治疗
+config.battlecorrection.battle.extraSaturationPercentageHeal=额外饱和度治疗%
+config.battlecorrection.battle.extraHungerHeal=额外饥饿值治疗
+config.battlecorrection.battle.extraHungerPercentageHeal=额外饥饿值治疗%
 config.battlecorrection.battle.hungerDamageDecay=饥饿伤害衰减
-config.battlecorrection.battle.hungerDamageDecayLimit=饥饿衰减上限
+config.battlecorrection.battle.hungerDamageDecayLimit=最大饥饿伤害衰减
 config.battlecorrection.battle.enableDetailedLogging=启用详细日志
 
-# ═══════════════════════════════════════════════════════════════
-# 属性配置
-# ═══════════════════════════════════════════════════════════════
-config.battlecorrection.attribute.magicDamage=魔法伤害加成
-config.battlecorrection.attribute.arrowDamage=箭矢伤害加成
-config.battlecorrection.attribute.projectileDamage=弹射物伤害加成
+# 属性配置项
+config.battlecorrection.attribute.magicDamage=全局魔法伤害
+config.battlecorrection.attribute.arrowDamage=全局箭矢伤害
+config.battlecorrection.attribute.projectileDamage=全局弹射物伤害
 config.battlecorrection.attribute.restoreHeal=治疗倍率
-config.battlecorrection.attribute.immuneDamage=闪避几率
+config.battlecorrection.attribute.immuneDamage=伤害免疫几率
 config.battlecorrection.attribute.bowSpeed=拉弓速度
 config.battlecorrection.attribute.preparationSpeed=物品使用速度
 config.battlecorrection.attribute.bloodthirsty=近战吸血
 config.battlecorrection.attribute.almightyBloodthirsty=全能吸血
-config.battlecorrection.attribute.ignoreDamage=伤害减免
-config.battlecorrection.attribute.vanillaCriticalHitDamage=原版暴击加成
+config.battlecorrection.attribute.ignoreDamage=固定伤害减免
+config.battlecorrection.attribute.reducedFallDamage=摔落伤害减免
+config.battlecorrection.attribute.vanillaCriticalHitDamage=原版暴击伤害
 config.battlecorrection.attribute.customCriticalChance=暴击率
 config.battlecorrection.attribute.customCriticalDamage=暴击伤害
-config.battlecorrection.attribute.jumpLift=跳跃提升
-config.battlecorrection.attribute.reducedFallDamage=摔落伤害减免
+config.battlecorrection.attribute.criticalOverflowConversion=暴击溢出转化
+config.battlecorrection.attribute.jumpLift=跳跃高度
 
-# ═══════════════════════════════════════════════════════════════
-# 物品 - 战斗管理法杖
-# ═══════════════════════════════════════════════════════════════
-item.enemy_staff.name=仇敌法杖
-item.enemy_staff.tooltip=右键点击两个实体使它们互相攻击。第一次点击选择目标，第二次点击开始战斗。
-
-item.rebel_staff.name=叛乱法杖
-item.rebel_staff.tooltip=右键点击一个实体，使附近所有实体(64格半径)攻击它。将一个实体变成所有人的目标。
-
-item.riot_staff.name=暴乱法杖
-item.riot_staff.tooltip=右键点击一个实体，使它随机攻击附近的实体。效果持续10分钟，会定期重新选择目标。
-
-item.brawl_staff.name=混战法杖
-item.brawl_staff.tooltip=右键使用，让附近所有实体(64格半径)随机互相攻击。制造完全混乱！
-
-item.elimination_staff.name=种族清洗法杖
-item.elimination_staff.tooltip=右键使用，让实体只攻击不同种类的生物。在该区域开始种族间战争。
-
-# ═══════════════════════════════════════════════════════════════
-# 物品 - 功能性法杖
-# ═══════════════════════════════════════════════════════════════
-item.sacrificial_staff.name=献祭法杖
-item.sacrificial_staff.tooltip=右键点击一个实体立即将其击杀。造成巨额伤害确保死亡。
-
-item.range_sacrificial_staff.name=范围献祭法杖
-item.range_sacrificial_staff.tooltip=右键点击一个实体，击杀附近所有非玩家实体(64格半径)。玩家免疫。
-
-item.healing_staff.name=治疗法杖
-item.healing_staff.tooltip=右键点击一个实体，完全恢复其生命值至最大值。
-
-item.range_healing_staff.name=范围治疗法杖
-item.range_healing_staff.tooltip=右键点击一个实体，完全治疗附近所有实体(64格半径)，包括玩家。
-
-item.restoration_staff.name=净化法杖
-item.restoration_staff.tooltip=右键点击一个实体，移除其所有激活的药水效果。清除好的和坏的效果。
-
-# ═══════════════════════════════════════════════════════════════
-# 物品 - 剑(无工具提示 - 它们没有特殊效果)
-# ═══════════════════════════════════════════════════════════════
-item.base_sword.name=基础之剑
-item.advanced_sword.name=高级之剑
-item.master_sword.name=大师之剑
-
-# ═══════════════════════════════════════════════════════════════
-# 消息
-# ═══════════════════════════════════════════════════════════════
-message.battlecorrection.select_first=已选择第一个目标！右键点击另一个实体使它们战斗。
-message.battlecorrection.select_second=战斗开始！两个实体将互相攻击。
-message.battlecorrection.select_cancel=选择已取消 - 第一个目标已不再存活。
-
-# ═══════════════════════════════════════════════════════════════
+# ========================================
 # 按键绑定
-# ═══════════════════════════════════════════════════════════════
+# ========================================
+
 key.battlecorrection.openModList=打开模组列表
-key.categories.misc=杂项

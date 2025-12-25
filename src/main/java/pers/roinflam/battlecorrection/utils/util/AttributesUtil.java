@@ -1,5 +1,3 @@
-// 文件：AttributesUtil.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/AttributesUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
 import com.google.common.collect.HashMultimap;
@@ -35,19 +33,39 @@ public class AttributesUtil {
 
     /**
      * 获取实体的属性值（包含装备加成和额外值，含饰品栏）
+     * ★ 核心方法：总是手动从装备和饰品栏收集属性
      */
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase,
                                           @Nonnull IAttribute attribute,
                                           double value) {
+        // ★ 关键修改：总是手动计算，不依赖属性实例的修改器
+        // 因为Minecraft不会自动把物品上的自定义属性应用到实体属性实例
+
+        double base;
+
+        // 尝试从属性实例获取基础值（如果有的话）
         if (entityLivingBase.getEntityAttribute(attribute) != null) {
-            double attributeValue = entityLivingBase.getEntityAttribute(attribute).getAttributeValue();
-            return (float) (attributeValue + value);
+            // 只获取基础值，不获取修改器
+            base = entityLivingBase.getEntityAttribute(attribute).getBaseValue() + value;
+        } else {
+            // 使用属性的默认值
+            base = attribute.getDefaultValue() + value;
         }
 
-        double base = attribute.getDefaultValue() + value;
+        // ★ 总是手动从装备和饰品栏收集属性修改器
         List<Double>[] modifiers = collectModifiersFromEquipment(entityLivingBase, attribute);
 
-        return (float) calculateFinalValue(base, modifiers[0], modifiers[1], modifiers[2]);
+        float finalValue = (float) calculateFinalValue(base, modifiers[0], modifiers[1], modifiers[2]);
+
+        // 调试日志
+        int totalModifiers = modifiers[0].size() + modifiers[1].size() + modifiers[2].size();
+        if (totalModifiers > 0) {
+            LogUtil.debug(String.format("属性计算 [%s] 实体=%s: 基础=%.2f, 加法=%d个, 乘法1=%d个, 乘法2=%d个, 最终=%.2f",
+                    attribute.getName(), entityLivingBase.getName(), base,
+                    modifiers[0].size(), modifiers[1].size(), modifiers[2].size(), finalValue));
+        }
+
+        return finalValue;
     }
 
     /**
@@ -94,9 +112,10 @@ public class AttributesUtil {
             result[1].addAll(baublesModifiers[1]);
             result[2].addAll(baublesModifiers[2]);
 
-            if (!baublesModifiers[0].isEmpty() || !baublesModifiers[1].isEmpty() || !baublesModifiers[2].isEmpty()) {
-                LogUtil.debug(String.format("实体 %s 从饰品栏获取到属性 %s 的加成",
-                        entity.getName(), attribute.getName()));
+            int baublesTotal = baublesModifiers[0].size() + baublesModifiers[1].size() + baublesModifiers[2].size();
+            if (baublesTotal > 0) {
+                LogUtil.debug(String.format("  从饰品栏获取到 %d 个属性修改器: %s",
+                        baublesTotal, attribute.getName()));
             }
         }
 
@@ -116,6 +135,8 @@ public class AttributesUtil {
                 int operation = modifier.getOperation();
                 if (operation >= 0 && operation <= 2) {
                     result[operation].add(modifier.getAmount());
+                    LogUtil.debug(String.format("  从装备槽 %s 获取属性: %s = %.2f (运算:%d)",
+                            slot.getName(), attribute.getName(), modifier.getAmount(), operation));
                 }
             }
         }
@@ -149,7 +170,7 @@ public class AttributesUtil {
     }
 
     /**
-     * 获取物品上的自定义属性修改器
+     * 获取物品上的自定义属性修改器（从NBT直接读取）
      */
     @Nonnull
     public static Multimap<String, AttributeModifier> getAnyAttributeModifiers(@Nonnull ItemStack itemStack) {
