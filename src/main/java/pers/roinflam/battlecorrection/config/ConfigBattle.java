@@ -1,4 +1,5 @@
 // 文件：ConfigBattle.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigBattle.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.config.Config;
@@ -87,52 +88,55 @@ public final class ConfigBattle {
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.comboCorrection")
     public static boolean comboCorrection = false;
-
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Entity Invulnerability Time Multiplier",
             "     Controls how long non-player entities are invulnerable after being hit",
-            "     • 0.5 = Half the normal invulnerability time (faster damage application)",
-            "     • 1.0 = Normal vanilla invulnerability time (default)",
-            "     • 2.0 = Double the invulnerability time (slower damage application)",
-            "     • 0.0 = No invulnerability frames (can be hit rapidly)",
+            "     Formula: New Time = Original Time × (1 + This Value)",
+            "     • -0.5 = Half the normal invulnerability time (faster damage)",
+            "     • 0.0 = Normal vanilla invulnerability time (default)",
+            "     • 1.0 = Double the invulnerability time (slower damage)",
+            "     • 2.0 = Triple the invulnerability time",
             "     Lower values make entities easier to kill but may feel unfair",
             "",
             "[中文] 实体无敌时间倍率",
             "     控制非玩家实体受击后的无敌时间长度",
-            "     • 0.5 = 正常无敌时间的一半(更快造成伤害)",
-            "     • 1.0 = 正常原版无敌时间(默认)",
-            "     • 2.0 = 双倍无敌时间(更慢造成伤害)",
-            "     • 0.0 = 无无敌帧(可以快速连续受击)",
+            "     公式: 新时间 = 原始时间 × (1 + 此值)",
+            "     • -0.5 = 正常无敌时间的一半(更快造成伤害)",
+            "     • 0.0 = 正常原版无敌时间(默认)",
+            "     • 1.0 = 双倍无敌时间(更慢造成伤害)",
+            "     • 2.0 = 三倍无敌时间",
             "     较低的值使实体更容易击杀，但可能不太公平",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hurtTimeEntity")
-    @Config.RangeDouble(min = 0)
-    public static float hurtTimeEntity = 1;
+    @Config.RangeDouble(min = -0.99)  // 允许负值，但不能低于-0.99
+    public static float hurtTimeEntity = 0;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Player Invulnerability Time Multiplier",
             "     Controls how long players are invulnerable after being hit",
-            "     • 0.5 = Half the normal invulnerability time",
-            "     • 1.0 = Normal vanilla invulnerability time (default)",
-            "     • 2.0 = Double the invulnerability time",
-            "     • 0.0 = No invulnerability frames (very dangerous!)",
+            "     Formula: New Time = Original Time × (1 + This Value)",
+            "     • -0.5 = Half the normal invulnerability time",
+            "     • 0.0 = Normal vanilla invulnerability time (default)",
+            "     • 1.0 = Double the invulnerability time",
+            "     • 2.0 = Triple the invulnerability time",
             "     Lower values increase difficulty, higher values make combat safer",
             "",
             "[中文] 玩家无敌时间倍率",
             "     控制玩家受击后的无敌时间长度",
-            "     • 0.5 = 正常无敌时间的一半",
-            "     • 1.0 = 正常原版无敌时间(默认)",
-            "     • 2.0 = 双倍无敌时间",
-            "     • 0.0 = 无无敌帧(非常危险!)",
+            "     公式: 新时间 = 原始时间 × (1 + 此值)",
+            "     • -0.5 = 正常无敌时间的一半",
+            "     • 0.0 = 正常原版无敌时间(默认)",
+            "     • 1.0 = 双倍无敌时间",
+            "     • 2.0 = 三倍无敌时间",
             "     较低的值增加难度，较高的值使战斗更安全",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hurtTimePlayer")
-    @Config.RangeDouble(min = 0)
-    public static float hurtTimePlayer = 1;
+    @Config.RangeDouble(min = -0.99)
+    public static float hurtTimePlayer = 0;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
@@ -465,7 +469,7 @@ public final class ConfigBattle {
             "═══════════════════════════════════════════════════════════════",
             "[EN] Hunger Damage Decay (Damage Reduction Per Missing Hunger Point)",
             "     Percentage of damage reduced for each hunger point below 20",
-            "     • 0.00 = No damage reduction from hunger (default)",
+            "     • 0.00 = No damage reduction from hunger (default, disabled)",
             "     • 0.05 = 5% less damage per missing hunger point",
             "     • 0.10 = 10% less damage per missing hunger point",
             "     Example with 0.05 setting:",
@@ -476,7 +480,7 @@ public final class ConfigBattle {
             "",
             "[中文] 饥饿伤害衰减(每点缺失饥饿值的伤害减少)",
             "     每少于20的饥饿值点数减少的伤害百分比",
-            "     • 0.00 = 饥饿不减少伤害(默认)",
+            "     • 0.00 = 饥饿不减少伤害(默认，已禁用)",
             "     • 0.05 = 每少1点饥饿值减少5%伤害",
             "     • 0.10 = 每少1点饥饿值减少10%伤害",
             "     以0.05设置为例:",
@@ -488,34 +492,36 @@ public final class ConfigBattle {
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hungerDamageDecay")
     @Config.RangeDouble(min = 0)
-    public static float hungerDamageDecay = 0.05f;
+    public static float hungerDamageDecay = 0f;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Maximum Hunger Damage Decay (Maximum Damage Reduction Cap)",
             "     Maximum percentage of damage that can be reduced by hunger",
             "     Prevents damage from becoming too low:",
-            "     • 0.00 = No maximum reduction (can reduce to 0 damage)",
+            "     • 0.00 = No maximum reduction (disabled, default)",
             "     • 0.50 = Maximum 50% damage reduction",
-            "     • 0.70 = Maximum 70% damage reduction (default)",
+            "     • 0.70 = Maximum 70% damage reduction",
             "     Example: With 0.70 limit and 0.05 decay per point:",
             "     - Even at 0 hunger, you still deal at least 30% damage",
             "     - Without this limit, 0 hunger would deal 0% damage",
+            "     Note: This setting only matters when hungerDamageDecay > 0",
             "",
             "[中文] 最大饥饿伤害衰减(最大伤害减少上限)",
             "     饥饿可以减少的最大伤害百分比",
             "     防止伤害降得过低:",
-            "     • 0.00 = 无上限(可减少到0伤害)",
+            "     • 0.00 = 无上限(已禁用，默认)",
             "     • 0.50 = 最多减少50%伤害",
-            "     • 0.70 = 最多减少70%伤害(默认)",
+            "     • 0.70 = 最多减少70%伤害",
             "     例: 上限0.70，每点衰减0.05:",
             "     - 即使0饥饿值，仍能造成至少30%伤害",
             "     - 没有此上限，0饥饿值会造成0%伤害",
+            "     注意: 只有当hungerDamageDecay > 0时此设置才有意义",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hungerDamageDecayLimit")
     @Config.RangeDouble(min = 0)
-    public static float hungerDamageDecayLimit = 0.05f;
+    public static float hungerDamageDecayLimit = 0f;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",

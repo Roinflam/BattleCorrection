@@ -1,135 +1,118 @@
-# ========================================
-# 属性本地化 - Attribute Localization
-# ========================================
-
-# 伤害增强属性 - Damage Enhancement
-attribute.name.battlecorrection.magicDamage=Magic Damage
-attribute.name.battlecorrection.arrowDamage=Arrow Damage
-attribute.name.battlecorrection.projectileDamage=Projectile Damage
-
-# 防御与减伤属性 - Defense and Damage Reduction
-attribute.name.battlecorrection.immuneDamage=Damage Immunity
-attribute.name.battlecorrection.ignoreDamage=Damage Reduction
-attribute.name.battlecorrection.reducedFallDamage=Fall Damage Reduction
-
-# 生命恢复属性 - Health Recovery
-attribute.name.battlecorrection.restoreHeal=Healing Received
-attribute.name.battlecorrection.bloodthirsty=Lifesteal
-attribute.name.battlecorrection.almightyBloodthirsty=Universal Lifesteal
-
-# 速度与机动性属性 - Speed and Mobility
-attribute.name.battlecorrection.bowSpeed=Bow Draw Speed
-attribute.name.battlecorrection.preparationSpeed=Use Speed
-attribute.name.battlecorrection.jumpLift=Jump Boost
-
-# 暴击系统属性 - Critical Hit System
-attribute.name.battlecorrection.vanillaCriticalHitDamage=Critical Hit Damage
-attribute.name.battlecorrection.customCriticalChance=Critical Chance
-attribute.name.battlecorrection.customCriticalDamage=Critical Damage
-
-# ========================================
-# 创造标签页 - Creative Tab
-# ========================================
-itemGroup.battlecorrection_tab=Battle Correction
-
-# ========================================
-# 物品名称 - Item Names
-# ========================================
-
-# 管理法杖 - Management Staffs
+# ===================================
+# Item Names
+# ===================================
 item.enemy_staff.name=Enemy Staff
 item.rebel_staff.name=Rebel Staff
 item.riot_staff.name=Riot Staff
 item.brawl_staff.name=Brawl Staff
 item.elimination_staff.name=Elimination Staff
-
-# 特殊法杖 - Special Staffs
 item.sacrificial_staff.name=Sacrificial Staff
 item.range_sacrificial_staff.name=Range Sacrificial Staff
 item.healing_staff.name=Healing Staff
 item.range_healing_staff.name=Range Healing Staff
 item.restoration_staff.name=Restoration Staff
-
-# 剑类武器 - Swords
 item.base_sword.name=Base Sword
 item.advanced_sword.name=Advanced Sword
 item.master_sword.name=Master Sword
 
-# ========================================
-# 物品提示 - Item Tooltips
-# ========================================
-
+# ===================================
+# Item Tooltips
+# ===================================
 item.enemy_staff.tooltip=Right-click two entities to make them attack each other
 item.rebel_staff.tooltip=Right-click an entity to make all nearby entities attack it
 item.riot_staff.tooltip=Right-click an entity to make it attack a random nearby entity
-item.brawl_staff.tooltip=Right-click to make all nearby entities fight each other
-item.elimination_staff.tooltip=Right-click to make entities of different types fight each other
-
-item.sacrificial_staff.tooltip=Right-click an entity to instantly kill it
+item.brawl_staff.tooltip=Right-click to make all nearby entities attack each other
+item.elimination_staff.tooltip=Right-click to make different species attack each other
+item.sacrificial_staff.tooltip=Right-click an entity to kill it instantly
 item.range_sacrificial_staff.tooltip=Right-click an entity to kill all nearby non-player entities
-item.healing_staff.tooltip=Right-click an entity to fully heal it
+item.healing_staff.tooltip=Right-click an entity to fully restore its health
 item.range_healing_staff.tooltip=Right-click an entity to fully heal all nearby entities
 item.restoration_staff.tooltip=Right-click an entity to remove all potion effects
 
-# ========================================
-# 消息 - Messages
-# ========================================
+# ===================================
+# Creative Tab
+# ===================================
+itemGroup.battlecorrection_tab=Battle Correction
 
-message.battlecorrection.select_first=First entity selected
-message.battlecorrection.select_second=Entities are now fighting!
-message.battlecorrection.select_cancel=First entity is dead, selection cancelled
+# ===================================
+# In-Game Messages
+# ===================================
+message.battlecorrection.select_first=First target selected
+message.battlecorrection.select_second=Second target selected, entities will now attack each other
+message.battlecorrection.select_cancel=First target is dead, operation cancelled
 
-# ========================================
-# 配置界面 - Config GUI
-# ========================================
-
+# ===================================
+# Config Categories
+# ===================================
 config.battlecorrection.battle=Battle Configuration
 config.battlecorrection.attribute=Attribute Configuration
 
-# 战斗配置项
+# ===================================
+# Battle Config Options
+# ===================================
 config.battlecorrection.battle.pvp=PVP Damage Multiplier
 config.battlecorrection.battle.pvpHurtItself=Self-Damage Multiplier
-config.battlecorrection.battle.comboCorrection=Combo Correction
-config.battlecorrection.battle.hurtTimeEntity=Entity Invulnerability Time
-config.battlecorrection.battle.hurtTimePlayer=Player Invulnerability Time
-config.battlecorrection.battle.attackCooldown=Attack Cooldown
-config.battlecorrection.battle.playerMeleeAttack=Player Melee Damage
-config.battlecorrection.battle.playerArrowAttack=Player Arrow Damage
-config.battlecorrection.battle.playerProjectileAttack=Player Projectile Damage
-config.battlecorrection.battle.playerMagicAttack=Player Magic Damage
-config.battlecorrection.battle.playerSuffersMelee=Player Melee Resistance
-config.battlecorrection.battle.playerSuffersArrow=Player Arrow Resistance
-config.battlecorrection.battle.playerSuffersProjectile=Player Projectile Resistance
-config.battlecorrection.battle.playerSuffersMagic=Player Magic Resistance
-config.battlecorrection.battle.extraMaxHealth=Entity Max Health Multiplier
-config.battlecorrection.battle.extraSaturationHeal=Extra Saturation Healing
-config.battlecorrection.battle.extraSaturationPercentageHeal=Extra Saturation Healing %
-config.battlecorrection.battle.extraHungerHeal=Extra Hunger Healing
-config.battlecorrection.battle.extraHungerPercentageHeal=Extra Hunger Healing %
-config.battlecorrection.battle.hungerDamageDecay=Hunger Damage Decay
-config.battlecorrection.battle.hungerDamageDecayLimit=Max Hunger Damage Decay
-config.battlecorrection.battle.enableDetailedLogging=Enable Detailed Logging
+config.battlecorrection.battle.comboCorrection=Combo Correction System
+config.battlecorrection.battle.hurtTimeEntity=Entity Invulnerability Time Multiplier
+config.battlecorrection.battle.hurtTimePlayer=Player Invulnerability Time Multiplier
+config.battlecorrection.battle.attackCooldown=Attack Cooldown System
+config.battlecorrection.battle.playerMeleeAttack=Player Melee Attack Damage Multiplier
+config.battlecorrection.battle.playerArrowAttack=Player Arrow Attack Damage Multiplier
+config.battlecorrection.battle.playerProjectileAttack=Player Projectile Attack Damage Multiplier
+config.battlecorrection.battle.playerMagicAttack=Player Magic Attack Damage Multiplier
+config.battlecorrection.battle.playerSuffersMelee=Player Melee Damage Resistance Multiplier
+config.battlecorrection.battle.playerSuffersArrow=Player Arrow Damage Resistance Multiplier
+config.battlecorrection.battle.playerSuffersProjectile=Player Projectile Damage Resistance Multiplier
+config.battlecorrection.battle.playerSuffersMagic=Player Magic Damage Resistance Multiplier
+config.battlecorrection.battle.extraMaxHealth=Entity Maximum Health Multiplier (Non-Player Only)
+config.battlecorrection.battle.extraSaturationHeal=Extra Saturation Healing (Flat Bonus)
+config.battlecorrection.battle.extraSaturationPercentageHeal=Extra Saturation Healing (Percentage Bonus)
+config.battlecorrection.battle.extraHungerHeal=Extra Hunger Healing (Flat Bonus)
+config.battlecorrection.battle.extraHungerPercentageHeal=Extra Hunger Healing (Percentage Bonus)
+config.battlecorrection.battle.hungerDamageDecay=Hunger Damage Decay (Per Hunger Point)
+config.battlecorrection.battle.hungerDamageDecayLimit=Maximum Hunger Damage Decay Limit
+config.battlecorrection.battle.enableDetailedLogging=Enable Detailed Debug Logging
 
-# 属性配置项
-config.battlecorrection.attribute.magicDamage=Global Magic Damage
-config.battlecorrection.attribute.arrowDamage=Global Arrow Damage
-config.battlecorrection.attribute.projectileDamage=Global Projectile Damage
-config.battlecorrection.attribute.restoreHeal=Healing Multiplier
-config.battlecorrection.attribute.immuneDamage=Damage Immunity Chance
-config.battlecorrection.attribute.bowSpeed=Bow Draw Speed
-config.battlecorrection.attribute.preparationSpeed=Item Use Speed
-config.battlecorrection.attribute.bloodthirsty=Melee Lifesteal
-config.battlecorrection.attribute.almightyBloodthirsty=Universal Lifesteal
+# ===================================
+# Attribute Config Options
+# ===================================
+config.battlecorrection.attribute.magicDamage=Global Magic Damage Bonus
+config.battlecorrection.attribute.arrowDamage=Global Arrow Damage Bonus
+config.battlecorrection.attribute.projectileDamage=Global Projectile Damage Bonus
+config.battlecorrection.attribute.restoreHeal=Healing Received Multiplier
+config.battlecorrection.attribute.immuneDamage=Damage Immunity Chance (Dodge)
+config.battlecorrection.attribute.bowSpeed=Bow Draw Speed Multiplier
+config.battlecorrection.attribute.preparationSpeed=Item Use Speed Multiplier
+config.battlecorrection.attribute.bloodthirsty=Melee Lifesteal Ratio
+config.battlecorrection.attribute.almightyBloodthirsty=Universal Lifesteal Ratio
 config.battlecorrection.attribute.ignoreDamage=Flat Damage Reduction
+config.battlecorrection.attribute.vanillaCriticalHitDamage=Vanilla Critical Hit Damage Bonus
+config.battlecorrection.attribute.customCriticalChance=Custom Critical Hit Chance
+config.battlecorrection.attribute.customCriticalDamage=Custom Critical Hit Damage Multiplier
+config.battlecorrection.attribute.criticalOverflowConversion=Critical Overflow to Damage Conversion
+config.battlecorrection.attribute.jumpLift=Jump Height Boost
 config.battlecorrection.attribute.reducedFallDamage=Fall Damage Reduction
-config.battlecorrection.attribute.vanillaCriticalHitDamage=Vanilla Critical Damage
-config.battlecorrection.attribute.customCriticalChance=Critical Chance
-config.battlecorrection.attribute.customCriticalDamage=Critical Damage
-config.battlecorrection.attribute.criticalOverflowConversion=Critical Overflow Conversion
-config.battlecorrection.attribute.jumpLift=Jump Height
 
-# ========================================
-# 按键绑定 - Keybindings
-# ========================================
-
+# ===================================
+# Key Bindings
+# ===================================
 key.battlecorrection.openModList=Open Mod List
+
+# ===================================
+# Attribute Names (Displayed on Items)
+# ===================================
+attribute.name.battlecorrection.magicDamage=Magic Damage
+attribute.name.battlecorrection.arrowDamage=Arrow Damage
+attribute.name.battlecorrection.projectileDamage=Projectile Damage
+attribute.name.battlecorrection.immuneDamage=Damage Immunity
+attribute.name.battlecorrection.ignoreDamage=Ignore Damage
+attribute.name.battlecorrection.reducedFallDamage=Reduced Fall Damage
+attribute.name.battlecorrection.restoreHeal=Healing Restoration
+attribute.name.battlecorrection.bloodthirsty=Lifesteal
+attribute.name.battlecorrection.almightyBloodthirsty=Almighty Lifesteal
+attribute.name.battlecorrection.bowSpeed=Bow Speed
+attribute.name.battlecorrection.preparationSpeed=Use Speed
+attribute.name.battlecorrection.jumpLift=Jump Boost
+attribute.name.battlecorrection.vanillaCriticalHitDamage=Vanilla Critical Damage
+attribute.name.battlecorrection.customCriticalChance=Critical Chance
+attribute.name.battlecorrection.customCriticalDamage=Critical Damage

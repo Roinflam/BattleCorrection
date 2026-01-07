@@ -36,18 +36,26 @@ public class AttributeCriticalHitDamage {
         if (!evt.getEntity().world.isRemote) {
             @Nullable EntityLivingBase attacker = evt.getEntityLiving();
 
+            // 获取装备属性值（默认1.0）
             float attributeValue = AttributesUtil.getAttributeValue(attacker, VANILLA_CRITICAL_HIT_DAMAGE);
+            // 获取配置值（默认0.5）
             float configValue = ConfigAttribute.vanillaCriticalHitDamage;
-            double criticalDamageBonus = attributeValue - 1 + configValue;
+            // 计算最终加成：(装备倍率 - 1.0) + 配置加成
+            // 例：装备1.0 + 配置0.5 = (1.0 - 1.0) + 0.5 = 0.5（150%伤害）
+            double criticalDamageBonus = (attributeValue - 1.0f) + configValue;
 
             evt.setDamageModifier((float) criticalDamageBonus);
 
-            LogUtil.debugAttribute("原版暴击伤害", attacker.getName(), attributeValue, configValue, criticalDamageBonus);
+            LogUtil.debugAttribute("原版暴击伤害", attacker.getName(),
+                    attributeValue - 1.0f, configValue, criticalDamageBonus);
 
             if (evt.getTarget() != null) {
                 LogUtil.debugEvent("原版暴击触发", attacker.getName(),
-                        String.format("对 %s 造成暴击，伤害倍率: %.2fx (原版默认1.5x)",
-                                evt.getTarget().getName(), 1 + criticalDamageBonus));
+                        String.format("对 %s 造成暴击，伤害倍率: %.2fx (100%% + %.2f%% = %.2f%%)",
+                                evt.getTarget().getName(),
+                                (1 + criticalDamageBonus),
+                                criticalDamageBonus * 100,
+                                (1 + criticalDamageBonus) * 100));
             }
         }
     }

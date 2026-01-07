@@ -1,3 +1,5 @@
+// 文件：InjuryEventListener.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/event/InjuryEventListener.java
 package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -71,22 +73,26 @@ public class InjuryEventListener {
                     damageModification = String.format("PVP伤害倍率: %.2fx (攻击者: %s)", ConfigBattle.pvp, attackerName);
                 }
 
+                // 修复：正确的无敌时间计算
                 int originalHurtTime = hurter.maxHurtResistantTime / 2;
-                hurter.hurtResistantTime = (int) (originalHurtTime + originalHurtTime * ConfigBattle.hurtTimePlayer);
+                hurter.hurtResistantTime = (int) (originalHurtTime * (1 + ConfigBattle.hurtTimePlayer));
 
-                if (ConfigBattle.hurtTimePlayer != 1.0f) {
+                if (ConfigBattle.hurtTimePlayer != 0f) {
                     LogUtil.debugEvent("玩家无敌时间调整", hurter.getName(),
-                            String.format("原始: %d tick, 调整后: %d tick (倍率: %.2fx)",
-                                    originalHurtTime, hurter.hurtResistantTime, ConfigBattle.hurtTimePlayer));
+                            String.format("原始: %d tick, 调整后: %d tick (倍率: 1 + %.2fx = %.2fx)",
+                                    originalHurtTime, hurter.hurtResistantTime,
+                                    ConfigBattle.hurtTimePlayer, 1 + ConfigBattle.hurtTimePlayer));
                 }
             } else {
+                // 修复：正确的无敌时间计算
                 int originalHurtTime = hurter.maxHurtResistantTime / 2;
-                hurter.hurtResistantTime = (int) (originalHurtTime + originalHurtTime * ConfigBattle.hurtTimeEntity);
+                hurter.hurtResistantTime = (int) (originalHurtTime * (1 + ConfigBattle.hurtTimeEntity));
 
-                if (ConfigBattle.hurtTimeEntity != 1.0f) {
+                if (ConfigBattle.hurtTimeEntity != 0f) {
                     LogUtil.debugEvent("实体无敌时间调整", hurter.getName(),
-                            String.format("原始: %d tick, 调整后: %d tick (倍率: %.2fx)",
-                                    originalHurtTime, hurter.hurtResistantTime, ConfigBattle.hurtTimeEntity));
+                            String.format("原始: %d tick, 调整后: %d tick (倍率: 1 + %.2fx = %.2fx)",
+                                    originalHurtTime, hurter.hurtResistantTime,
+                                    ConfigBattle.hurtTimeEntity, 1 + ConfigBattle.hurtTimeEntity));
                 }
             }
 

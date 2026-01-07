@@ -37,14 +37,23 @@ public class AttributeRestoreHeal {
             @Nullable EntityLivingBase entityLivingBase = evt.getEntityLiving();
 
             float originalAmount = evt.getAmount();
-            float attributeValue = AttributesUtil.getAttributeValue(entityLivingBase, RESTORE_HEAL);
-            float configValue = ConfigAttribute.restoreHeal;
-            float multiplier = attributeValue + configValue;
-            float newAmount = originalAmount * multiplier;
 
-            LogUtil.debugAttribute("治疗恢复", entityLivingBase.getName(), attributeValue, configValue, multiplier);
+            // 获取装备属性值（默认1.0 = 100%）
+            float equipmentMultiplier = AttributesUtil.getAttributeValue(entityLivingBase, RESTORE_HEAL);
+            // 获取配置值（默认1.0 = 100%）
+            float configMultiplier = ConfigAttribute.restoreHeal;
+            // 计算最终倍率：(装备倍率 - 1.0) + 配置倍率
+            // 例：装备1.0 + 配置1.0 = (1.0 - 1.0) + 1.0 = 1.0（100%治疗）
+            // 例：装备1.5 + 配置1.0 = (1.5 - 1.0) + 1.0 = 1.5（150%治疗）
+            // 例：装备1.0 + 配置2.0 = (1.0 - 1.0) + 2.0 = 2.0（200%治疗）
+            float finalMultiplier = (equipmentMultiplier - 1.0f) + configMultiplier;
+            float newAmount = originalAmount * finalMultiplier;
+
+            LogUtil.debugAttribute("治疗恢复", entityLivingBase.getName(),
+                    equipmentMultiplier - 1.0f, configMultiplier, finalMultiplier);
             LogUtil.debugHeal(entityLivingBase.getName(), originalAmount, newAmount,
-                    String.format("治疗倍率: %.2fx (属性: %.2f + 配置: %.2f)", multiplier, attributeValue, configValue));
+                    String.format("治疗倍率: %.2fx (装备: %.2f + 配置: %.2f)",
+                            finalMultiplier, equipmentMultiplier - 1.0f, configMultiplier));
 
             evt.setAmount(newAmount);
         }
