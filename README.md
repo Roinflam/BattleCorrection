@@ -153,7 +153,7 @@ for RPG modpacks and servers that want deeper combat customization.
 
 ### 📚 Documentation
 
-- 📖 [Wiki (Chinese)](https://www.mcmod.cn/class/xxxx.html) - Full documentation
+- 📖 [Wiki (Chinese)](https://www.mcmod.cn/class/8002.html) - Full documentation
 - 🐛 [Report Issues](https://github.com/Roinflam/BattleCorrection/issues) - Bug reports and suggestions
 - 💬 [Developer's Bilibili](https://space.bilibili.com/285030707/) - Contact and updates
 
@@ -337,7 +337,7 @@ RPG 整合包和服务器。
 
 ### 📚 文档资料
 
-- 📖 [完整百科](https://www.mcmod.cn/class/xxxx.html) - 完整文档
+- 📖 [完整百科](https://www.mcmod.cn/class/8002.html) - 完整文档
 - 🐛 [反馈问题](https://github.com/Roinflam/BattleCorrection/issues) - Bug 报告和建议
 - 💬 [开发者的 B 站](https://space.bilibili.com/285030707/) - 联系和更新
 
