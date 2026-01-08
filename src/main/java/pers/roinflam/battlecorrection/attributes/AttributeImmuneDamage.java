@@ -41,23 +41,27 @@ public class AttributeImmuneDamage {
             if (!damageSource.canHarmInCreative()) {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
 
+                // 修复：正确计算免疫几率
                 float attributeValue = AttributesUtil.getAttributeValue(hurter, IMMUNE_DAMAGE);
-                float configValue = ConfigAttribute.immuneDamage;
-                float immuneChance = (attributeValue - 1 + configValue) * 100;
+                float equipmentChance = (attributeValue - 1) * 100; // 装备加成转为百分比
+                float configChance = ConfigAttribute.immuneDamage; // 配置值已经是百分比
+                float totalChance = equipmentChance + configChance; // 总几率
 
-                boolean isImmune = RandomUtil.percentageChance(immuneChance);
+                boolean isImmune = RandomUtil.percentageChance(totalChance);
 
-                LogUtil.debugAttribute("伤害免疫", hurter.getName(), attributeValue, configValue, immuneChance / 100);
+                LogUtil.debugAttribute("伤害免疫", hurter.getName(),
+                        equipmentChance / 100, configChance / 100, totalChance / 100);
 
                 if (isImmune) {
                     evt.setCanceled(true);
                     String attackerName = damageSource.getTrueSource() != null ?
                             damageSource.getTrueSource().getName() : "未知";
                     LogUtil.debugEvent("伤害免疫触发", hurter.getName(),
-                            String.format("免疫了来自 %s 的攻击，免疫概率: %.2f%%", attackerName, immuneChance));
+                            String.format("免疫了来自 %s 的攻击，免疫概率: %.2f%% (装备: %.2f%% + 配置: %.2f%%)",
+                                    attackerName, totalChance, equipmentChance, configChance));
                 } else {
                     LogUtil.debug(String.format("伤害免疫判定失败 - 受害者: %s, 免疫概率: %.2f%%",
-                            hurter.getName(), immuneChance));
+                            hurter.getName(), totalChance));
                 }
             }
         }

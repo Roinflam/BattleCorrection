@@ -1,4 +1,5 @@
 // 文件：ConfigAttribute.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.config.Config;
@@ -99,29 +100,33 @@ public final class ConfigAttribute {
             "[EN] Healing Received Multiplier",
             "     Multiplier for all healing received by the player",
             "     Affects: Natural regeneration, instant health potions, food healing",
-            "     This is a MULTIPLIER, not addition:",
+            "     This is a MULTIPLIER applied on top of equipment bonuses:",
             "     • 0.0 = No healing received (dangerous!)",
             "     • 0.5 = Receive 50% of healing",
             "     • 1.0 = Normal healing (default)",
             "     • 1.5 = Receive 150% of healing",
             "     • 2.0 = Receive 200% of healing (doubled)",
+            "     Formula: Final healing = Original × ((Equipment - 1.0) + Config)",
+            "     Example: Equipment 1.5× + Config 1.0 = (1.5 - 1.0) + 1.0 = 1.5× total",
             "     Lower values increase difficulty, higher values make survival easier",
             "",
             "[中文] 受到的治疗倍率",
             "     玩家受到的所有治疗的倍率",
             "     影响: 自然恢复、瞬间治疗药水、食物恢复",
-            "     这是倍率，不是加法:",
+            "     这是在装备加成基础上应用的倍率:",
             "     • 0.0 = 不受到任何治疗(危险!)",
             "     • 0.5 = 受到50%的治疗",
             "     • 1.0 = 正常治疗(默认)",
             "     • 1.5 = 受到150%的治疗",
             "     • 2.0 = 受到200%的治疗(双倍)",
+            "     公式: 最终治疗 = 原始 × ((装备 - 1.0) + 配置)",
+            "     例: 装备1.5倍 + 配置1.0 = (1.5 - 1.0) + 1.0 = 1.5倍总计",
             "     较低的值增加难度，较高的值使生存更容易",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.restoreHeal")
     @Config.RangeDouble(min = 0)
-    public static float restoreHeal = 0;
+    public static float restoreHeal = 1.0f;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
@@ -154,21 +159,23 @@ public final class ConfigAttribute {
             "═══════════════════════════════════════════════════════════════",
             "[EN] Bow Draw Speed Multiplier",
             "     Increases how fast bows can be drawn to full charge",
-            "     • -0.5 = 50% slower draw speed",
-            "     • 0.0 = Normal draw speed (default)",
-            "     • 0.5 = 50% faster draw speed",
-            "     • 1.0 = 100% faster (twice as fast)",
-            "     • 2.0 = 200% faster (three times as fast)",
+            "     Formula: Final Speed = Equipment Bonus + Config Value",
+            "     IMPORTANT: You need equipment with bow speed bonus OR config > 0 to use bows!",
+            "     • 0.0 = Cannot draw bow (default when no equipment bonus)",
+            "     • 1.0 = Normal draw speed (1× speed)",
+            "     • 2.0 = Twice as fast (2× speed)",
+            "     • 3.0 = Three times as fast (3× speed)",
             "     Does NOT affect arrow damage, only draw speed",
             "     Useful for rapid-fire bow builds",
             "",
             "[中文] 拉弓速度倍率",
             "     提高弓拉满的速度",
-            "     • -0.5 = 慢50%",
-            "     • 0.0 = 正常速度(默认)",
-            "     • 0.5 = 快50%",
-            "     • 1.0 = 快100%(两倍速)",
-            "     • 2.0 = 快200%(三倍速)",
+            "     公式: 最终速度 = 装备加成 + 配置值",
+            "     重要: 需要有拉弓速度加成的装备或配置 > 0 才能使用弓!",
+            "     • 0.0 = 无法拉弓(默认，无装备加成时)",
+            "     • 1.0 = 正常速度(1倍速)",
+            "     • 2.0 = 快一倍(2倍速)",
+            "     • 3.0 = 快两倍(3倍速)",
             "     不影响箭矢伤害，仅影响拉弓速度",
             "     适用于快速射击弓构建",
             "═══════════════════════════════════════════════════════════════"
@@ -183,22 +190,24 @@ public final class ConfigAttribute {
             "     Increases how fast items can be consumed or used",
             "     Affects: Eating food, drinking potions, using shields, etc.",
             "     Does NOT affect: Bows (use bowSpeed for that)",
-            "     • -0.5 = 50% slower use speed",
-            "     • 0.0 = Normal use speed (default)",
-            "     • 0.5 = 50% faster use speed",
-            "     • 1.0 = 100% faster (twice as fast)",
-            "     • 2.0 = 200% faster (three times as fast)",
+            "     Formula: Final Speed = Equipment Bonus + Config Value",
+            "     IMPORTANT: You need equipment with use speed bonus OR config > 0 to use items!",
+            "     • 0.0 = Cannot use items (default when no equipment bonus)",
+            "     • 1.0 = Normal use speed (1× speed)",
+            "     • 2.0 = Twice as fast (2× speed)",
+            "     • 3.0 = Three times as fast (3× speed)",
             "     Useful for combat builds that rely on quick potion use",
             "",
             "[中文] 物品使用速度倍率(食物、药水、盾牌)",
             "     提高物品消耗或使用的速度",
             "     影响: 吃食物、喝药水、使用盾牌等",
             "     不影响: 弓(使用bowSpeed调整)",
-            "     • -0.5 = 慢50%",
-            "     • 0.0 = 正常速度(默认)",
-            "     • 0.5 = 快50%",
-            "     • 1.0 = 快100%(两倍速)",
-            "     • 2.0 = 快200%(三倍速)",
+            "     公式: 最终速度 = 装备加成 + 配置值",
+            "     重要: 需要有使用速度加成的装备或配置 > 0 才能使用物品!",
+            "     • 0.0 = 无法使用物品(默认，无装备加成时)",
+            "     • 1.0 = 正常速度(1倍速)",
+            "     • 2.0 = 快一倍(2倍速)",
+            "     • 3.0 = 快两倍(3倍速)",
             "     适用于依赖快速使用药水的战斗构建",
             "═══════════════════════════════════════════════════════════════"
     })
@@ -326,7 +335,7 @@ public final class ConfigAttribute {
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.vanillaCriticalHitDamage")
     @Config.RangeDouble(min = 0)
-    public static float vanillaCriticalHitDamage = 0;
+    public static float vanillaCriticalHitDamage = 0.5f;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",

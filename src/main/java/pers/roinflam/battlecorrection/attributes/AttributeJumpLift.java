@@ -5,13 +5,13 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
-import pers.roinflam.battlecorrection.utils.task.SynchronizationTask;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -29,36 +29,54 @@ public class AttributeJumpLift {
 
     /**
      * 处理跳跃事件以增加跳跃高度
+     * jumpBoost 代表增加的格数
      */
     @SubscribeEvent
     public static void onLivingJump(@Nonnull LivingEvent.LivingJumpEvent evt) {
-        new SynchronizationTask(1) {
-            @Override
-            public void run() {
-                EntityLivingBase entityLivingBase = evt.getEntityLiving();
+        // ✅ 只在服务端执行
+        if (!evt.getEntity().world.isRemote) {
+            EntityLivingBase entityLivingBase = evt.getEntityLiving();
 
-                IAttributeInstance attributeInstance = entityLivingBase.getAttributeMap().getAttributeInstance(JUMP_LIFT);
-                double jumpBoost = 0;
+            IAttributeInstance attributeInstance = entityLivingBase.getAttributeMap().getAttributeInstance(JUMP_LIFT);
+            double jumpBoost = 0;
 
-                if (attributeInstance != null) {
-                    jumpBoost = attributeInstance.getAttributeValue();
-                } else {
-                    jumpBoost = pers.roinflam.battlecorrection.utils.util.AttributesUtil.getAttributeValue(entityLivingBase, JUMP_LIFT, 0.0);
-                }
-
-                double configBoost = ConfigAttribute.jumpLift;
-                jumpBoost += configBoost;
-
-                if (jumpBoost > 0) {
-                    entityLivingBase.motionY += jumpBoost;
-
-                    LogUtil.debugAttribute("跳跃提升", entityLivingBase.getName(),
-                            jumpBoost - configBoost, configBoost, jumpBoost);
-                    LogUtil.debugEvent("跳跃增强触发", entityLivingBase.getName(),
-                            String.format("额外跳跃高度: %.3f (相当于 %.2f 级跳跃提升效果)",
-                                    jumpBoost, jumpBoost / 0.1 * 0.75));
-                }
+            if (attributeInstance != null) {
+                jumpBoost = attributeInstance.getAttributeValue();
+            } else {
+                jumpBoost = pers.roinflam.battlecorrection.utils.util.AttributesUtil.getAttributeValue(entityLivingBase, JUMP_LIFT, 0.0);
             }
-        }.start();
+
+            double configBoost = ConfigAttribute.jumpLift;
+            jumpBoost += configBoost;
+
+            if (jumpBoost > 0) {
+                // ✅ 正确的物理计算：增加格数 → 增加 motionY
+                // 跳跃高度 h = motionY² / (2g)，其中 g ≈ 0.08
+                // 当前高度 h1 = motionY² / 0.16
+                // 目标高度 h2 = h1 + jumpBoost
+                // 新的 motionY = sqrt(motionY² + 0.16 × jumpBoost)
+
+                double currentMotionY = entityLivingBase.motionY;
+                entityLivingBase.motionY = Math.sqrt(
+                        currentMotionY * currentMotionY + 0.16 * jumpBoost
+                );
+
+                // ✅ 发送速度包到客户端（关键！）
+                if (entityLivingBase instanceof EntityPlayerMP) {
+                    EntityPlayerMP playerMP = (EntityPlayerMP) entityLivingBase;
+                    playerMP.connection.sendPacket(
+                            new net.minecraft.network.play.server.SPacketEntityVelocity(
+                                    entityLivingBase.getEntityId(),
+                                    entityLivingBase.motionX,
+                                    entityLivingBase.motionY,
+                                    entityLivingBase.motionZ
+                            )
+                    );
+                }
+
+                LogUtil.debugAttribute("跳跃提升", entityLivingBase.getName(),
+                        jumpBoost - configBoost, configBoost, jumpBoost);
+            }
+        }
     }
 }
