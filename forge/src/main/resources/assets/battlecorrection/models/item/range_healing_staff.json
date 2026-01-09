@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "battlecorrection:item/range_healing_staff"
+  }
+}

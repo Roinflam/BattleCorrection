@@ -1,0 +1,26 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "Custom"
+
+[[mods]]
+modId = "battlecorrection"
+version = "2.0.0"
+displayName = "BattleCorrection"
+logoFile = "logo.png"
+authors = "Roinflam"
+credits = "特别感谢 建议重开 为本项目提供的支持和帮助"
+description = 'RPG Mod'
+
+[[dependencies.battlecorrection]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.battlecorrection]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
