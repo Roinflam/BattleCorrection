@@ -1,4 +1,4 @@
-// 文件：ClothConfigScreen.java
+// ClothConfigScreen.java
 // 路径：src/main/java/pers/roinflam/battlecorrection/config/ClothConfigScreen.java
 package pers.roinflam.battlecorrection.config;
 
@@ -10,21 +10,31 @@ import net.minecraft.network.chat.Component;
 
 /**
  * Cloth Config 配置界面
+ * 提供游戏内可视化配置功能
  */
 public class ClothConfigScreen {
 
+    /**
+     * 创建配置界面
+     *
+     * @param parent 父屏幕
+     * @return 配置屏幕
+     */
     public static Screen createConfigScreen(Screen parent) {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Component.translatable("config.battlecorrection.title"))
                 .setSavingRunnable(() -> {
+                    // 保存配置
                     ConfigBattle.SPEC.save();
                     ConfigAttribute.SPEC.save();
                 });
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        // ===== PVP设置 =====
+        // ═══════════════════════════════════════════════════════════════
+        // PVP设置
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory pvpCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.pvp"));
 
@@ -46,7 +56,9 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.PVP_HURT_ITSELF::set)
                 .build());
 
-        // ===== 战斗机制 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 战斗机制
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory combatCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.combat"));
 
@@ -84,7 +96,9 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.HURT_TIME_PLAYER::set)
                 .build());
 
-        // ===== 玩家攻击 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 玩家攻击
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory attackCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.attack"));
 
@@ -93,6 +107,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_MELEE_ATTACK.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerMeleeAttack.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_MELEE_ATTACK::set)
                 .build());
 
@@ -101,6 +116,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_ARROW_ATTACK.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerArrowAttack.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_ARROW_ATTACK::set)
                 .build());
 
@@ -109,6 +125,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_PROJECTILE_ATTACK.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerProjectileAttack.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_PROJECTILE_ATTACK::set)
                 .build());
 
@@ -117,10 +134,13 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_MAGIC_ATTACK.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerMagicAttack.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_MAGIC_ATTACK::set)
                 .build());
 
-        // ===== 玩家防御 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 玩家防御
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory defenseCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.defense"));
 
@@ -129,6 +149,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_SUFFERS_MELEE.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersMelee.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_MELEE::set)
                 .build());
 
@@ -137,6 +158,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_SUFFERS_ARROW.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersArrow.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_ARROW::set)
                 .build());
 
@@ -145,6 +167,7 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_SUFFERS_PROJECTILE.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersProjectile.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_PROJECTILE::set)
                 .build());
 
@@ -153,10 +176,13 @@ public class ClothConfigScreen {
                         ConfigBattle.PLAYER_SUFFERS_MAGIC.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersMagic.tooltip"))
                 .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_MAGIC::set)
                 .build());
 
-        // ===== 实体属性 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 实体属性
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory entityCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.entity"));
 
@@ -169,7 +195,9 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.EXTRA_MAX_HEALTH::set)
                 .build());
 
-        // ===== 饥饿系统 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 饥饿系统
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory hungerCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.hunger"));
 
@@ -178,6 +206,7 @@ public class ClothConfigScreen {
                         ConfigBattle.EXTRA_SATURATION_HEAL.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.extraSaturationHeal.tooltip"))
                 .setSaveConsumer(ConfigBattle.EXTRA_SATURATION_HEAL::set)
                 .build());
 
@@ -186,6 +215,7 @@ public class ClothConfigScreen {
                         ConfigBattle.EXTRA_SATURATION_PERCENTAGE_HEAL.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.extraSaturationPercentageHeal.tooltip"))
                 .setSaveConsumer(ConfigBattle.EXTRA_SATURATION_PERCENTAGE_HEAL::set)
                 .build());
 
@@ -194,6 +224,7 @@ public class ClothConfigScreen {
                         ConfigBattle.EXTRA_HUNGER_HEAL.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.extraHungerHeal.tooltip"))
                 .setSaveConsumer(ConfigBattle.EXTRA_HUNGER_HEAL::set)
                 .build());
 
@@ -202,6 +233,7 @@ public class ClothConfigScreen {
                         ConfigBattle.EXTRA_HUNGER_PERCENTAGE_HEAL.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.extraHungerPercentageHeal.tooltip"))
                 .setSaveConsumer(ConfigBattle.EXTRA_HUNGER_PERCENTAGE_HEAL::set)
                 .build());
 
@@ -210,6 +242,7 @@ public class ClothConfigScreen {
                         ConfigBattle.HUNGER_DAMAGE_DECAY.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.hungerDamageDecay.tooltip"))
                 .setSaveConsumer(ConfigBattle.HUNGER_DAMAGE_DECAY::set)
                 .build());
 
@@ -219,10 +252,13 @@ public class ClothConfigScreen {
                 .setDefaultValue(0.0)
                 .setMin(0.0)
                 .setMax(1.0)
+                .setTooltip(Component.translatable("config.battlecorrection.hungerDamageDecayLimit.tooltip"))
                 .setSaveConsumer(ConfigBattle.HUNGER_DAMAGE_DECAY_LIMIT::set)
                 .build());
 
-        // ===== RPG属性 - 伤害 =====
+        // ═══════════════════════════════════════════════════════════════
+        // RPG属性 - 伤害
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory damageCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.damage"));
 
@@ -231,6 +267,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.MAGIC_DAMAGE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.magicDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.MAGIC_DAMAGE::set)
                 .build());
 
@@ -239,6 +276,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.ARROW_DAMAGE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.arrowDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.ARROW_DAMAGE::set)
                 .build());
 
@@ -247,10 +285,13 @@ public class ClothConfigScreen {
                         ConfigAttribute.PROJECTILE_DAMAGE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.projectileDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.PROJECTILE_DAMAGE::set)
                 .build());
 
-        // ===== RPG属性 - 治疗 =====
+        // ═══════════════════════════════════════════════════════════════
+        // RPG属性 - 治疗
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory healingCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.healing"));
 
@@ -259,6 +300,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.RESTORE_HEAL.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.restoreHeal.tooltip"))
                 .setSaveConsumer(ConfigAttribute.RESTORE_HEAL::set)
                 .build());
 
@@ -267,6 +309,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.BLOODTHIRSTY.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.bloodthirsty.tooltip"))
                 .setSaveConsumer(ConfigAttribute.BLOODTHIRSTY::set)
                 .build());
 
@@ -275,10 +318,13 @@ public class ClothConfigScreen {
                         ConfigAttribute.ALMIGHTY_BLOODTHIRSTY.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.almightyBloodthirsty.tooltip"))
                 .setSaveConsumer(ConfigAttribute.ALMIGHTY_BLOODTHIRSTY::set)
                 .build());
 
-        // ===== RPG属性 - 防御 =====
+        // ═══════════════════════════════════════════════════════════════
+        // RPG属性 - 防御
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory rpgDefenseCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.rpgDefense"));
 
@@ -288,6 +334,7 @@ public class ClothConfigScreen {
                 .setDefaultValue(0.0)
                 .setMin(0.0)
                 .setMax(100.0)
+                .setTooltip(Component.translatable("config.battlecorrection.immuneDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.IMMUNE_DAMAGE::set)
                 .build());
 
@@ -296,6 +343,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.IGNORE_DAMAGE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.ignoreDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.IGNORE_DAMAGE::set)
                 .build());
 
@@ -304,10 +352,13 @@ public class ClothConfigScreen {
                         ConfigAttribute.REDUCED_FALL_DAMAGE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.reducedFallDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.REDUCED_FALL_DAMAGE::set)
                 .build());
 
-        // ===== RPG属性 - 速度 =====
+        // ═══════════════════════════════════════════════════════════════
+        // RPG属性 - 速度
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory speedCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.speed"));
 
@@ -316,6 +367,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.BOW_SPEED.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.bowSpeed.tooltip"))
                 .setSaveConsumer(ConfigAttribute.BOW_SPEED::set)
                 .build());
 
@@ -324,6 +376,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.PREPARATION_SPEED.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.preparationSpeed.tooltip"))
                 .setSaveConsumer(ConfigAttribute.PREPARATION_SPEED::set)
                 .build());
 
@@ -332,10 +385,13 @@ public class ClothConfigScreen {
                         ConfigAttribute.JUMP_LIFT.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.jumpLift.tooltip"))
                 .setSaveConsumer(ConfigAttribute.JUMP_LIFT::set)
                 .build());
 
-        // ===== RPG属性 - 暴击 =====
+        // ═══════════════════════════════════════════════════════════════
+        // RPG属性 - 暴击
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory criticalCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.critical"));
 
@@ -344,6 +400,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.VANILLA_CRITICAL_HIT_DAMAGE.get())
                 .setDefaultValue(0.5)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.vanillaCriticalHitDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.VANILLA_CRITICAL_HIT_DAMAGE::set)
                 .build());
 
@@ -352,6 +409,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.CUSTOM_CRITICAL_CHANCE.get())
                 .setDefaultValue(0.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.customCriticalChance.tooltip"))
                 .setSaveConsumer(ConfigAttribute.CUSTOM_CRITICAL_CHANCE::set)
                 .build());
 
@@ -360,6 +418,7 @@ public class ClothConfigScreen {
                         ConfigAttribute.CUSTOM_CRITICAL_DAMAGE.get())
                 .setDefaultValue(2.0)
                 .setMin(1.0)
+                .setTooltip(Component.translatable("config.battlecorrection.customCriticalDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.CUSTOM_CRITICAL_DAMAGE::set)
                 .build());
 
@@ -368,10 +427,13 @@ public class ClothConfigScreen {
                         ConfigAttribute.CRITICAL_OVERFLOW_CONVERSION.get())
                 .setDefaultValue(1.0)
                 .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.criticalOverflowConversion.tooltip"))
                 .setSaveConsumer(ConfigAttribute.CRITICAL_OVERFLOW_CONVERSION::set)
                 .build());
 
-        // ===== 调试 =====
+        // ═══════════════════════════════════════════════════════════════
+        // 调试设置
+        // ═══════════════════════════════════════════════════════════════
         ConfigCategory debugCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.debug"));
 

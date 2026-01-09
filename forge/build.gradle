@@ -41,6 +41,9 @@ dependencies {
     // Cloth Config API for Forge - Jar-in-Jar include
     modApi("me.shedaniel.cloth:cloth-config-forge:11.1.136")
     include("me.shedaniel.cloth:cloth-config-forge:11.1.136")
+    
+    // Curios API - 饰品插件
+    modApi "top.theillusivec4.curios:curios-forge:5.9.1+1.20.1"
 
     // 加载 dependencies 文件夹中的所有 jar 文件作为依赖
     fileTree(dir: 'dependencies', include: '*.jar').each { File file ->

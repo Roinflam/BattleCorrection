@@ -1,4 +1,4 @@
-// 文件：EntityLivingUtil.java
+// EntityLivingUtil.java
 // 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/EntityLivingUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
@@ -76,12 +76,15 @@ public class EntityLivingUtil {
     }
 
     /**
-     * 更新实体的物品使用状态
+     * 加速物品使用进度
+     * <p>
+     * 通过减少 useItemRemaining 来加速
      *
      * @param livingEntity 生物实体
+     * @param ticks        要加速的tick数
      */
-    public static void updateHeld(@Nonnull LivingEntity livingEntity) {
-        ReflectionCache.invokeUpdatingUsingItem(livingEntity);
+    public static void accelerateItemUse(@Nonnull LivingEntity livingEntity, int ticks) {
+        ReflectionCache.reduceUseItemRemaining(livingEntity, ticks);
     }
 
     /**
