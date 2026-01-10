@@ -32,7 +32,7 @@ subprojects {
         // 设置构建输出的 jar 文件名格式
         // 最终格式：archives_name-平台名-mc版本.jar
         // 示例：examplemod-forge-1.20.1.jar
-        archivesName = "$rootProject.archives_name-$project.name-$rootProject.minecraft_version"
+        archivesName = "$rootProject.mod_name-$project.name-$rootProject.minecraft_version"
     }
 
     // Maven 仓库配置：Gradle 从这些地址下载依赖
