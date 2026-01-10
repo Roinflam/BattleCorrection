@@ -14,6 +14,8 @@ description = '''
 RPG 战斗增强功能
 '''
 
+# ===== 必需依赖 =====
+
 [[dependencies.battlecorrection]]
 modId = "forge"
 mandatory = true
@@ -26,4 +28,13 @@ modId = "minecraft"
 mandatory = true
 versionRange = "[${minecraft_version},)"
 ordering = "NONE"
+side = "BOTH"
+
+# ===== 可选依赖 =====
+
+[[dependencies.battlecorrection]]
+modId = "curios"
+mandatory = false
+versionRange = "[5.0.0,)"
+ordering = "AFTER"
 side = "BOTH"

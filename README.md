@@ -3,7 +3,7 @@
 # ⚔️ BattleCorrection | 战斗修正
 
 [![CurseForge Downloads](https://cf.way2muchnoise.eu/full_battlecorrection_downloads.svg?badge_style=for_the_badge)](https://www.curseforge.com/minecraft/mc-mods/battlecorrection)
-[![MC Version](https://img.shields.io/badge/Minecraft-1.12.2-brightgreen?style=for-the-badge&logo=minecraft)](https://minecraft.net)
+[![MC Version](https://img.shields.io/badge/Minecraft-1.20.1-brightgreen?style=for-the-badge&logo=minecraft)](https://minecraft.net)
 [![Forge](https://img.shields.io/badge/Forge-Latest-orange?style=for-the-badge)](https://files.minecraftforge.net/)
 
 [![GitHub](https://img.shields.io/badge/GitHub-Roinflam-181717?style=for-the-badge&logo=github)](https://github.com/Roinflam)
@@ -20,7 +20,7 @@
 
 ### 📖 About
 
-**BattleCorrection** is an RPG-style combat enhancement mod for Minecraft 1.12.2. It introduces a comprehensive
+**BattleCorrection** is an RPG-style combat enhancement mod for Minecraft 1.20.1. It introduces a comprehensive
 attribute system, advanced critical hit mechanics, lifesteal abilities, and extensive battle balance options. Perfect
 for RPG modpacks and servers that want deeper combat customization.
 
@@ -30,25 +30,31 @@ for RPG modpacks and servers that want deeper combat customization.
 - 💥 **Advanced Critical System** - Custom crit chance & damage with overflow conversion mechanic
 - 🩸 **Lifesteal Mechanics** - Melee lifesteal and universal lifesteal for all damage types
 - ⚖️ **Battle Balance** - Fine-tune PVP damage, attack cooldown, invulnerability frames
-- 🍖 **Hunger System** - Damage decay based on hunger level
-- 💍 **Baubles Support** - Full integration with Baubles accessory slots
+- 🍖 **Hunger System** - Enhanced hunger regeneration and damage decay based on hunger level
+- 💍 **Curios Support** - Full integration with Curios accessory slots
 - 🛡️ **Damage Reduction** - Flat damage ignore and fall damage reduction
 - ⚡ **Speed Modifiers** - Bow draw speed and item use speed adjustments
-- 🔧 **Highly Configurable** - Every feature can be adjusted via config GUI
+- 🧰 **Management Tools** - Creative staffs for entity control, healing, and more
+- 🔧 **Highly Configurable** - In-game config GUI powered by Cloth Config
+- 🎮 **1.9+ Combat** - Toggle attack cooldown and combo correction systems
 
 ### 📥 Installation
 
-1. **Download Minecraft Forge** for 1.12.2 (latest version recommended)
-    - [Download Forge →](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.12.2.html)
+1. **Download Minecraft Forge** for 1.20.1 (latest version recommended)
+    - [Download Forge →](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html)
 
 2. **Download BattleCorrection** from CurseForge
     - [Download Mod →](https://www.curseforge.com/minecraft/mc-mods/battlecorrection)
 
-3. **Install the mod**
-    - Place the `.jar` file into `.minecraft/mods/` folder
+3. **Install required dependencies**
+    - [Cloth Config API](https://www.curseforge.com/minecraft/mc-mods/cloth-config) (Required)
+    - [Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) (Optional, for accessory support)
+
+4. **Install the mod**
+    - Place all `.jar` files into `.minecraft/mods/` folder
     - Launch Minecraft with Forge profile
 
-4. **Done!** Press `K` to open mod list, configure in Mod Options
+5. **Done!** Open Mod Menu and configure BattleCorrection settings
 
 ### 🎯 Attribute System
 
@@ -109,6 +115,47 @@ for RPG modpacks and servers that want deeper combat customization.
 
 </details>
 
+### 🧰 Management Tools
+
+<details>
+<summary><b>⚔️ Combat Staffs</b></summary>
+
+| Item                  | Description                                  |
+|-----------------------|----------------------------------------------|
+| **Enemy Staff**       | Make two entities fight each other           |
+| **Rebel Staff**       | Make all nearby entities attack one target   |
+| **Riot Staff**        | Make an entity attack random nearby entities |
+| **Brawl Staff**       | Make all nearby entities fight each other    |
+| **Elimination Staff** | Make different species attack each other     |
+
+</details>
+
+<details>
+<summary><b>❤️ Healing Staffs</b></summary>
+
+| Item                        | Description                              |
+|-----------------------------|------------------------------------------|
+| **Healing Staff**           | Fully restore one entity's health        |
+| **Range Healing Staff**     | Fully restore all nearby entities        |
+| **Sacrificial Staff**       | Instantly kill one entity                |
+| **Range Sacrificial Staff** | Instantly kill all nearby non-players    |
+| **Restoration Staff**       | Remove all potion effects from an entity |
+
+</details>
+
+<details>
+<summary><b>⚔️ Example Swords</b></summary>
+
+| Item               | Attack Damage | Durability |
+|--------------------|---------------|------------|
+| **Base Sword**     | 9             | 1,000      |
+| **Advanced Sword** | 99            | 10,000     |
+| **Master Sword**   | 999           | 100,000    |
+
+*These swords demonstrate the mod's attribute system*
+
+</details>
+
 ### ⚙️ Configuration Options
 
 <details>
@@ -136,20 +183,36 @@ for RPG modpacks and servers that want deeper combat customization.
 
 </details>
 
+<details>
+<summary><b>🍖 Hunger System</b></summary>
+
+| Option                           | Description                               |
+|----------------------------------|-------------------------------------------|
+| **Saturation Healing (Flat)**    | Extra HP per tick from saturation         |
+| **Saturation Healing (Percent)** | Extra HP% per tick from saturation        |
+| **Hunger Healing (Flat)**        | Extra HP per tick when hunger ≥ 18        |
+| **Hunger Healing (Percent)**     | Extra HP% per tick when hunger ≥ 18       |
+| **Hunger Damage Decay**          | Damage reduction per missing hunger point |
+| **Hunger Decay Limit**           | Maximum damage reduction cap              |
+
+</details>
+
 ### 🔧 Requirements
 
-| Component    | Version                 |
-|--------------|-------------------------|
-| Minecraft    | 1.12.2                  |
-| Forge        | Latest for 1.12.2       |
-| Java         | 8 or higher             |
-| Dependencies | None (Baubles optional) |
+| Component    | Version                  |
+|--------------|--------------------------|
+| Minecraft    | 1.20.1                   |
+| Forge        | 47.3.0 or higher         |
+| Java         | 17 or higher             |
+| Dependencies | Cloth Config (Required)  |
+| Optional     | Curios API (Recommended) |
 
 ### 🤝 Compatibility
 
-- ✅ **Baubles** - Full accessory slot attribute support
+- ✅ **Curios API** - Full accessory slot attribute support
 - ✅ **Most weapon mods** - Attributes work with any damage source
 - ✅ **RPG modpacks** - Designed for integration
+- ✅ **Multiplayer** - Full server/client synchronization
 
 ### 📚 Documentation
 
@@ -162,8 +225,8 @@ for RPG modpacks and servers that want deeper combat customization.
 <details>
 <summary><b>How do I add attributes to items?</b></summary>
 
-Use NBT editing tools or other mods like ContentTweaker/CraftTweaker to add attribute modifiers to items. The attributes
-will be automatically recognized.
+Use data packs, NBT editing tools, or mods like KubeJS/CraftTweaker to add attribute modifiers to items. The attributes
+will be automatically recognized. For Curios accessories, the attributes work automatically when worn.
 
 </details>
 
@@ -178,7 +241,22 @@ Yes! "Almighty Bloodthirsty" works with ALL damage types including arrows, proje
 <summary><b>What is the overflow mechanic?</b></summary>
 
 When your critical chance exceeds 100%, the excess is converted to bonus critical damage. For example, 150% crit
-chance = 100% crit + 0.5× bonus crit damage.
+chance = 100% crit + 0.5× bonus crit damage (configurable conversion rate).
+
+</details>
+
+<details>
+<summary><b>Can I disable attack cooldown?</b></summary>
+
+Yes! Set "Attack Cooldown" to `false` in the config to get 1.8-style combat with no cooldown.
+
+</details>
+
+<details>
+<summary><b>How do I configure the mod?</b></summary>
+
+Open the Mods menu (Mod List), find BattleCorrection, and click the config button. You can also edit the config files
+directly in `config/battlecorrection-battle.toml` and `config/battlecorrection-attribute.toml`.
 
 </details>
 
@@ -194,7 +272,7 @@ chance = 100% crit + 0.5× bonus crit damage.
 ### 👤 Credits
 
 **Developer:** Roinflam  
-**Special Thanks:** 建议重开
+**Special Thanks:** 建议重开 (for support and assistance)
 
 </details>
 
@@ -205,7 +283,7 @@ chance = 100% crit + 0.5× bonus crit damage.
 
 ### 📖 关于模组
 
-**战斗修正**是一个为 Minecraft 1.12.2 制作的 RPG 风格战斗增强模组。它引入了全面的属性系统、高级暴击机制、吸血能力和丰富的战斗平衡选项。非常适合需要深度战斗自定义的
+**战斗修正**是一个为 Minecraft 1.20.1 制作的 RPG 风格战斗增强模组。它引入了全面的属性系统、高级暴击机制、吸血能力和丰富的战斗平衡选项。非常适合需要深度战斗自定义的
 RPG 整合包和服务器。
 
 ### ✨ 特色功能
@@ -214,25 +292,31 @@ RPG 整合包和服务器。
 - 💥 **高级暴击系统** - 自定义暴击率和暴击伤害，支持溢出转化机制
 - 🩸 **吸血机制** - 近战吸血和全能吸血（对所有伤害类型有效）
 - ⚖️ **战斗平衡** - 精细调整 PVP 伤害、攻击冷却、无敌帧
-- 🍖 **饥饿系统** - 基于饥饿值的伤害衰减
-- 💍 **Baubles 支持** - 完整的饰品栏属性联动
+- 🍖 **饥饿系统** - 增强的饥饿恢复和基于饥饿值的伤害衰减
+- 💍 **Curios 支持** - 完整的饰品栏属性联动
 - 🛡️ **伤害减免** - 固定伤害忽略和摔落伤害减免
 - ⚡ **速度调整** - 拉弓速度和物品使用速度
-- 🔧 **高度可配置** - 每个功能都可通过配置界面调整
+- 🧰 **管理工具** - 创造模式权杖，用于实体控制、治疗等
+- 🔧 **高度可配置** - 游戏内配置界面，由 Cloth Config 驱动
+- 🎮 **1.9+ 战斗** - 可切换攻击冷却和连击修正系统
 
 ### 📥 安装方法
 
-1. **下载 Minecraft Forge** 1.12.2 版本（推荐最新版）
-    - [下载 Forge →](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.12.2.html)
+1. **下载 Minecraft Forge** 1.20.1 版本（推荐最新版）
+    - [下载 Forge →](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html)
 
 2. **下载战斗修正**从 CurseForge
     - [下载模组 →](https://www.curseforge.com/minecraft/mc-mods/battlecorrection)
 
-3. **安装模组**
-    - 将 `.jar` 文件放入 `.minecraft/mods/` 文件夹
+3. **安装必需前置**
+    - [Cloth Config API](https://www.curseforge.com/minecraft/mc-mods/cloth-config)（必需）
+    - [Curios API](https://www.curseforge.com/minecraft/mc-mods/curios)（可选，饰品栏支持）
+
+4. **安装模组**
+    - 将所有 `.jar` 文件放入 `.minecraft/mods/` 文件夹
     - 使用 Forge 启动游戏
 
-4. **完成！**按 `K` 键打开模组列表，在模组选项中配置
+5. **完成！**打开模组菜单，配置战斗修正设置
 
 ### 🎯 属性系统
 
@@ -293,6 +377,47 @@ RPG 整合包和服务器。
 
 </details>
 
+### 🧰 管理工具
+
+<details>
+<summary><b>⚔️ 战斗权杖</b></summary>
+
+| 物品       | 描述            |
+|----------|---------------|
+| **敌对权杖** | 使两个生物互相攻击     |
+| **叛军权杖** | 使周围所有生物攻击一个目标 |
+| **暴动权杖** | 使生物攻击附近随机生物   |
+| **群殴权杖** | 使附近所有生物互相攻击   |
+| **消灭权杖** | 使不同种类的生物互相攻击  |
+
+</details>
+
+<details>
+<summary><b>❤️ 治疗权杖</b></summary>
+
+| 物品         | 描述            |
+|------------|---------------|
+| **治疗权杖**   | 完全恢复一个生物的生命   |
+| **范围治疗权杖** | 完全恢复附近所有生物的生命 |
+| **献祭权杖**   | 立即杀死一个生物      |
+| **范围献祭权杖** | 立即杀死附近所有非玩家生物 |
+| **恢复权杖**   | 移除生物的所有药水效果   |
+
+</details>
+
+<details>
+<summary><b>⚔️ 示例武器</b></summary>
+
+| 物品       | 攻击伤害 | 耐久      |
+|----------|------|---------|
+| **基础之剑** | 9    | 1,000   |
+| **进阶之剑** | 99   | 10,000  |
+| **大师之剑** | 999  | 100,000 |
+
+*这些剑用于演示模组的属性系统*
+
+</details>
+
 ### ⚙️ 配置选项
 
 <details>
@@ -320,20 +445,36 @@ RPG 整合包和服务器。
 
 </details>
 
+<details>
+<summary><b>🍖 饥饿系统</b></summary>
+
+| 选项           | 描述               |
+|--------------|------------------|
+| **饱和度固定恢复**  | 饱和度恢复时每刻额外生命值    |
+| **饱和度百分比恢复** | 饱和度恢复时每刻额外生命百分比  |
+| **饥饿值固定恢复**  | 饥饿值≥18时每刻额外生命值   |
+| **饥饿值百分比恢复** | 饥饿值≥18时每刻额外生命百分比 |
+| **饥饿伤害衰减**   | 每少1点饥饿值的伤害减少     |
+| **饥饿衰减上限**   | 最大伤害减少百分比        |
+
+</details>
+
 ### 🔧 运行需求
 
-| 组件        | 版本            |
-|-----------|---------------|
-| Minecraft | 1.12.2        |
-| Forge     | 1.12.2 最新版    |
-| Java      | 8 或更高         |
-| 前置模组      | 无（Baubles 可选） |
+| 组件        | 版本               |
+|-----------|------------------|
+| Minecraft | 1.20.1           |
+| Forge     | 47.3.0 或更高       |
+| Java      | 17 或更高           |
+| 前置模组      | Cloth Config（必需） |
+| 可选前置      | Curios API（推荐）   |
 
 ### 🤝 兼容性
 
-- ✅ **Baubles** - 完整的饰品栏属性支持
+- ✅ **Curios API** - 完整的饰品栏属性支持
 - ✅ **大多数武器模组** - 属性适用于任何伤害来源
 - ✅ **RPG 整合包** - 专为整合设计
+- ✅ **多人游戏** - 完整的服务端/客户端同步
 
 ### 📚 文档资料
 
@@ -346,7 +487,7 @@ RPG 整合包和服务器。
 <details>
 <summary><b>如何为物品添加属性？</b></summary>
 
-使用 NBT 编辑工具或其他模组如 ContentTweaker/CraftTweaker 为物品添加属性修改器。属性会被自动识别。
+使用数据包、NBT 编辑工具或模组如 KubeJS/CraftTweaker 为物品添加属性修改器。属性会被自动识别。对于 Curios 饰品，佩戴后属性会自动生效。
 
 </details>
 
@@ -360,7 +501,22 @@ RPG 整合包和服务器。
 <details>
 <summary><b>什么是溢出机制？</b></summary>
 
-当暴击率超过 100% 时，超出部分会转化为额外暴击伤害。例如，150% 暴击率 = 100% 暴击 + 0.5 倍额外暴击伤害。
+当暴击率超过 100% 时，超出部分会转化为额外暴击伤害。例如，150% 暴击率 = 100% 暴击 + 0.5 倍额外暴击伤害（转化比例可配置）。
+
+</details>
+
+<details>
+<summary><b>可以禁用攻击冷却吗？</b></summary>
+
+可以！在配置中将"攻击冷却"设为 `false`，即可获得 1.8 风格的无冷却战斗。
+
+</details>
+
+<details>
+<summary><b>如何配置模组？</b></summary>
+
+打开模组菜单（模组列表），找到战斗修正，点击配置按钮。你也可以直接编辑配置文件：`config/battlecorrection-battle.toml`
+和 `config/battlecorrection-attribute.toml`。
 
 </details>
 
@@ -376,7 +532,7 @@ RPG 整合包和服务器。
 ### 👤 制作人员
 
 **开发者：** Roinflam  
-**特别鸣谢：** 建议重开
+**特别鸣谢：** 建议重开（提供支持和帮助）
 
 </details>
 

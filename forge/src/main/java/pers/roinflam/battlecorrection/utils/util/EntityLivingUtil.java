@@ -1,5 +1,3 @@
-// EntityLivingUtil.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/EntityLivingUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
 import net.minecraft.world.damagesource.DamageSource;
@@ -19,7 +17,7 @@ import java.util.UUID;
 
 /**
  * 实体生物工具类
- * 提供攻击蓄力追踪、跳跃控制等功能
+ * 提供攻击蓄力追踪、跳跃控制、物品使用加速等功能
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class EntityLivingUtil {
@@ -77,7 +75,6 @@ public class EntityLivingUtil {
 
     /**
      * 加速物品使用进度
-     * <p>
      * 通过减少 useItemRemaining 来加速
      *
      * @param livingEntity 生物实体
@@ -85,6 +82,22 @@ public class EntityLivingUtil {
      */
     public static void accelerateItemUse(@Nonnull LivingEntity livingEntity, int ticks) {
         ReflectionCache.reduceUseItemRemaining(livingEntity, ticks);
+    }
+
+    /**
+     * 更新手持物品使用状态（对应1.12的updateActiveHand）
+     * 通过反射调用updatingUsingItem方法来触发额外的物品使用tick
+     * <p>
+     * 这个方法会：
+     * 1. 检查是否正在使用物品
+     * 2. 触发物品的onUseTick
+     * 3. 减少useItemRemaining计数
+     * 4. 触发使用效果（粒子、声音等）
+     *
+     * @param livingEntity 生物实体
+     */
+    public static void updateHeld(@Nonnull LivingEntity livingEntity) {
+        ReflectionCache.invokeUpdatingUsingItem(livingEntity);
     }
 
     /**

@@ -181,9 +181,9 @@ public class ConfigAttribute {
         JUMP_LIFT = builder
                 .comment(
                         "[EN] Jump Height Boost",
-                        "     0.1 = Roughly +1 block jump height",
+                        "     1 = Roughly +1 block jump height",
                         "[中文] 跳跃高度提升",
-                        "     0.1 = 大约+1格跳跃高度"
+                        "     1 = 大约+1格跳跃高度"
                 )
                 .defineInRange("jumpLift", 0.0D, 0.0D, Double.MAX_VALUE);
 

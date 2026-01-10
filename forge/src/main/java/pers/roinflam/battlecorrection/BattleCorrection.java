@@ -17,6 +17,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
+import pers.roinflam.battlecorrection.compat.CuriosIntegration;
 import pers.roinflam.battlecorrection.config.ClothConfigScreen;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
@@ -56,7 +57,7 @@ public class BattleCorrection {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigBattle.SPEC, "battlecorrection-battle.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigAttribute.SPEC, "battlecorrection-attribute.toml");
 
-        // ===== 注册配置屏幕 (重要！) =====
+        // 注册配置屏幕
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(
@@ -71,6 +72,9 @@ public class BattleCorrection {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
+        // 初始化Curios集成（在工作队列中执行，确保线程安全）
+        event.enqueueWork(CuriosIntegration::init);
+
         LOGGER.info("战斗修正模组 - 通用设置完成");
     }
 
