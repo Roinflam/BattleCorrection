@@ -1,14 +1,16 @@
 pluginManagement {
     repositories {
-        maven { url "https://maven.fabricmc.net/" }
-        maven { url "https://maven.architectury.dev/" }
-        maven { url "https://files.minecraftforge.net/maven/" }
-        gradlePluginPortal()
+        maven { url "https://maven.fabricmc.net/" }      // Fabric 相关
+        maven { url "https://maven.architectury.dev/" }  // Architectury
+        maven { url "https://maven.minecraftforge.net/" } // Forge
+        gradlePluginPortal()                              // Gradle 官方插件
     }
 }
 
-rootProject.name = 'battlecorrection'
+// 项目名称：自动从 gradle.properties 读取 mod_id
+rootProject.name = providers.gradleProperty('mod_id').get()
 
+// 包含的子项目
 include 'common'
-include 'fabric'
 include 'forge'
+include 'fabric'
