@@ -1,5 +1,5 @@
-// AttributeBowSpeed.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeBowSpeed.java
+// 文件：AttributeBowSpeed.java
+// 路径：forge/src/main/java/pers/roinflam/battlecorrection/attributes/AttributeBowSpeed.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.world.entity.LivingEntity;
@@ -25,9 +25,11 @@ import java.util.UUID;
  * 弓速属性
  * 增加拉弓速度
  * <p>
- * 通过直接减少 useItemRemaining 字段来加速拉弓
- * 弓的拉弓进度 = getUseDuration() - useItemRemaining
- * 所以减少 useItemRemaining 会增加拉弓进度
+ * 速度机制：
+ * - speed = 1.0：正常速度
+ * - speed > 1.0：加速（例如 2.3 = 固定额外更新1次 + 30%概率额外更新1次）
+ * - speed < 1.0：减速（例如 0.5 = 50%概率跳过更新）
+ * - speed = 0.0：完全无法拉弓（100%跳过更新）
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeBowSpeed {
@@ -37,10 +39,7 @@ public class AttributeBowSpeed {
 
     /**
      * 处理实体更新事件以加快拉弓速度
-     * <p>
-     * 原理：直接减少 useItemRemaining 字段值
-     * 弓的拉弓进度计算：useDuration - useItemRemaining
-     * 减少 useItemRemaining 相当于增加拉弓进度
+     * 通过直接减少 useItemRemaining 字段值来加速
      */
     @SubscribeEvent
     public static void onLivingUpdate(@Nonnull LivingEvent.LivingTickEvent evt) {
@@ -68,19 +67,29 @@ public class AttributeBowSpeed {
         }
 
         // 计算总速度
+        // 属性默认1.0，配置默认1.0
+        // 最终速度 = (属性值 - 1.0) + 配置值
+        // 例如：属性1.0 + 配置1.0 = (1.0 - 1.0) + 1.0 = 1.0（正常速度）
+        // 例如：属性1.0 + 配置2.0 = (1.0 - 1.0) + 2.0 = 2.0（2倍速度）
         float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED.get());
         float configValue = ConfigAttribute.BOW_SPEED.get().floatValue();
-        float speed = attributeValue + configValue;
+        float speed = (attributeValue - 1.0f) + configValue;
 
-        // 速度大于1时加速
-        if (speed > 1) {
+        // speed = 1.0 时不做任何处理（正常速度）
+        if (Math.abs(speed - 1.0f) < 0.001f) {
+            return;
+        }
+
+        // 速度大于1.0时加速
+        if (speed > 1.0f) {
             // 计算需要额外减少的tick数
-            // speed = 2.0 表示2倍速，需要额外减少1 tick（加上原本的1 tick = 2 tick/帧）
-            // speed = 3.0 表示3倍速，需要额外减少2 tick
-            int extraTicks = (int) (speed - 1);
+            // 例如 speed = 2.3：
+            // - 整数部分 = 1（固定额外更新1次）
+            // - 小数部分 = 0.3（30%概率额外更新1次）
+            int extraTicks = (int) (speed - 1.0f);
 
             // 处理小数部分（概率触发额外1 tick）
-            float fractionalPart = speed - 1 - extraTicks;
+            float fractionalPart = speed - 1.0f - extraTicks;
             if (fractionalPart > 0 && RandomUtil.percentageChance(fractionalPart * 100)) {
                 extraTicks++;
             }
@@ -91,9 +100,9 @@ public class AttributeBowSpeed {
 
                 if (success) {
                     LogUtil.debugAttribute("弓速加成", entity.getName().getString(),
-                            attributeValue, configValue, speed);
-                    LogUtil.debug(String.format("弓速加速 - 额外减少 %d tick, 剩余: %d tick",
-                            extraTicks, entity.getUseItemRemainingTicks()));
+                            attributeValue - 1.0f, configValue, speed);
+                    LogUtil.debug(String.format("弓速加速 - 速度: %.2fx, 额外减少 %d tick, 剩余: %d tick",
+                            speed, extraTicks, entity.getUseItemRemainingTicks()));
                 }
             }
         }
@@ -101,7 +110,6 @@ public class AttributeBowSpeed {
 
     /**
      * 处理使用物品事件以减慢拉弓速度（当速度小于1时）
-     * <p>
      * 通过增加 duration 来减慢使用速度
      */
     @SubscribeEvent
@@ -127,17 +135,25 @@ public class AttributeBowSpeed {
         // 计算总速度
         float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED.get());
         float configValue = ConfigAttribute.BOW_SPEED.get().floatValue();
-        float speed = attributeValue + configValue;
+        float speed = (attributeValue - 1.0f) + configValue;
 
-        // 速度小于1时减速
-        if (speed > 0 && speed < 1) {
-            // 按概率暂停使用进度
-            // speed = 0.5 表示50%速度，有50%几率暂停
-            if (RandomUtil.percentageChance((1 - speed) * 100)) {
+        // speed = 1.0 时不做任何处理（正常速度）
+        if (Math.abs(speed - 1.0f) < 0.001f) {
+            return;
+        }
+
+        // 速度小于1.0时减速
+        if (speed < 1.0f) {
+            // 按 (1 - speed) 的概率暂停使用进度
+            // 例如 speed = 0.5：有 50% 概率暂停
+            // 例如 speed = 0.0：有 100% 概率暂停（完全无法拉弓）
+            if (speed <= 0 || RandomUtil.percentageChance((1.0f - speed) * 100)) {
                 evt.setDuration(evt.getDuration() + 1);
 
                 LogUtil.debugAttribute("弓速减缓", entity.getName().getString(),
-                        attributeValue, configValue, speed);
+                        attributeValue - 1.0f, configValue, speed);
+                LogUtil.debug(String.format("弓速减速 - 速度: %.2fx, 暂停更新",
+                        speed));
             }
         }
     }

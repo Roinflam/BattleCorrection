@@ -1,5 +1,5 @@
 // 文件：ConfigAttribute.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
+// 路径：forge/src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -163,18 +163,20 @@ public class ConfigAttribute {
         BOW_SPEED = builder
                 .comment(
                         "[EN] Bow Draw Speed Multiplier",
-                        "     1.0 = Normal speed, 2.0 = Twice as fast",
+                        "     1.0 = Normal speed (default), 2.0 = Twice as fast, 0.5 = Half speed, 0.0 = Cannot draw",
                         "[中文] 拉弓速度倍率",
-                        "     1.0 = 正常速度, 2.0 = 快一倍"
+                        "     1.0 = 正常速度(默认), 2.0 = 快一倍, 0.5 = 减半速度, 0.0 = 无法拉弓"
                 )
-                .defineInRange("bowSpeed", 0.0D, 0.0D, Double.MAX_VALUE);
+                .defineInRange("bowSpeed", 1.0D, 0.0D, Double.MAX_VALUE);
 
         PREPARATION_SPEED = builder
                 .comment(
                         "[EN] Item Use Speed Multiplier (Food, Potions, Shields)",
-                        "[中文] 物品使用速度倍率(食物、药水、盾牌)"
+                        "     1.0 = Normal speed (default), 2.0 = Twice as fast, 0.5 = Half speed, 0.0 = Cannot use",
+                        "[中文] 物品使用速度倍率(食物、药水、盾牌)",
+                        "     1.0 = 正常速度(默认), 2.0 = 快一倍, 0.5 = 减半速度, 0.0 = 无法使用"
                 )
-                .defineInRange("preparationSpeed", 0.0D, 0.0D, Double.MAX_VALUE);
+                .defineInRange("preparationSpeed", 1.0D, 0.0D, Double.MAX_VALUE);
 
         JUMP_LIFT = builder
                 .comment(
