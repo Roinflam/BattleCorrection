@@ -1,5 +1,3 @@
-// 文件：DamageEventListener.java（简化版）
-// 路径：src/main/java/pers/roinflam/battlecorrection/event/DamageEventListener.java
 package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.world.damagesource.DamageSource;
@@ -74,7 +72,7 @@ public class DamageEventListener {
                 StringBuilder modificationReason = new StringBuilder();
 
                 // 判断伤害类型并应用倍率
-                boolean isMagicDamage = damageSource.is(net.minecraft.tags.DamageTypeTags.WITCH_RESISTANT_TO);
+                boolean isMagicDamage = isMagicDamage(damageSource);
 
                 if (!isMagicDamage) {
                     if (immediateSource instanceof Player) {
@@ -155,5 +153,22 @@ public class DamageEventListener {
                 }
             }
         }
+    }
+
+    /**
+     * 判断是否为魔法伤害
+     *
+     * @param damageSource 伤害源
+     * @return true=魔法伤害, false=非魔法伤害
+     */
+    private static boolean isMagicDamage(DamageSource damageSource) {
+        // 1. 检查原版魔法伤害标签（女巫免疫的伤害类型）
+        if (damageSource.is(net.minecraft.tags.DamageTypeTags.WITCH_RESISTANT_TO)) {
+            return true;
+        }
+
+        // 2. 检查伤害类型ID是否包含 "magic" 字段（兼容模组）
+        String damageTypeId = damageSource.getMsgId();
+        return damageTypeId.toLowerCase().contains("magic");
     }
 }

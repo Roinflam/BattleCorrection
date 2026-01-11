@@ -1,5 +1,3 @@
-// 文件：ReflectionCache.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/ReflectionCache.java
 package pers.roinflam.battlecorrection.utils;
 
 import net.minecraft.world.entity.LivingEntity;
@@ -8,7 +6,6 @@ import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 /**
  * 反射缓存工具类
@@ -45,23 +42,21 @@ public class ReflectionCache {
         LogUtil.info("开始初始化反射缓存...");
 
         // 获取 noJumpDelay 字段
+        // MCP名: noJumpDelay, SRG名: f_20954_
         try {
-            noJumpDelayField = ObfuscationReflectionHelper.findField(LivingEntity.class, "noJumpDelay");
+            noJumpDelayField = ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20954_");
             noJumpDelayField.setAccessible(true);
             noJumpDelayAvailable = true;
             LogUtil.info("✓ 成功获取 noJumpDelay 字段");
         } catch (Exception e) {
             LogUtil.error("✗ 无法获取 noJumpDelay 字段", e);
-            LogUtil.error("  可用字段列表: " + Arrays.toString(
-                    Arrays.stream(LivingEntity.class.getDeclaredFields())
-                            .map(Field::getName)
-                            .toArray()));
             noJumpDelayAvailable = false;
         }
 
         // 获取 useItemRemaining 字段
+        // MCP名: useItemRemaining, SRG名: f_20936_
         try {
-            useItemRemainingField = ObfuscationReflectionHelper.findField(LivingEntity.class, "useItemRemaining");
+            useItemRemainingField = ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20936_");
             useItemRemainingField.setAccessible(true);
             useItemRemainingAvailable = true;
             LogUtil.info("✓ 成功获取 useItemRemaining 字段");
@@ -71,20 +66,17 @@ public class ReflectionCache {
         }
 
         // 获取 updatingUsingItem 方法
+        // MCP名: updatingUsingItem, SRG名: m_21329_
         try {
             updatingUsingItemMethod = ObfuscationReflectionHelper.findMethod(
                     LivingEntity.class,
-                    "updatingUsingItem"
+                    "m_21329_"
             );
             updatingUsingItemMethod.setAccessible(true);
             updatingUsingItemAvailable = true;
             LogUtil.info("✓ 成功获取 updatingUsingItem 方法");
         } catch (Exception e) {
             LogUtil.error("✗ 无法获取 updatingUsingItem 方法", e);
-            LogUtil.error("  可用方法列表: " + Arrays.toString(
-                    Arrays.stream(LivingEntity.class.getDeclaredMethods())
-                            .map(Method::getName)
-                            .toArray()));
             updatingUsingItemAvailable = false;
         }
 
