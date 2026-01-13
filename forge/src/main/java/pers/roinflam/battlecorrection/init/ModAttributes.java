@@ -1,5 +1,3 @@
-// 文件：ModAttributes.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/init/ModAttributes.java
 package pers.roinflam.battlecorrection.init;
 
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -28,7 +26,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> MAGIC_DAMAGE = ATTRIBUTES.register(
             "magic_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.magic_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.magic_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -37,7 +35,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> ARROW_DAMAGE = ATTRIBUTES.register(
             "arrow_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.arrow_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.arrow_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -46,7 +44,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> PROJECTILE_DAMAGE = ATTRIBUTES.register(
             "projectile_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.projectile_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.projectile_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -57,7 +55,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> IMMUNE_DAMAGE = ATTRIBUTES.register(
             "immune_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.immune_damage", 1.0D, 1.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.immune_damage", 1.0D, 1.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -66,7 +64,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> IGNORE_DAMAGE = ATTRIBUTES.register(
             "ignore_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.ignore_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.ignore_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -75,7 +73,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> REDUCED_FALL_DAMAGE = ATTRIBUTES.register(
             "reduced_fall_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.reduced_fall_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.reduced_fall_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -86,7 +84,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> RESTORE_HEAL = ATTRIBUTES.register(
             "restore_heal",
-            () -> new RangedAttribute("attribute.battlecorrection.restore_heal", 1.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.restore_heal", 1.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -95,7 +93,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> BLOODTHIRSTY = ATTRIBUTES.register(
             "bloodthirsty",
-            () -> new RangedAttribute("attribute.battlecorrection.bloodthirsty", 1.0D, 1.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.bloodthirsty", 1.0D, 1.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -104,7 +102,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> ALMIGHTY_BLOODTHIRSTY = ATTRIBUTES.register(
             "almighty_bloodthirsty",
-            () -> new RangedAttribute("attribute.battlecorrection.almighty_bloodthirsty", 1.0D, 1.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.almighty_bloodthirsty", 1.0D, 1.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -115,7 +113,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> BOW_SPEED = ATTRIBUTES.register(
             "bow_speed",
-            () -> new RangedAttribute("attribute.battlecorrection.bow_speed", 1.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.bow_speed", 1.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -124,7 +122,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> PREPARATION_SPEED = ATTRIBUTES.register(
             "preparation_speed",
-            () -> new RangedAttribute("attribute.battlecorrection.preparation_speed", 1.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.preparation_speed", 1.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -133,7 +131,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> JUMP_LIFT = ATTRIBUTES.register(
             "jump_lift",
-            () -> new RangedAttribute("attribute.battlecorrection.jump_lift", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.jump_lift", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -144,7 +142,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> VANILLA_CRITICAL_HIT_DAMAGE = ATTRIBUTES.register(
             "vanilla_critical_hit_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.vanilla_critical_hit_damage", 1.0D, 1.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.vanilla_critical_hit_damage", 1.0D, 1.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -153,7 +151,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> CUSTOM_CRITICAL_CHANCE = ATTRIBUTES.register(
             "custom_critical_chance",
-            () -> new RangedAttribute("attribute.battlecorrection.custom_critical_chance", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.custom_critical_chance", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 
@@ -162,7 +160,7 @@ public class ModAttributes {
      */
     public static final RegistryObject<Attribute> CUSTOM_CRITICAL_DAMAGE = ATTRIBUTES.register(
             "custom_critical_damage",
-            () -> new RangedAttribute("attribute.battlecorrection.custom_critical_damage", 0.0D, 0.0D, Double.MAX_VALUE)
+            () -> new RangedAttribute("attribute.name.battlecorrection.custom_critical_damage", 0.0D, 0.0D, Double.MAX_VALUE)
                     .setSyncable(true)
     );
 }
