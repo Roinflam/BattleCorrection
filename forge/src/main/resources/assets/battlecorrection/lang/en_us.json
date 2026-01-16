@@ -141,7 +141,7 @@
   "config.battlecorrection.jumpLift.tooltip": "Extra jump height in blocks.\nUses vanilla jump boost formula.\n§70.1§r ≈ +1 block jump height\n§70.0§r = Normal jump (default)",
   "_comment17": "========== 配置项 - RPG暴击系统 ==========",
   "config.battlecorrection.vanillaCriticalHitDamage": "Vanilla Critical Damage",
-  "config.battlecorrection.vanillaCriticalHitDamage.tooltip": "Bonus damage for vanilla critical hits (falling attack).\nFormula: §eDamage × (1 + Value)§r\n§70.5§r = 150% damage (vanilla default)\n§71.0§r = 200% damage\n§cOnly affects jump-attack crits!§r",
+  "config.battlecorrection.vanillaCriticalHitDamage.tooltip": "Bonus damage for vanilla critical hits (falling attack).\nFormula: §eDamage × (1.5 + Value)§r\n§70.0§r = 150% damage (vanilla default, 1.5×)\n§70.1§r = 160% damage (1.6×)\n§70.5§r = 200% damage (2.0×)\n§cOnly affects jump-attack crits!§r",
   "config.battlecorrection.customCriticalChance": "Custom Critical Chance",
   "config.battlecorrection.customCriticalChance.tooltip": "Chance to land a custom critical hit.\nRange: 0.0 to ∞ (supports overflow)\n§70.5§r = 50% crit chance\n§71.0§r = 100% crit chance\n§71.5§r = 100% crit + 0.5 overflow → extra damage\n§70.0§r = Disabled (default)",
   "config.battlecorrection.customCriticalDamage": "Custom Critical Damage",

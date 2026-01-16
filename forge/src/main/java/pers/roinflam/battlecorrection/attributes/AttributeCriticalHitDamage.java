@@ -16,7 +16,7 @@ import java.util.UUID;
 
 /**
  * 原版暴击伤害加成属性
- * 只影响原版的下坠暴击（从高处落下攻击）
+ * 只影响原版的下坠暴击(从高处落下攻击)
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeCriticalHitDamage {
@@ -32,22 +32,28 @@ public class AttributeCriticalHitDamage {
         if (!evt.getEntity().level().isClientSide()) {
             @Nullable LivingEntity attacker = evt.getEntity();
 
+            // 获取当前的暴击倍率(可能已被其他模组修改)
+            float currentModifier = evt.getDamageModifier();
+
             float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.VANILLA_CRITICAL_HIT_DAMAGE.get());
             float configValue = ConfigAttribute.VANILLA_CRITICAL_HIT_DAMAGE.get().floatValue();
             double criticalDamageBonus = (attributeValue - 1.0f) + configValue;
 
-            evt.setDamageModifier((float) (1.0 + criticalDamageBonus));
+            // 直接加法叠加：原版1.5x + 额外0.5 = 2.0x
+            // 而不是乘法：1.5x * 1.5 = 2.25x
+            float finalModifier = currentModifier + (float) criticalDamageBonus;
+            evt.setDamageModifier(finalModifier);
 
             LogUtil.debugAttribute("原版暴击伤害", attacker.getName().getString(),
                     attributeValue - 1.0f, configValue, criticalDamageBonus);
 
             if (evt.getTarget() != null) {
                 LogUtil.debugEvent("原版暴击触发", attacker.getName().getString(),
-                        String.format("对 %s 造成暴击，伤害倍率: %.2fx (100%% + %.2f%% = %.2f%%)",
+                        String.format("对 %s 造成暴击，原始倍率: %.2fx, 额外加成: +%.2f, 最终倍率: %.2fx",
                                 evt.getTarget().getName().getString(),
-                                (1 + criticalDamageBonus),
-                                criticalDamageBonus * 100,
-                                (1 + criticalDamageBonus) * 100));
+                                currentModifier,
+                                criticalDamageBonus,
+                                finalModifier));
             }
         }
     }

@@ -1,12 +1,9 @@
-// 文件：BattleCorrection.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/BattleCorrection.java
 package pers.roinflam.battlecorrection;
 
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -58,15 +55,13 @@ public class BattleCorrection {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigAttribute.SPEC, "battlecorrection-attribute.toml");
 
         // 注册配置屏幕
+        // Register config screen
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(
                         (minecraft, screen) -> ClothConfigScreen.createConfigScreen(screen)
                 )
         );
-
-        // 注册Forge事件总线
-        MinecraftForge.EVENT_BUS.register(this);
 
         LOGGER.info("战斗修正模组 - 注册完成");
     }

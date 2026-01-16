@@ -141,7 +141,7 @@
   "config.battlecorrection.jumpLift.tooltip": "额外跳跃高度（格）\n使用原版跳跃提升公式\n§70.1§r ≈ +1格跳跃高度\n§70.0§r = 正常跳跃（默认）",
   "_comment17": "========== 配置项 - RPG暴击系统 ==========",
   "config.battlecorrection.vanillaCriticalHitDamage": "原版暴击伤害加成",
-  "config.battlecorrection.vanillaCriticalHitDamage.tooltip": "原版暴击（下坠攻击）的额外伤害\n公式：§e伤害 × (1 + 此值)§r\n§70.5§r = 150%伤害（原版默认）\n§71.0§r = 200%伤害\n§c仅影响跳跃攻击暴击！§r",
+  "config.battlecorrection.vanillaCriticalHitDamage.tooltip": "原版暴击（下坠攻击）的额外伤害\n公式：§e伤害 × (1.5 + 此值)§r\n§70.0§r = 150%伤害（原版默认，1.5倍）\n§70.1§r = 160%伤害（1.6倍）\n§70.5§r = 200%伤害（2.0倍）\n§c仅影响跳跃攻击暴击！§r",
   "config.battlecorrection.customCriticalChance": "自定义暴击几率",
   "config.battlecorrection.customCriticalChance.tooltip": "触发自定义暴击的几率\n范围：0.0 到 ∞（支持溢出）\n§70.5§r = 50%暴击几率\n§71.0§r = 100%暴击几率\n§71.5§r = 100%暴击 + 0.5溢出 → 额外暴伤\n§70.0§r = 禁用（默认）",
   "config.battlecorrection.customCriticalDamage": "自定义暴击伤害倍率",

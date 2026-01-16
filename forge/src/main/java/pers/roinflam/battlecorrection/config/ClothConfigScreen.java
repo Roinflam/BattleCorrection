@@ -398,7 +398,7 @@ public class ClothConfigScreen {
         criticalCategory.addEntry(entryBuilder.startDoubleField(
                         Component.translatable("config.battlecorrection.vanillaCriticalHitDamage"),
                         ConfigAttribute.VANILLA_CRITICAL_HIT_DAMAGE.get())
-                .setDefaultValue(0.5)
+                .setDefaultValue(0.0)
                 .setMin(0.0)
                 .setTooltip(Component.translatable("config.battlecorrection.vanillaCriticalHitDamage.tooltip"))
                 .setSaveConsumer(ConfigAttribute.VANILLA_CRITICAL_HIT_DAMAGE::set)

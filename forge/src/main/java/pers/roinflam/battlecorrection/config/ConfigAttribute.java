@@ -201,11 +201,13 @@ public class ConfigAttribute {
         VANILLA_CRITICAL_HIT_DAMAGE = builder
                 .comment(
                         "[EN] Vanilla Critical Hit Damage Bonus (Fall Attack Only)",
-                        "     0.5 = 150% damage (vanilla default), 1.0 = 200% damage",
+                        "     Formula: Damage × (1.5 + This Value)",
+                        "     0.0 = 150% damage (vanilla default, 1.5×), 0.5 = 200% damage (2.0×), 1.0 = 250% damage (2.5×)",
                         "[中文] 原版暴击伤害加成(仅下坠攻击)",
-                        "     0.5 = 150%伤害(原版默认), 1.0 = 200%伤害"
+                        "     公式: 伤害 × (1.5 + 此值)",
+                        "     0.0 = 150%伤害(原版默认, 1.5倍), 0.5 = 200%伤害(2.0倍), 1.0 = 250%伤害(2.5倍)"
                 )
-                .defineInRange("vanillaCriticalHitDamage", 0.5D, 0.0D, Double.MAX_VALUE);
+                .defineInRange("vanillaCriticalHitDamage", 0.0D, 0.0D, Double.MAX_VALUE);
 
         CUSTOM_CRITICAL_CHANCE = builder
                 .comment(
