@@ -1,7 +1,6 @@
-//// 文件：CuriosIntegration.java（修复版）
-//// 路径：src/main/java/pers/roinflam/battlecorrection/compat/CuriosIntegration.java
+// CuriosIntegration.java
+// 路径：src/main/java/pers/roinflam/battlecorrection/compat/CuriosIntegration.java
 package pers.roinflam.battlecorrection.compat;
-
 
 import com.google.common.collect.Multimap;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -18,16 +17,86 @@ import top.theillusivec4.curios.api.CuriosApi;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Curios模组集成类（替代1.12.2的Baubles）
  * 提供从饰品栏获取物品和属性的功能
+ *
+ * <p>包含tick级缓存机制，避免同一tick内重复遍历饰品栏和触发事件总线</p>
  */
 public class CuriosIntegration {
 
     private static boolean curiosLoaded = false;
+
+    // ========== tick级缓存 ==========
+    // 缓存过期的tick（全局），用于判断缓存是否过期
+    private static long cachedTick = -1;
+
+    // getCurios缓存：entityId -> 饰品列表
+    private static final Map<Integer, List<ItemStack>> curiosCache = new HashMap<>();
+
+    // collectModifiersFromCurios缓存：(entityId * 31 + attributeHash) -> 结果
+    private static final Map<Long, List<Double>[]> modifierCache = new HashMap<>();
+
+    /**
+     * 缓存有效期（tick数）
+     * 默认10tick（0.5秒），饰品栏不会频繁变化，足够安全
+     */
+    private static final int CACHE_TTL_TICKS = 10;
+
+    /**
+     * 检查并在需要时清理过期缓存
+     * 基于游戏tick判断，超过TTL就清空所有缓存
+     *
+     * @param entity 用于获取当前世界tick的实体
+     */
+    private static void checkAndInvalidateCache(@Nonnull LivingEntity entity) {
+        long currentTick = entity.level().getGameTime();
+        if (currentTick - cachedTick >= CACHE_TTL_TICKS) {
+            cachedTick = currentTick;
+            curiosCache.clear();
+            modifierCache.clear();
+        }
+    }
+
+    /**
+     * 生成modifier缓存的key
+     * 将entityId和attribute的哈希值组合成唯一的long型key
+     *
+     * @param entityId  实体ID
+     * @param attribute 属性对象
+     * @return 缓存key
+     */
+    private static long makeModifierCacheKey(int entityId, @Nonnull Attribute attribute) {
+        return ((long) entityId << 32) | (attribute.hashCode() & 0xFFFFFFFFL);
+    }
+
+    /**
+     * 手动清除所有缓存
+     * 可在玩家装备变化等场景下调用
+     */
+    public static void invalidateCache() {
+        cachedTick = -1;
+        curiosCache.clear();
+        modifierCache.clear();
+    }
+
+    /**
+     * 清除指定实体的缓存
+     * 当已知某个实体的饰品发生变化时调用
+     *
+     * @param entity 需要清除缓存的实体
+     */
+    public static void invalidateCacheFor(@Nonnull LivingEntity entity) {
+        int entityId = entity.getId();
+        curiosCache.remove(entityId);
+        // 移除该实体相关的所有modifier缓存
+        modifierCache.entrySet().removeIf(entry -> (entry.getKey() >> 32) == entityId);
+    }
 
     /**
      * 检查Curios是否已加载
@@ -49,21 +118,34 @@ public class CuriosIntegration {
     }
 
     /**
-     * 获取实体的所有饰品栏物品
+     * 获取实体的所有饰品栏物品（带缓存）
+     * 同一缓存周期内（默认10tick），对同一实体的多次调用直接返回缓存结果
      *
      * @param entity 实体
      * @return 饰品栏物品列表
      */
     @Nonnull
     public static List<ItemStack> getCurios(@Nonnull LivingEntity entity) {
-        List<ItemStack> curios = new ArrayList<>();
-
         if (!curiosLoaded) {
-            return curios;
+            return new ArrayList<>();
         }
 
+        // 检查缓存有效性
+        checkAndInvalidateCache(entity);
+
+        int entityId = entity.getId();
+
+        // 命中缓存直接返回
+        List<ItemStack> cached = curiosCache.get(entityId);
+        if (cached != null) {
+            return cached;
+        }
+
+        // 缓存未命中，执行实际查询
+        List<ItemStack> curios = new ArrayList<>();
+
         try {
-            AtomicReference<List<ItemStack>> result = new AtomicReference<>(new ArrayList<>());
+            AtomicReference<List<ItemStack>> result = new AtomicReference<>(curios);
 
             CuriosApi.getCuriosInventory(entity).ifPresent(handler -> {
                 handler.getCurios().forEach((slotId, slotHandler) -> {
@@ -86,11 +168,23 @@ public class CuriosIntegration {
             LogUtil.error("获取饰品栏物品时出错", e);
         }
 
+        // 写入缓存
+        curiosCache.put(entityId, curios);
+
         return curios;
     }
 
     /**
-     * 从饰品栏物品中收集指定属性的修改器
+     * 从饰品栏物品中收集指定属性的修改器（带缓存）
+     * 同一缓存周期内，对同一实体+同一属性的多次调用直接返回缓存结果
+     *
+     * <p>这是性能热点方法。原始实现每次调用都会：
+     * <ol>
+     *   <li>遍历所有饰品栏物品</li>
+     *   <li>对每个物品尝试所有EquipmentSlot</li>
+     *   <li>getAttributeModifiers会触发Forge事件总线（ItemAttributeModifierEvent）</li>
+     * </ol>
+     * 缓存后，同一tick内的重复调用开销几乎为零</p>
      *
      * @param entity    实体
      * @param attribute 属性
@@ -99,15 +193,32 @@ public class CuriosIntegration {
     @Nonnull
     public static List<Double>[] collectModifiersFromCurios(@Nonnull LivingEntity entity,
                                                             @Nonnull Attribute attribute) {
+        if (!curiosLoaded) {
+            @SuppressWarnings("unchecked")
+            List<Double>[] empty = new List[3];
+            empty[0] = new ArrayList<>();
+            empty[1] = new ArrayList<>();
+            empty[2] = new ArrayList<>();
+            return empty;
+        }
+
+        // 检查缓存有效性
+        checkAndInvalidateCache(entity);
+
+        long cacheKey = makeModifierCacheKey(entity.getId(), attribute);
+
+        // 命中缓存直接返回
+        List<Double>[] cached = modifierCache.get(cacheKey);
+        if (cached != null) {
+            return cached;
+        }
+
+        // 缓存未命中，执行实际计算
         @SuppressWarnings("unchecked")
         List<Double>[] result = new List[3];
         result[0] = new ArrayList<>(); // 加法修改器（ADDITION）
         result[1] = new ArrayList<>(); // 乘法修改器基础（MULTIPLY_BASE）
         result[2] = new ArrayList<>(); // 乘法修改器总计（MULTIPLY_TOTAL）
-
-        if (!curiosLoaded) {
-            return result;
-        }
 
         try {
             List<ItemStack> curios = getCurios(entity);
@@ -127,6 +238,9 @@ public class CuriosIntegration {
             LogUtil.error("从饰品栏收集属性修改器时出错", e);
         }
 
+        // 写入缓存
+        modifierCache.put(cacheKey, result);
+
         return result;
     }
 
@@ -140,7 +254,6 @@ public class CuriosIntegration {
     private static void collectModifiersFromCurio(@Nonnull ItemStack curio,
                                                   @Nonnull Attribute attribute,
                                                   @Nonnull List<Double>[] result) {
-        // 尝试所有可能的槽位
         EquipmentSlot[] allSlots = EquipmentSlot.values();
 
         for (EquipmentSlot slot : allSlots) {
@@ -149,7 +262,6 @@ public class CuriosIntegration {
             for (@Nonnull AttributeModifier modifier : modifiers.get(attribute)) {
                 int operation = modifier.getOperation().ordinal();
                 if (operation >= 0 && operation <= 2) {
-                    // 检查是否已经添加过这个修改器（避免重复）
                     if (!isModifierAlreadyAdded(modifier, result[operation])) {
                         result[operation].add(modifier.getAmount());
                     }
@@ -168,7 +280,6 @@ public class CuriosIntegration {
     private static boolean isModifierAlreadyAdded(@Nonnull AttributeModifier modifier,
                                                   @Nonnull List<Double> existingValues) {
         double amount = modifier.getAmount();
-        // 使用小误差比较浮点数
         for (double existing : existingValues) {
             if (Math.abs(existing - amount) < 0.0001) {
                 return true;
@@ -190,9 +301,9 @@ public class CuriosIntegration {
         }
 
         try {
+            // getCurios已带缓存，这里直接调用即可
             List<ItemStack> curios = getCurios(entity);
             for (ItemStack curio : curios) {
-                // 使用 BuiltInRegistries 获取物品注册名
                 ResourceLocation registryName = BuiltInRegistries.ITEM.getKey(curio.getItem());
                 if (registryName != null && registryName.toString().equals(itemName)) {
                     return true;
