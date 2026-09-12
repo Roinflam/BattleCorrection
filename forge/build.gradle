@@ -60,7 +60,8 @@ dependencies {
 //     Curios API：饰品栏 API，添加额外装备槽位
 //     modCompileOnly 表示只在编译时需要，运行时由玩家自己安装
 //     适合做软依赖（有就兼容，没有也能运行）
-    modCompileOnly "top.theillusivec4.curios:curios-forge:5.9.1+1.20.1"
+//     版本与服务器实际安装的一致：饰品栏标记用到的接口是按 5.14.1 核对的
+    modCompileOnly "top.theillusivec4.curios:curios-forge:5.14.1+1.20.1"
 
     // ==================== Common 模块（必需） ====================
 

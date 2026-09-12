@@ -51,7 +51,7 @@ public class ModAttributes {
     // ===== 防御与减伤属性 =====
 
     /**
-     * 伤害免疫几率（百分比，默认1代表100%基础，额外加成）
+     * 伤害免疫几率（默认1.0代表0%，每+0.1 = +10%闪避）
      */
     public static final RegistryObject<Attribute> IMMUNE_DAMAGE = ATTRIBUTES.register(
             "immune_damage",
@@ -156,7 +156,7 @@ public class ModAttributes {
     );
 
     /**
-     * 自定义暴击伤害倍率（最小1.0）
+     * 自定义暴击伤害倍率加成（默认0，与配置值相加，最终倍率不低于1.0）
      */
     public static final RegistryObject<Attribute> CUSTOM_CRITICAL_DAMAGE = ATTRIBUTES.register(
             "custom_critical_damage",

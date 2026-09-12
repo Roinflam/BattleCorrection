@@ -15,7 +15,6 @@ import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.UUID;
 
 /**
  * 自定义暴击伤害属性
@@ -26,11 +25,12 @@ import java.util.UUID;
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeCustomCriticalDamage {
-    public static final UUID ID = UUID.fromString("8d4fa0b6-4b8d-11ef-9c3a-0242ac120002");
-    public static final String NAME = "battlecorrection.customCriticalDamage";
 
     /**
      * 处理受伤事件以应用暴击伤害
+     * 优先级 NORMAL：在固定伤害加成（HIGH）之后，先加后乘
+     *
+     * @param evt 生物受伤事件（护甲计算之前触发）
      */
     @SubscribeEvent(priority = EventPriority.NORMAL)
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
@@ -39,14 +39,11 @@ public class AttributeCustomCriticalDamage {
         }
 
         DamageSource damageSource = evt.getSource();
-        Entity immediateSource = damageSource.getDirectEntity();
-        Entity trueSource = damageSource.getEntity();
-
-        if (trueSource == null || !(trueSource instanceof @Nullable LivingEntity attacker)) {
+        @Nullable Entity immediateSource = damageSource.getDirectEntity();
+        // 只有近战和弹射物会判定暴击；没有直接来源的伤害不读取暴击标记
+        if (immediateSource == null || !(damageSource.getEntity() instanceof LivingEntity attacker)) {
             return;
         }
-
-        @Nullable LivingEntity victim = evt.getEntity();
 
         if (!AttributeCustomCriticalChance.isCriticalHit(immediateSource, attacker)) {
             return;
@@ -56,8 +53,7 @@ public class AttributeCustomCriticalDamage {
 
         double attributeValue = AttributesUtil.getAttributeValue(attacker, ModAttributes.CUSTOM_CRITICAL_DAMAGE.get());
         double configValue = ConfigAttribute.CUSTOM_CRITICAL_DAMAGE.get();
-        double baseCritDamage = attributeValue + configValue;
-        baseCritDamage = Math.max(1.0, baseCritDamage);
+        double baseCritDamage = Math.max(1.0, attributeValue + configValue);
 
         double conversionRatio = ConfigAttribute.CRITICAL_OVERFLOW_CONVERSION.get();
         double overflowBonus = overflow * conversionRatio;
@@ -65,18 +61,20 @@ public class AttributeCustomCriticalDamage {
 
         float originalDamage = evt.getAmount();
         float newDamage = (float) (originalDamage * finalCritDamage);
-
         evt.setAmount(newDamage);
 
-        LogUtil.debugAttribute("暴击伤害倍率", attacker.getName().getString(), attributeValue, configValue, baseCritDamage);
-        LogUtil.debugCritical(attacker.getName().getString(), victim.getName().getString(),
-                AttributesUtil.getAttributeValue(attacker, ModAttributes.CUSTOM_CRITICAL_CHANCE.get()) + ConfigAttribute.CUSTOM_CRITICAL_CHANCE.get(),
-                1, finalCritDamage, originalDamage, newDamage);
+        if (LogUtil.isDetailed()) {
+            LogUtil.debugAttribute("暴击伤害倍率", attacker.getName().getString(), attributeValue, configValue, baseCritDamage);
+            LogUtil.debugCritical(attacker.getName().getString(), evt.getEntity().getName().getString(),
+                    AttributesUtil.getAttributeValue(attacker, ModAttributes.CUSTOM_CRITICAL_CHANCE.get())
+                            + ConfigAttribute.CUSTOM_CRITICAL_CHANCE.get(),
+                    1, finalCritDamage, originalDamage, newDamage);
 
-        if (overflow > 0) {
-            LogUtil.debugEvent("暴击溢出转化", attacker.getName().getString(),
-                    String.format("溢出值: %.2f, 转化比例: %.2f, 溢出加成: %.2f, 最终暴击倍率: %.2fx",
-                            overflow, conversionRatio, overflowBonus, finalCritDamage));
+            if (overflow > 0) {
+                LogUtil.debugEvent("暴击溢出转化", attacker.getName().getString(),
+                        String.format("溢出值: %.2f, 转化比例: %.2f, 溢出加成: %.2f, 最终暴击倍率: %.2fx",
+                                overflow, conversionRatio, overflowBonus, finalCritDamage));
+            }
         }
     }
 }

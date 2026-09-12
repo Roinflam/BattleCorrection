@@ -1,5 +1,3 @@
-// 文件：ConfigBattle.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigBattle.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -76,10 +74,10 @@ public class ConfigBattle {
         PVP_HURT_ITSELF = builder
                 .comment(
                         "[EN] Self-Damage Multiplier",
-                        "     Controls damage when a player hurts themselves (TNT, splash potions, thorns, etc.)",
+                        "     Controls damage when a player hurts themselves (own arrows, own TNT, own splash potions, etc.)",
                         "     0.0 = Prevent self-damage, 1.0 = Normal (default)",
                         "[中文] 自伤倍率",
-                        "     控制玩家对自己造成伤害时的倍率(TNT爆炸、喷溅药水、荆棘等)",
+                        "     控制玩家对自己造成伤害时的倍率(自己射的箭、自己点燃的TNT、自己的喷溅药水等)",
                         "     0.0 = 防止自伤, 1.0 = 正常(默认)"
                 )
                 .defineInRange("pvpHurtItself", 1.0D, 0.0D, Double.MAX_VALUE);
@@ -99,10 +97,10 @@ public class ConfigBattle {
                 .comment(
                         "[EN] Combo Correction System",
                         "     true = Uncharged attacks deal less damage (discourages spam-clicking)",
-                        "     false = All attacks deal full damage regardless of charge (1.8 style)",
+                        "     false = No extra correction, vanilla charge penalty still applies (default)",
                         "[中文] 连击修正系统",
                         "     true = 未蓄力攻击伤害降低(防止无脑连点)",
-                        "     false = 所有攻击造成全额伤害，无视蓄力(1.8风格)"
+                        "     false = 不做额外修正，原版自身的蓄力惩罚照常(默认)"
                 )
                 .define("comboCorrection", false);
 
@@ -120,10 +118,10 @@ public class ConfigBattle {
         HURT_TIME_ENTITY = builder
                 .comment(
                         "[EN] Entity Invulnerability Time Multiplier",
-                        "     Formula: New Time = Original Time × (1 + This Value)",
+                        "     Formula: New Time = Original Time × (1 + This Value), Original Time = vanilla 10 ticks",
                         "     -0.5 = Half time, 0.0 = Normal (default), 1.0 = Double time",
                         "[中文] 实体无敌时间倍率",
-                        "     公式: 新时间 = 原始时间 × (1 + 此值)",
+                        "     公式: 新时间 = 原始时间 × (1 + 此值)，原始时间 = 原版的 10 tick",
                         "     -0.5 = 一半时间, 0.0 = 正常(默认), 1.0 = 双倍时间"
                 )
                 .defineInRange("hurtTimeEntity", 0.0D, -0.99D, Double.MAX_VALUE);
@@ -131,10 +129,10 @@ public class ConfigBattle {
         HURT_TIME_PLAYER = builder
                 .comment(
                         "[EN] Player Invulnerability Time Multiplier",
-                        "     Formula: New Time = Original Time × (1 + This Value)",
+                        "     Formula: New Time = Original Time × (1 + This Value), Original Time = vanilla 10 ticks",
                         "     -0.5 = Half time, 0.0 = Normal (default), 1.0 = Double time",
                         "[中文] 玩家无敌时间倍率",
-                        "     公式: 新时间 = 原始时间 × (1 + 此值)",
+                        "     公式: 新时间 = 原始时间 × (1 + 此值)，原始时间 = 原版的 10 tick",
                         "     -0.5 = 一半时间, 0.0 = 正常(默认), 1.0 = 双倍时间"
                 )
                 .defineInRange("hurtTimePlayer", 0.0D, -0.99D, Double.MAX_VALUE);
@@ -295,9 +293,9 @@ public class ConfigBattle {
         HUNGER_DAMAGE_DECAY_LIMIT = builder
                 .comment(
                         "[EN] Maximum Hunger Damage Decay (Maximum Damage Reduction Cap)",
-                        "     0.70 = Maximum 70% damage reduction",
+                        "     0.70 = Maximum 70% damage reduction, 0.0 = No limit (default)",
                         "[中文] 最大饥饿伤害衰减上限",
-                        "     0.70 = 最多减少70%伤害"
+                        "     0.70 = 最多减少70%伤害, 0.0 = 不设上限(默认)"
                 )
                 .defineInRange("hungerDamageDecayLimit", 0.0D, 0.0D, 1.0D);
 

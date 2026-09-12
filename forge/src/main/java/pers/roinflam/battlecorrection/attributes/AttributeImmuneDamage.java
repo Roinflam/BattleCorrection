@@ -15,8 +15,6 @@ import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.UUID;
 
 /**
  * 免疫伤害属性
@@ -24,42 +22,54 @@ import java.util.UUID;
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeImmuneDamage {
-    public static final UUID ID = UUID.fromString("1d309c38-5240-d9a4-bd56-bc4aed05e140");
-    public static final String NAME = "battlecorrection.immuneDamage";
 
     /**
      * 处理攻击事件以触发伤害免疫
      * 在伤害计算之前判定是否免疫
+     *
+     * @param evt 生物攻击事件
      */
     @SubscribeEvent(priority = EventPriority.HIGHEST)
     public static void onLivingAttack(@Nonnull LivingAttackEvent evt) {
-        if (!evt.getEntity().level().isClientSide()) {
-            DamageSource damageSource = evt.getSource();
-            if (!damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-                @Nullable LivingEntity hurter = evt.getEntity();
+        if (evt.getEntity().level().isClientSide()) {
+            return;
+        }
 
-                float attributeValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.IMMUNE_DAMAGE.get());
-                float equipmentChance = (attributeValue - 1) * 100;
-                float configChance = ConfigAttribute.IMMUNE_DAMAGE.get().floatValue();
-                float totalChance = equipmentChance + configChance;
+        DamageSource damageSource = evt.getSource();
+        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return;
+        }
 
-                boolean isImmune = RandomUtil.percentageChance(totalChance);
+        LivingEntity hurter = evt.getEntity();
+        float attributeValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.IMMUNE_DAMAGE.get());
+        float equipmentChance = (attributeValue - 1) * 100;
+        float configChance = ConfigAttribute.IMMUNE_DAMAGE.get().floatValue();
+        float totalChance = equipmentChance + configChance;
 
-                LogUtil.debugAttribute("伤害免疫", hurter.getName().getString(),
-                        equipmentChance / 100, configChance / 100, totalChance / 100);
+        // 没有闪避几率就不用掷骰子（绝大多数生物都走这里）
+        if (totalChance <= 0) {
+            return;
+        }
 
-                if (isImmune) {
-                    evt.setCanceled(true);
-                    String attackerName = damageSource.getEntity() != null ?
-                            damageSource.getEntity().getName().getString() : "未知";
-                    LogUtil.debugEvent("伤害免疫触发", hurter.getName().getString(),
-                            String.format("免疫了来自 %s 的攻击，免疫概率: %.2f%% (装备: %.2f%% + 配置: %.2f%%)",
-                                    attackerName, totalChance, equipmentChance, configChance));
-                } else {
-                    LogUtil.debug(String.format("伤害免疫判定失败 - 受害者: %s, 免疫概率: %.2f%%",
-                            hurter.getName().getString(), totalChance));
-                }
+        boolean isImmune = RandomUtil.percentageChance(totalChance);
+        boolean detailed = LogUtil.isDetailed();
+        if (detailed) {
+            LogUtil.debugAttribute("伤害免疫", hurter.getName().getString(),
+                    equipmentChance / 100, configChance / 100, totalChance / 100);
+        }
+
+        if (isImmune) {
+            evt.setCanceled(true);
+            if (detailed) {
+                String attackerName = damageSource.getEntity() != null
+                        ? damageSource.getEntity().getName().getString() : "未知";
+                LogUtil.debugEvent("伤害免疫触发", hurter.getName().getString(),
+                        String.format("免疫了来自 %s 的攻击，免疫概率: %.2f%% (装备: %.2f%% + 配置: %.2f%%)",
+                                attackerName, totalChance, equipmentChance, configChance));
             }
+        } else if (detailed) {
+            LogUtil.debug(String.format("伤害免疫判定失败 - 受害者: %s, 免疫概率: %.2f%%",
+                    hurter.getName().getString(), totalChance));
         }
     }
 }

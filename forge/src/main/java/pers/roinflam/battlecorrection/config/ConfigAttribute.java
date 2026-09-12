@@ -1,5 +1,3 @@
-// 文件：ConfigAttribute.java
-// 路径：forge/src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
@@ -38,6 +36,9 @@ public class ConfigAttribute {
     public static final ForgeConfigSpec.DoubleValue CUSTOM_CRITICAL_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue CRITICAL_OVERFLOW_CONVERSION;
 
+    // 饰品栏标记
+    public static final ForgeConfigSpec.BooleanValue CURIO_MARK_ENABLED;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -47,6 +48,8 @@ public class ConfigAttribute {
         builder.comment(
                 "═══════════════════════════════════════════════════════════════",
                 "Damage Bonuses - 伤害加成",
+                "Values in this file are GLOBAL bonuses for ALL living entities, including mobs",
+                "本文件中的数值是对所有生物（包括怪物）生效的全局加成",
                 "═══════════════════════════════════════════════════════════════"
         ).push("damage");
 
@@ -54,8 +57,10 @@ public class ConfigAttribute {
                 .comment(
                         "[EN] Global Magic Damage Bonus (Flat Amount)",
                         "     5 = +5 damage to all magic attacks",
+                        "     Only magic attacks with an attacker are boosted (poison ticks etc. are not)",
                         "[中文] 全局魔法伤害加成(固定值)",
-                        "     5 = 所有魔法攻击+5伤害"
+                        "     5 = 所有魔法攻击+5伤害",
+                        "     只对有攻击者的魔法攻击生效（中毒等无来源伤害不加成）"
                 )
                 .defineInRange("magicDamage", 0.0D, 0.0D, Double.MAX_VALUE);
 
@@ -69,7 +74,9 @@ public class ConfigAttribute {
         PROJECTILE_DAMAGE = builder
                 .comment(
                         "[EN] Global Projectile Damage Bonus (Flat Amount, non-arrow)",
-                        "[中文] 全局弹射物伤害加成(固定值，非箭矢)"
+                        "     Hits that originally deal no damage (snowballs, eggs) are not boosted",
+                        "[中文] 全局弹射物伤害加成(固定值，非箭矢)",
+                        "     原本不造成伤害的命中（雪球、鸡蛋）不加成"
                 )
                 .defineInRange("projectileDamage", 0.0D, 0.0D, Double.MAX_VALUE);
 
@@ -143,9 +150,9 @@ public class ConfigAttribute {
         REDUCED_FALL_DAMAGE = builder
                 .comment(
                         "[EN] Fall Damage Reduction (Flat Amount)",
-                        "     10 = Ignore ~15 blocks of fall",
+                        "     10 = Ignore ~13 blocks of fall",
                         "[中文] 摔落伤害减免(固定值)",
-                        "     10 = 忽略约15格的坠落"
+                        "     10 = 忽略约13格的坠落"
                 )
                 .defineInRange("reducedFallDamage", 0.0D, 0.0D, Double.MAX_VALUE);
 
@@ -235,6 +242,28 @@ public class ConfigAttribute {
                         "     1.0 = 100%转化(0.5溢出 = +0.5暴击伤害)"
                 )
                 .defineInRange("criticalOverflowConversion", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        builder.pop();
+
+        // ═══════════════════════════════════════════════════════════════
+        // 饰品栏标记
+        // ═══════════════════════════════════════════════════════════════
+        builder.comment(
+                "═══════════════════════════════════════════════════════════════",
+                "Curio Mark - 饰品栏标记（需要 Curios）",
+                "═══════════════════════════════════════════════════════════════"
+        ).push("curios");
+
+        CURIO_MARK_ENABLED = builder
+                .comment(
+                        "[EN] Enable the curio mark feature (/battlecorrection curio)",
+                        "     false = command disabled, marked items can no longer be put into curio slots",
+                        "     Items already equipped keep their attributes until taken off",
+                        "[中文] 启用饰品栏标记功能（/battlecorrection curio）",
+                        "     false = 命令不可用，标记过的物品不能再放进饰品栏",
+                        "     已经戴着的物品在摘下前属性照常生效"
+                )
+                .define("curioMarkEnabled", true);
 
         builder.pop();
 

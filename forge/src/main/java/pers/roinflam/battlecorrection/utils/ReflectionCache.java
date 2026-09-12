@@ -4,26 +4,24 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
  * 反射缓存工具类
  * 缓存反射对象以提高性能
+ * <p>
+ * 目前只剩 updatingUsingItem 一个反射目标（弓速、使用速度的加速效果用）。
+ * 1.12 移植时留下的 noJumpDelay、useItemRemaining 两个字段已经没有任何地方使用，已删除。
+ * <p>
+ * 注意：ObfuscationReflectionHelper 要求传入 SRG 名（如 m_21329_），它会在开发环境里自动映射成可读名，
+ * 这是该 API 的正确用法（和 Mixin 必须写可读名的规则正好相反）。
  */
 public class ReflectionCache {
-
-    // ===== 字段缓存 =====
-    private static Field noJumpDelayField = null;
-    private static Field useItemRemainingField = null;
 
     // ===== 方法缓存 =====
     private static Method updatingUsingItemMethod = null;
 
-    // ===== 初始化状态 =====
-    private static boolean initialized = false;
-    private static boolean noJumpDelayAvailable = false;
-    private static boolean useItemRemainingAvailable = false;
+    // ===== 可用状态 =====
     private static boolean updatingUsingItemAvailable = false;
 
     static {
@@ -32,41 +30,13 @@ public class ReflectionCache {
 
     /**
      * 初始化反射缓存
+     * 找不到目标方法时只记录错误日志并关闭对应功能，不会让游戏崩溃
      */
     private static void initialize() {
-        if (initialized) {
-            return;
-        }
-        initialized = true;
-
         LogUtil.info("开始初始化反射缓存...");
 
-        // 获取 noJumpDelay 字段
-        // MCP名: noJumpDelay, SRG名: f_20954_
-        try {
-            noJumpDelayField = ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20954_");
-            noJumpDelayField.setAccessible(true);
-            noJumpDelayAvailable = true;
-            LogUtil.info("✓ 成功获取 noJumpDelay 字段");
-        } catch (Exception e) {
-            LogUtil.error("✗ 无法获取 noJumpDelay 字段", e);
-            noJumpDelayAvailable = false;
-        }
-
-        // 获取 useItemRemaining 字段
-        // MCP名: useItemRemaining, SRG名: f_20936_
-        try {
-            useItemRemainingField = ObfuscationReflectionHelper.findField(LivingEntity.class, "f_20936_");
-            useItemRemainingField.setAccessible(true);
-            useItemRemainingAvailable = true;
-            LogUtil.info("✓ 成功获取 useItemRemaining 字段");
-        } catch (Exception e) {
-            LogUtil.error("✗ 无法获取 useItemRemaining 字段", e);
-            useItemRemainingAvailable = false;
-        }
-
         // 获取 updatingUsingItem 方法
-        // MCP名: updatingUsingItem, SRG名: m_21329_
+        // 可读名: updatingUsingItem, SRG名: m_21329_
         try {
             updatingUsingItemMethod = ObfuscationReflectionHelper.findMethod(
                     LivingEntity.class,
@@ -76,99 +46,16 @@ public class ReflectionCache {
             updatingUsingItemAvailable = true;
             LogUtil.info("✓ 成功获取 updatingUsingItem 方法");
         } catch (Exception e) {
-            LogUtil.error("✗ 无法获取 updatingUsingItem 方法", e);
+            LogUtil.error("✗ 无法获取 updatingUsingItem 方法，弓速/使用速度的加速效果将失效", e);
             updatingUsingItemAvailable = false;
         }
-
-        LogUtil.info("反射缓存初始化完成 - 可用功能: " +
-                (noJumpDelayAvailable ? "跳跃 " : "") +
-                (useItemRemainingAvailable ? "物品使用 " : "") +
-                (updatingUsingItemAvailable ? "物品更新" : ""));
     }
 
     /**
-     * 设置实体的跳跃延迟
-     */
-    public static void setJumpTicks(@Nonnull LivingEntity livingEntity, int ticks) {
-        if (!noJumpDelayAvailable || noJumpDelayField == null) {
-            return;
-        }
-
-        try {
-            noJumpDelayField.setInt(livingEntity, ticks);
-        } catch (Exception e) {
-            LogUtil.error("设置跳跃延迟失败: " + livingEntity.getName().getString(), e);
-        }
-    }
-
-    /**
-     * 获取实体的跳跃延迟
-     */
-    public static int getJumpTicks(@Nonnull LivingEntity livingEntity) {
-        if (!noJumpDelayAvailable || noJumpDelayField == null) {
-            return 0;
-        }
-
-        try {
-            return noJumpDelayField.getInt(livingEntity);
-        } catch (Exception e) {
-            LogUtil.error("获取跳跃延迟失败: " + livingEntity.getName().getString(), e);
-        }
-        return 0;
-    }
-
-    /**
-     * 获取物品使用剩余时间
-     */
-    public static int getUseItemRemaining(@Nonnull LivingEntity livingEntity) {
-        if (!useItemRemainingAvailable || useItemRemainingField == null) {
-            return -1;
-        }
-
-        try {
-            return useItemRemainingField.getInt(livingEntity);
-        } catch (Exception e) {
-            LogUtil.error("获取物品使用剩余时间失败: " + livingEntity.getName().getString(), e);
-        }
-        return -1;
-    }
-
-    /**
-     * 设置物品使用剩余时间
-     */
-    public static void setUseItemRemaining(@Nonnull LivingEntity livingEntity, int ticks) {
-        if (!useItemRemainingAvailable || useItemRemainingField == null) {
-            return;
-        }
-
-        try {
-            useItemRemainingField.setInt(livingEntity, Math.max(0, ticks));
-        } catch (Exception e) {
-            LogUtil.error("设置物品使用剩余时间失败: " + livingEntity.getName().getString(), e);
-        }
-    }
-
-    /**
-     * 减少物品使用剩余时间
-     */
-    public static boolean reduceUseItemRemaining(@Nonnull LivingEntity livingEntity, int ticksToReduce) {
-        if (!useItemRemainingAvailable || useItemRemainingField == null) {
-            return false;
-        }
-
-        try {
-            int current = useItemRemainingField.getInt(livingEntity);
-            int newValue = Math.max(0, current - ticksToReduce);
-            useItemRemainingField.setInt(livingEntity, newValue);
-            return true;
-        } catch (Exception e) {
-            LogUtil.error("减少物品使用剩余时间失败: " + livingEntity.getName().getString(), e);
-        }
-        return false;
-    }
-
-    /**
-     * 调用 updatingUsingItem 方法
+     * 调用 updatingUsingItem 方法（让实体额外推进一次物品使用进度）
+     *
+     * @param livingEntity 生物实体
+     * @return true = 调用成功；方法不可用或调用出错时返回 false（出错会记录日志）
      */
     public static boolean invokeUpdatingUsingItem(@Nonnull LivingEntity livingEntity) {
         if (!updatingUsingItemAvailable || updatingUsingItemMethod == null) {
@@ -179,21 +66,16 @@ public class ReflectionCache {
             updatingUsingItemMethod.invoke(livingEntity);
             return true;
         } catch (Exception e) {
-            LogUtil.error("调用 updatingUsingItem 失败: " + livingEntity.getName().getString(), e);
+            LogUtil.error("调用 updatingUsingItem 失败，本次跳过: " + livingEntity.getName().getString(), e);
         }
         return false;
     }
 
-    // ===== 状态检查方法 =====
-
-    public static boolean isNoJumpDelayAvailable() {
-        return noJumpDelayAvailable;
-    }
-
-    public static boolean isUseItemRemainingAvailable() {
-        return useItemRemainingAvailable;
-    }
-
+    /**
+     * updatingUsingItem 反射是否可用
+     *
+     * @return true = 可用
+     */
     public static boolean isUpdatingUsingItemAvailable() {
         return updatingUsingItemAvailable;
     }

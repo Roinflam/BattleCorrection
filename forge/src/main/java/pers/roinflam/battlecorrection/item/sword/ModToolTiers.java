@@ -1,5 +1,3 @@
-// 文件：ModToolTiers.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/sword/ModToolTiers.java
 package pers.roinflam.battlecorrection.item.sword;
 
 import net.minecraft.tags.BlockTags;
@@ -19,7 +17,7 @@ public enum ModToolTiers implements Tier {
 
     /**
      * 基础材质 - 对应BaseSword
-     * 攻击伤害: 6 + 3(基础) = 9
+     * 面板攻击伤害: 1(玩家) + 3(剑) + 6(材质) = 10
      * 耐久: 1000
      * 附魔等级: 50
      */
@@ -27,7 +25,7 @@ public enum ModToolTiers implements Tier {
 
     /**
      * 进阶材质 - 对应AdvancedSword
-     * 攻击伤害: 96 + 3(基础) = 99
+     * 面板攻击伤害: 1(玩家) + 3(剑) + 96(材质) = 100
      * 耐久: 10000
      * 附魔等级: 100
      */
@@ -35,7 +33,7 @@ public enum ModToolTiers implements Tier {
 
     /**
      * 大师材质 - 对应MasterSword
-     * 攻击伤害: 996 + 3(基础) = 999
+     * 面板攻击伤害: 1(玩家) + 3(剑) + 996(材质) = 1000
      * 耐久: 100000
      * 附魔等级: 150
      */

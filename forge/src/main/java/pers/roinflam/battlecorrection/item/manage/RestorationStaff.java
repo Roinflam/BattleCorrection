@@ -1,5 +1,3 @@
-// 文件：RestorationStaff.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/manage/RestorationStaff.java
 package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.world.InteractionHand;

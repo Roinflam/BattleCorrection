@@ -1,5 +1,3 @@
-// 文件：ModItems.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/init/ModItems.java
 package pers.roinflam.battlecorrection.init;
 
 import net.minecraft.world.item.Item;

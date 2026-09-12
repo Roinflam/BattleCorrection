@@ -1,5 +1,3 @@
-// 文件：FoodEventListener.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/event/FoodEventListener.java
 package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.world.entity.player.Player;
@@ -16,66 +14,79 @@ import javax.annotation.Nonnull;
 /**
  * 饥饿恢复事件监听器
  * 处理额外的饱和度和饥饿值恢复
+ * <p>
+ * 注意：这里每个玩家每 tick 都会执行（每秒 20 次），配置里的回血量也是"每 tick"的量。
+ * 旧版本不管开没开详细日志都会用 String.format 拼一遍日志文本，现在只在开启时才拼。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class FoodEventListener {
 
     /**
+     * 触发额外恢复所需的最低饥饿值
+     */
+    private static final int MIN_FOOD_LEVEL = 18;
+
+    /**
      * 处理玩家Tick - 饥饿恢复
+     *
+     * @param evt 玩家 tick 事件
      */
     @SubscribeEvent
     public static void onPlayerTick(@Nonnull TickEvent.PlayerTickEvent evt) {
-        if (evt.phase == TickEvent.Phase.END && !evt.player.level().isClientSide()) {
-            Player player = evt.player;
-            FoodData foodData = player.getFoodData();
+        if (evt.phase != TickEvent.Phase.END || evt.player.level().isClientSide()) {
+            return;
+        }
 
-            // 只在玩家需要治疗且满足条件时处理
-            if (player.getHealth() < player.getMaxHealth() && player.isAlive()) {
-                float healAmount = 0;
-                String healReason = "";
+        Player player = evt.player;
+        // 只在玩家需要治疗时处理
+        if (!player.isAlive() || player.getHealth() >= player.getMaxHealth()) {
+            return;
+        }
 
-                // 饱和度恢复（饱和度 > 0 且 饥饿值 >= 18）
-                if (foodData.getSaturationLevel() > 0 && foodData.getFoodLevel() >= 18) {
-                    // 额外固定治疗
-                    double extraSaturationHeal = ConfigBattle.EXTRA_SATURATION_HEAL.get();
-                    if (extraSaturationHeal > 0) {
-                        healAmount += extraSaturationHeal;
-                        healReason += String.format("饱和度固定恢复: +%.2f, ", extraSaturationHeal);
-                    }
+        FoodData foodData = player.getFoodData();
+        // 两类额外恢复都要求饥饿值 >= 18
+        if (foodData.getFoodLevel() < MIN_FOOD_LEVEL) {
+            return;
+        }
 
-                    // 额外百分比治疗
-                    double extraSaturationPercentHeal = ConfigBattle.EXTRA_SATURATION_PERCENTAGE_HEAL.get();
-                    if (extraSaturationPercentHeal > 0) {
-                        float percentHeal = player.getMaxHealth() * (float) extraSaturationPercentHeal;
-                        healAmount += percentHeal;
-                        healReason += String.format("饱和度百分比恢复: +%.2f (%.2f%%), ", percentHeal, extraSaturationPercentHeal * 100);
-                    }
-                }
+        float maxHealth = player.getMaxHealth();
+        boolean hasSaturation = foodData.getSaturationLevel() > 0;
 
-                // 饥饿值恢复（饥饿值 >= 18，无论饱和度）
-                if (foodData.getFoodLevel() >= 18) {
-                    // 额外固定治疗
-                    double extraHungerHeal = ConfigBattle.EXTRA_HUNGER_HEAL.get();
-                    if (extraHungerHeal > 0) {
-                        healAmount += extraHungerHeal;
-                        healReason += String.format("饥饿值固定恢复: +%.2f, ", extraHungerHeal);
-                    }
+        // 饱和度恢复（饱和度 > 0 且 饥饿值 >= 18）
+        double saturationFlat = hasSaturation ? ConfigBattle.EXTRA_SATURATION_HEAL.get() : 0;
+        double saturationPercent = hasSaturation ? ConfigBattle.EXTRA_SATURATION_PERCENTAGE_HEAL.get() : 0;
+        // 饥饿值恢复（饥饿值 >= 18，无论饱和度）
+        double hungerFlat = ConfigBattle.EXTRA_HUNGER_HEAL.get();
+        double hungerPercent = ConfigBattle.EXTRA_HUNGER_PERCENTAGE_HEAL.get();
 
-                    // 额外百分比治疗
-                    double extraHungerPercentHeal = ConfigBattle.EXTRA_HUNGER_PERCENTAGE_HEAL.get();
-                    if (extraHungerPercentHeal > 0) {
-                        float percentHeal = player.getMaxHealth() * (float) extraHungerPercentHeal;
-                        healAmount += percentHeal;
-                        healReason += String.format("饥饿值百分比恢复: +%.2f (%.2f%%)", percentHeal, extraHungerPercentHeal * 100);
-                    }
-                }
+        float healAmount = 0;
+        if (saturationFlat > 0) {
+            healAmount += (float) saturationFlat;
+        }
+        if (saturationPercent > 0) {
+            healAmount += maxHealth * (float) saturationPercent;
+        }
+        if (hungerFlat > 0) {
+            healAmount += (float) hungerFlat;
+        }
+        if (hungerPercent > 0) {
+            healAmount += maxHealth * (float) hungerPercent;
+        }
 
-                // 应用治疗
-                if (healAmount > 0) {
-                    player.heal(healAmount);
-                    LogUtil.debugHeal(player.getName().getString(), 0, healAmount, healReason);
-                }
-            }
+        if (healAmount <= 0) {
+            return;
+        }
+
+        player.heal(healAmount);
+
+        if (LogUtil.isDetailed()) {
+            String healReason = String.format(
+                    "饱和度固定: +%.2f, 饱和度百分比: +%.2f (%.2f%%), 饥饿值固定: +%.2f, 饥饿值百分比: +%.2f (%.2f%%)",
+                    saturationFlat,
+                    maxHealth * saturationPercent, saturationPercent * 100,
+                    hungerFlat,
+                    maxHealth * hungerPercent, hungerPercent * 100);
+            LogUtil.debugHeal(player.getName().getString(), 0, healAmount, healReason);
         }
     }
 }

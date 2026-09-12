@@ -1,5 +1,3 @@
-// 文件：BrawlStaff.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/manage/BrawlStaff.java
 package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.world.InteractionHand;
@@ -11,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import pers.roinflam.battlecorrection.init.ModMobEffects;
-import pers.roinflam.battlecorrection.utils.random.RandomUtil;
+import pers.roinflam.battlecorrection.utils.util.MobTargetUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -22,10 +20,23 @@ import java.util.List;
  */
 public class BrawlStaff extends ItemStaff {
 
+    /**
+     * 构造群殴权杖
+     *
+     * @param properties 物品属性
+     */
     public BrawlStaff(@Nonnull Properties properties) {
         super(properties);
     }
 
+    /**
+     * 对空气右键：给周围 64 格内的所有生物挂上群殴效果，并两两随机设为目标
+     *
+     * @param level  所在世界
+     * @param player 使用者
+     * @param hand   使用的手
+     * @return 服务端主手成功处理时返回 success，否则 pass
+     */
     @Override
     @Nonnull
     public InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player,
@@ -34,15 +45,11 @@ public class BrawlStaff extends ItemStaff {
 
         if (hand == InteractionHand.MAIN_HAND && !level.isClientSide()) {
             // 获取周围64格内的所有Mob
-            AABB searchBox = player.getBoundingBox().inflate(64.0D);
-            List<Mob> nearbyMobs = level.getEntitiesOfClass(
-                    Mob.class,
-                    searchBox,
-                    Mob::isAlive
-            );
+            AABB searchBox = player.getBoundingBox().inflate(MobTargetUtil.SEARCH_RADIUS);
+            List<Mob> nearbyMobs = level.getEntitiesOfClass(Mob.class, searchBox, Mob::isAlive);
 
             for (Mob mob : nearbyMobs) {
-                // 移除其他暴动效果
+                // 移除其他暴动类效果
                 mob.removeEffect(ModMobEffects.RIOT_EFFECT.get());
                 mob.removeEffect(ModMobEffects.BRAWL_EFFECT.get());
                 mob.removeEffect(ModMobEffects.ELIMINATION_EFFECT.get());
@@ -50,15 +57,10 @@ public class BrawlStaff extends ItemStaff {
                 // 添加群殴效果
                 mob.addEffect(new MobEffectInstance(ModMobEffects.BRAWL_EFFECT.get(), 12000, 0, false, false));
 
-                // 设置随机目标
-                List<Mob> potentialTargets = nearbyMobs.stream()
-                        .filter(other -> other != mob)
-                        .toList();
-
-                if (!potentialTargets.isEmpty()) {
-                    Mob randomTarget = potentialTargets.get(RandomUtil.getInt(0, potentialTargets.size() - 1));
-                    mob.setTarget(randomTarget);
-                    randomTarget.setTarget(mob);
+                // 从同一批生物里挑一个随机目标（不再为每只生物新建一份候选列表）
+                Mob randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, false);
+                if (randomTarget != null) {
+                    MobTargetUtil.setMutualTarget(mob, randomTarget);
                 }
             }
 

@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.event;
 
+import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
+import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,134 +27,184 @@ import javax.annotation.Nullable;
 public class DamageEventListener {
 
     /**
+     * 连击修正的最低倍率：再怎么没蓄力也至少保留一半伤害
+     */
+    private static final float MIN_COMBO_MODIFIER = 0.5F;
+
+    /**
      * 处理受伤事件 - 连击修正
+     * <p>
+     * 只对玩家真正的近战挥砍生效，伤害乘以 max(挥砍时的蓄力, 0.5)。
+     * 蓄力值取自挥砍发生那一刻（见 {@link EntityLivingUtil#getSwingStrength}）：
+     * 原版在调用 hurt() 之前就把蓄力清零了，旧版本在这里直接读蓄力永远是 0，导致每一刀都 ×0.5。
+     * 荆棘反伤、模组技能等不经过原版挥砍流程的伤害不做修正。
+     * <p>
+     * 优先级 NORMAL：排在固定伤害加成（HIGH）之后，和暴击倍率同一层（都是乘法，先后不影响结果）。
+     *
+     * @param evt 生物受伤事件（护甲计算之前触发）
      */
     @SubscribeEvent
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
-        if (!evt.getEntity().level().isClientSide() && ConfigBattle.COMBO_CORRECTION.get()) {
-            DamageSource damageSource = evt.getSource();
-            Entity immediateSource = damageSource.getDirectEntity();
+        if (evt.getEntity().level().isClientSide() || !ConfigBattle.COMBO_CORRECTION.get()) {
+            return;
+        }
+        if (!(evt.getSource().getDirectEntity() instanceof Player attacker)) {
+            return;
+        }
 
-            if (immediateSource instanceof Player attacker) {
-                // 直接获取当前攻击蓄力值
-                float attackStrength = attacker.getAttackStrengthScale(0);
-                float originalDamage = evt.getAmount();
-                float modifier = Math.max(attackStrength, 0.5f);
-                float newDamage = originalDamage * modifier;
+        float attackStrength = EntityLivingUtil.getSwingStrength(attacker);
+        if (attackStrength < 0) {
+            // 本刻没有真正的挥砍
+            return;
+        }
 
-                evt.setAmount(newDamage);
+        float modifier = Math.max(attackStrength, MIN_COMBO_MODIFIER);
+        if (modifier >= 1.0F) {
+            return;
+        }
 
-                LogUtil.debugDamage("连击修正", attacker.getName().getString(),
-                        evt.getEntity().getName().getString(),
-                        originalDamage, newDamage,
-                        String.format("攻击蓄力: %.2f%%, 伤害倍率: %.2fx", attackStrength * 100, modifier));
-            }
+        float originalDamage = evt.getAmount();
+        float newDamage = originalDamage * modifier;
+        evt.setAmount(newDamage);
+
+        if (LogUtil.isDetailed()) {
+            LogUtil.debugDamage("连击修正", attacker.getName().getString(),
+                    evt.getEntity().getName().getString(),
+                    originalDamage, newDamage,
+                    String.format("攻击蓄力: %.2f%%, 伤害倍率: %.2fx", attackStrength * 100, modifier));
         }
     }
 
     /**
      * 处理伤害事件 - 应用全局伤害倍率和饥饿衰减
+     *
+     * @param evt 生物伤害事件（护甲计算之后触发）
      */
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingDamage(@Nonnull LivingDamageEvent evt) {
-        if (!evt.getEntity().level().isClientSide()) {
-            DamageSource damageSource = evt.getSource();
+        if (evt.getEntity().level().isClientSide()) {
+            return;
+        }
 
-            // 跳过无视无敌的伤害
-            if (damageSource.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-                return;
-            }
+        DamageSource damageSource = evt.getSource();
 
-            @Nullable Entity trueSource = damageSource.getEntity();
-            @Nullable Entity immediateSource = damageSource.getDirectEntity();
+        // 跳过无视无敌的伤害
+        if (damageSource.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+            return;
+        }
 
-            if (trueSource != null && immediateSource != null) {
-                float originalDamage = evt.getAmount();
-                float finalDamage = originalDamage;
-                StringBuilder modificationReason = new StringBuilder();
+        @Nullable Entity trueSource = damageSource.getEntity();
+        @Nullable Entity immediateSource = damageSource.getDirectEntity();
+        if (trueSource == null || immediateSource == null) {
+            return;
+        }
 
-                // 判断伤害类型并应用倍率
-                boolean isMagicDamage = isMagicDamage(damageSource);
+        float originalDamage = evt.getAmount();
+        float finalDamage = originalDamage;
 
-                if (!isMagicDamage) {
-                    if (immediateSource instanceof Player) {
-                        // 玩家近战攻击
-                        finalDamage *= ConfigBattle.PLAYER_MELEE_ATTACK.get().floatValue();
-                        modificationReason.append(String.format("玩家近战倍率: %.2fx",
-                                ConfigBattle.PLAYER_MELEE_ATTACK.get()));
-                    } else if (!immediateSource.equals(trueSource) && trueSource instanceof Player) {
-                        // 玩家远程攻击
-                        if (immediateSource instanceof AbstractArrow) {
-                            finalDamage *= ConfigBattle.PLAYER_ARROW_ATTACK.get().floatValue();
-                            modificationReason.append(String.format("玩家箭矢倍率: %.2fx",
-                                    ConfigBattle.PLAYER_ARROW_ATTACK.get()));
-                        } else if (immediateSource instanceof Projectile) {
-                            finalDamage *= ConfigBattle.PLAYER_PROJECTILE_ATTACK.get().floatValue();
-                            modificationReason.append(String.format("玩家弹射物倍率: %.2fx",
-                                    ConfigBattle.PLAYER_PROJECTILE_ATTACK.get()));
-                        }
-                    }
-                }
+        // 只有开了详细日志才收集原因文本，关闭时不产生任何临时字符串
+        @Nullable StringBuilder modificationReason = LogUtil.isDetailed() ? new StringBuilder() : null;
 
-                // 玩家魔法攻击
-                if ((immediateSource instanceof Player || trueSource instanceof Player) && isMagicDamage) {
-                    finalDamage *= ConfigBattle.PLAYER_MAGIC_ATTACK.get().floatValue();
-                    modificationReason.append(String.format("玩家魔法倍率: %.2fx",
-                            ConfigBattle.PLAYER_MAGIC_ATTACK.get()));
-                }
+        // 判断伤害类型并应用倍率
+        boolean isMagicDamage = isMagicDamage(damageSource);
 
-                // 饥饿伤害衰减
-                if (trueSource instanceof Player player) {
-                    int foodLevel = player.getFoodData().getFoodLevel();
-                    float hungerDecay = ConfigBattle.HUNGER_DAMAGE_DECAY.get().floatValue();
-                    float hungerDecayLimit = ConfigBattle.HUNGER_DAMAGE_DECAY_LIMIT.get().floatValue();
-
-                    if (hungerDecay > 0) {
-                        float hungerPenalty = (20 - foodLevel) * hungerDecay;
-                        float hungerMultiplier = 1 - Math.min(hungerPenalty, hungerDecayLimit);
-                        finalDamage *= hungerMultiplier;
-
-                        if (hungerMultiplier < 1) {
-                            modificationReason.append(String.format(", 饥饿衰减: %.2fx (饥饿值: %d)",
-                                    hungerMultiplier, foodLevel));
-                        }
-                    }
-                }
-
-                // 玩家承受伤害倍率
-                if (evt.getEntity() instanceof Player) {
-                    if (immediateSource.equals(trueSource) && !isMagicDamage) {
-                        finalDamage *= ConfigBattle.PLAYER_SUFFERS_MELEE.get().floatValue();
-                        modificationReason.append(String.format(", 玩家承受近战倍率: %.2fx",
-                                ConfigBattle.PLAYER_SUFFERS_MELEE.get()));
-                    } else if (!immediateSource.equals(trueSource) && !isMagicDamage) {
-                        if (immediateSource instanceof AbstractArrow) {
-                            finalDamage *= ConfigBattle.PLAYER_SUFFERS_ARROW.get().floatValue();
-                            modificationReason.append(String.format(", 玩家承受箭矢倍率: %.2fx",
-                                    ConfigBattle.PLAYER_SUFFERS_ARROW.get()));
-                        } else if (immediateSource instanceof Projectile) {
-                            finalDamage *= ConfigBattle.PLAYER_SUFFERS_PROJECTILE.get().floatValue();
-                            modificationReason.append(String.format(", 玩家承受弹射物倍率: %.2fx",
-                                    ConfigBattle.PLAYER_SUFFERS_PROJECTILE.get()));
-                        }
-                    }
-                    if (isMagicDamage) {
-                        finalDamage *= ConfigBattle.PLAYER_SUFFERS_MAGIC.get().floatValue();
-                        modificationReason.append(String.format(", 玩家承受魔法倍率: %.2fx",
-                                ConfigBattle.PLAYER_SUFFERS_MAGIC.get()));
-                    }
-                }
-
-                if (finalDamage != originalDamage) {
-                    evt.setAmount(finalDamage);
-                    LogUtil.debugDamage("全局伤害调整",
-                            trueSource.getName().getString(),
-                            evt.getEntity().getName().getString(),
-                            originalDamage, finalDamage,
-                            modificationReason.toString());
+        if (!isMagicDamage) {
+            if (immediateSource instanceof Player) {
+                // 玩家近战攻击
+                float multiplier = ConfigBattle.PLAYER_MELEE_ATTACK.get().floatValue();
+                finalDamage *= multiplier;
+                appendReason(modificationReason, "玩家近战倍率", multiplier);
+            } else if (!immediateSource.equals(trueSource) && trueSource instanceof Player) {
+                // 玩家远程攻击
+                if (immediateSource instanceof AbstractArrow) {
+                    float multiplier = ConfigBattle.PLAYER_ARROW_ATTACK.get().floatValue();
+                    finalDamage *= multiplier;
+                    appendReason(modificationReason, "玩家箭矢倍率", multiplier);
+                } else if (immediateSource instanceof Projectile) {
+                    float multiplier = ConfigBattle.PLAYER_PROJECTILE_ATTACK.get().floatValue();
+                    finalDamage *= multiplier;
+                    appendReason(modificationReason, "玩家弹射物倍率", multiplier);
                 }
             }
         }
+
+        // 玩家魔法攻击
+        if ((immediateSource instanceof Player || trueSource instanceof Player) && isMagicDamage) {
+            float multiplier = ConfigBattle.PLAYER_MAGIC_ATTACK.get().floatValue();
+            finalDamage *= multiplier;
+            appendReason(modificationReason, "玩家魔法倍率", multiplier);
+        }
+
+        // 饥饿伤害衰减
+        if (trueSource instanceof Player player) {
+            float hungerDecay = ConfigBattle.HUNGER_DAMAGE_DECAY.get().floatValue();
+            if (hungerDecay > 0) {
+                int foodLevel = player.getFoodData().getFoodLevel();
+                float hungerDecayLimit = ConfigBattle.HUNGER_DAMAGE_DECAY_LIMIT.get().floatValue();
+                // 上限为 0 表示不设上限（最多把伤害减到 0），与配置说明一致
+                float decayCap = hungerDecayLimit > 0 ? hungerDecayLimit : 1.0F;
+                float hungerPenalty = (20 - foodLevel) * hungerDecay;
+                float hungerMultiplier = 1 - Math.min(hungerPenalty, decayCap);
+                finalDamage *= hungerMultiplier;
+
+                if (modificationReason != null && hungerMultiplier < 1) {
+                    modificationReason.append(String.format(", 饥饿衰减: %.2fx (饥饿值: %d)",
+                            hungerMultiplier, foodLevel));
+                }
+            }
+        }
+
+        // 玩家承受伤害倍率
+        if (evt.getEntity() instanceof Player) {
+            if (immediateSource.equals(trueSource) && !isMagicDamage) {
+                float multiplier = ConfigBattle.PLAYER_SUFFERS_MELEE.get().floatValue();
+                finalDamage *= multiplier;
+                appendReason(modificationReason, "玩家承受近战倍率", multiplier);
+            } else if (!immediateSource.equals(trueSource) && !isMagicDamage) {
+                if (immediateSource instanceof AbstractArrow) {
+                    float multiplier = ConfigBattle.PLAYER_SUFFERS_ARROW.get().floatValue();
+                    finalDamage *= multiplier;
+                    appendReason(modificationReason, "玩家承受箭矢倍率", multiplier);
+                } else if (immediateSource instanceof Projectile) {
+                    float multiplier = ConfigBattle.PLAYER_SUFFERS_PROJECTILE.get().floatValue();
+                    finalDamage *= multiplier;
+                    appendReason(modificationReason, "玩家承受弹射物倍率", multiplier);
+                }
+            }
+            if (isMagicDamage) {
+                float multiplier = ConfigBattle.PLAYER_SUFFERS_MAGIC.get().floatValue();
+                finalDamage *= multiplier;
+                appendReason(modificationReason, "玩家承受魔法倍率", multiplier);
+            }
+        }
+
+        if (finalDamage != originalDamage) {
+            evt.setAmount(finalDamage);
+            if (modificationReason != null) {
+                LogUtil.debugDamage("全局伤害调整",
+                        trueSource.getName().getString(),
+                        evt.getEntity().getName().getString(),
+                        originalDamage, finalDamage,
+                        modificationReason.toString());
+            }
+        }
+    }
+
+    /**
+     * 往日志原因里追加一条倍率说明（未开启详细日志时 builder 为 null，直接跳过）
+     *
+     * @param builder    原因文本，未开启详细日志时为 null
+     * @param name       倍率名称
+     * @param multiplier 倍率数值
+     */
+    private static void appendReason(@Nullable StringBuilder builder, @Nonnull String name, float multiplier) {
+        if (builder == null) {
+            return;
+        }
+        if (builder.length() > 0) {
+            builder.append(", ");
+        }
+        builder.append(String.format("%s: %.2fx", name, multiplier));
     }
 
     /**
@@ -161,9 +213,9 @@ public class DamageEventListener {
      * @param damageSource 伤害源
      * @return true=魔法伤害, false=非魔法伤害
      */
-    private static boolean isMagicDamage(DamageSource damageSource) {
+    private static boolean isMagicDamage(@Nonnull DamageSource damageSource) {
         // 1. 检查原版魔法伤害标签（女巫免疫的伤害类型）
-        if (damageSource.is(net.minecraft.tags.DamageTypeTags.WITCH_RESISTANT_TO)) {
+        if (damageSource.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
             return true;
         }
 

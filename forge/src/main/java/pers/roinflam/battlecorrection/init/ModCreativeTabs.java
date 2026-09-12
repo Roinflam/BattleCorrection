@@ -1,5 +1,3 @@
-// 文件：ModCreativeTabs.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/init/ModCreativeTabs.java
 package pers.roinflam.battlecorrection.init;
 
 import net.minecraft.core.registries.Registries;

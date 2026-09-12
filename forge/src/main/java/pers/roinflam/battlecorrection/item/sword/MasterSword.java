@@ -1,5 +1,3 @@
-// 文件：MasterSword.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/sword/MasterSword.java
 package pers.roinflam.battlecorrection.item.sword;
 
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +9,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 大师之剑
- * 攻击伤害: 999 (996基础 + 3剑基础)
+ * 面板攻击伤害: 1000（玩家基础1 + 剑3 + 材质996）
  * 耐久: 100000
  */
 public class MasterSword extends SwordItem {

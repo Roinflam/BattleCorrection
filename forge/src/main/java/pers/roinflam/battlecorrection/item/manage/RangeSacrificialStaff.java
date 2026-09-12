@@ -1,5 +1,3 @@
-// 文件：RangeSacrificialStaff.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/manage/RangeSacrificialStaff.java
 package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.world.InteractionHand;
@@ -9,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
+import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -19,10 +18,24 @@ import java.util.List;
  */
 public class RangeSacrificialStaff extends ItemStaff {
 
+    /**
+     * 构造范围献祭权杖
+     *
+     * @param properties 物品属性
+     */
     public RangeSacrificialStaff(@Nonnull Properties properties) {
         super(properties);
     }
 
+    /**
+     * 右键生物：击杀以目标为中心 64 格内的所有非玩家生物
+     *
+     * @param stack  手中的权杖
+     * @param player 使用者
+     * @param target 被右键的生物（范围中心）
+     * @param hand   使用的手
+     * @return 服务端主手成功处理时返回 SUCCESS，否则 PASS
+     */
     @Override
     @Nonnull
     public InteractionResult interactLivingEntity(@Nonnull ItemStack stack, @Nonnull Player player,
@@ -41,11 +54,7 @@ public class RangeSacrificialStaff extends ItemStaff {
 
             // 杀死所有非玩家生物
             for (LivingEntity entity : nearbyEntities) {
-                entity.hurt(damageSource, entity.getMaxHealth() * 100);
-                if (entity.isAlive()) {
-                    entity.die(damageSource);
-                    entity.setHealth(0);
-                }
+                EntityLivingUtil.kill(entity, damageSource);
             }
 
             // 设置冷却

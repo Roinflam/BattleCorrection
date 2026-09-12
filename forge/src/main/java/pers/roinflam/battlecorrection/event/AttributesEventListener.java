@@ -1,5 +1,3 @@
-// 文件：AttributesEventListener.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/event/AttributesEventListener.java
 package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.world.entity.LivingEntity;
@@ -48,6 +46,8 @@ public class AttributesEventListener {
                     attributeInstance.removeModifier(MAX_HEALTH_ID);
 
                     // 添加新的修改器（使用乘法运算）
+                    // 这里必须用永久修饰符（会写进存档）：读档时原版先载入属性、再载入血量，血量会被截断到当时的最大生命。
+                    // 如果改用临时修饰符，怪物每次重新加载都会先被截成原版血量上限，再被下面的"补差值"直接回满血。
                     attributeInstance.addPermanentModifier(new AttributeModifier(
                             MAX_HEALTH_ID,
                             MAX_HEALTH_NAME,
@@ -66,9 +66,12 @@ public class AttributesEventListener {
                     // 确保当前生命值不超过最大生命值
                     entity.setHealth(Math.min(entity.getHealth(), newMaxHealth));
 
-                    LogUtil.debugEvent("实体生命值调整", entity.getName().getString(),
-                            String.format("原始最大生命: %.2f, 调整后最大生命: %.2f (倍率: %.2fx, 增加: %.2f)",
-                                    originalMaxHealth, newMaxHealth, 1 + extraMaxHealth, healthDifference));
+                    // 先判断再拼接，关闭详细日志时不产生临时字符串（区块加载时这里调用很频繁）
+                    if (LogUtil.isDetailed()) {
+                        LogUtil.debugEvent("实体生命值调整", entity.getName().getString(),
+                                String.format("原始最大生命: %.2f, 调整后最大生命: %.2f (倍率: %.2fx, 增加: %.2f)",
+                                        originalMaxHealth, newMaxHealth, 1 + extraMaxHealth, healthDifference));
+                    }
                 } else {
                     // 移除修改器
                     attributeInstance.removeModifier(MAX_HEALTH_ID);

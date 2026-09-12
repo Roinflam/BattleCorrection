@@ -1,5 +1,3 @@
-// AttributesUtil.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/AttributesUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
 import net.minecraft.world.entity.LivingEntity;
@@ -17,32 +15,57 @@ import java.util.Map;
 /**
  * 属性工具类
  * 提供属性值获取和计算功能（支持Curios饰品栏）
- *
- * <p>包含tick级缓存，避免同一tick内对同一实体+属性的重复计算</p>
+ * <p>
+ * 包含短时缓存，避免同一时间段内对同一实体+属性的重复计算。
+ * 客户端和服务端各用一份缓存：单人游戏时两端在同一个进程里，共用一张 HashMap 会出现两个线程同时写的问题。
  */
 public class AttributesUtil {
 
-    // ========== Curios属性加成缓存 ==========
-    // 缓存过期的tick
-    private static long bonusCachedTick = -1;
-
-    // 缓存有效期（tick数），与CuriosIntegration保持一致
+    /**
+     * 缓存有效期（tick数），与CuriosIntegration保持一致
+     */
     private static final int BONUS_CACHE_TTL = 10;
 
-    // 缓存key：(entityId << 32) | attributeHash -> 加成值
-    private static final Map<Long, Double> curiosBonusCache = new HashMap<>();
+    /**
+     * 客户端的饰品加成缓存（只在客户端线程访问）
+     */
+    private static final BonusCache CLIENT_CACHE = new BonusCache();
 
     /**
-     * 检查并在需要时清理过期的加成缓存
-     *
-     * @param entity 用于获取当前世界tick的实体
+     * 服务端的饰品加成缓存（只在服务端线程访问）
      */
-    private static void checkBonusCache(@Nonnull LivingEntity entity) {
+    private static final BonusCache SERVER_CACHE = new BonusCache();
+
+    /**
+     * 单端缓存：上次清空的时间点 + 缓存表
+     */
+    private static final class BonusCache {
+        /**
+         * 上次清空缓存时的游戏刻
+         */
+        private long cachedTick = -1;
+        /**
+         * 缓存key：(entityId << 32) | attributeHash -> 加成值
+         */
+        private final Map<Long, Double> values = new HashMap<>();
+    }
+
+    /**
+     * 按实体所在的端取对应缓存，过期时先清空
+     *
+     * @param entity 用于判断端和获取当前世界tick的实体
+     * @return 该端的缓存
+     */
+    @Nonnull
+    private static BonusCache getValidCache(@Nonnull LivingEntity entity) {
+        BonusCache cache = entity.level().isClientSide() ? CLIENT_CACHE : SERVER_CACHE;
         long currentTick = entity.level().getGameTime();
-        if (currentTick - bonusCachedTick >= BONUS_CACHE_TTL) {
-            bonusCachedTick = currentTick;
-            curiosBonusCache.clear();
+        // 时间倒退（单人游戏切换存档）时也要清空，否则缓存会很久都不过期
+        if (currentTick - cache.cachedTick >= BONUS_CACHE_TTL || currentTick < cache.cachedTick) {
+            cache.cachedTick = currentTick;
+            cache.values.clear();
         }
+        return cache;
     }
 
     /**
@@ -77,7 +100,7 @@ public class AttributesUtil {
      */
     public static double getAttributeValue(@Nonnull LivingEntity entity, @Nonnull Attribute attribute,
                                            double extraValue) {
-        // 1. 获取基础属性值（包含装备槽的修改器）
+        // 1. 获取基础属性值（包含装备槽和 Curios 自身属性的修改器）
         double baseValue;
         @Nullable AttributeInstance attributeInstance = entity.getAttribute(attribute);
 
@@ -87,15 +110,17 @@ public class AttributesUtil {
             baseValue = attribute.getDefaultValue();
         }
 
-        // 2. 如果Curios已加载，添加饰品栏的属性加成（带缓存）
+        // 2. 如果Curios已加载，添加饰品栏物品上原版格式修饰符的加成（带缓存）
         if (CuriosIntegration.isCuriosLoaded()) {
             double curiosBonus = getCuriosAttributeBonusCached(entity, attribute);
             if (curiosBonus != 0) {
                 baseValue += curiosBonus;
-                LogUtil.debug(String.format("饰品栏加成 - 实体: %s, 属性: %s, 加成: %.2f",
-                        entity.getName().getString(),
-                        attribute.getDescriptionId(),
-                        curiosBonus));
+                if (LogUtil.isDetailed()) {
+                    LogUtil.debug(String.format("饰品栏加成 - 实体: %s, 属性: %s, 加成: %.2f",
+                            entity.getName().getString(),
+                            attribute.getDescriptionId(),
+                            curiosBonus));
+                }
             }
         }
 
@@ -113,28 +138,24 @@ public class AttributesUtil {
      */
     private static double getCuriosAttributeBonusCached(@Nonnull LivingEntity entity,
                                                         @Nonnull Attribute attribute) {
-        checkBonusCache(entity);
-
+        BonusCache cache = getValidCache(entity);
         long cacheKey = makeBonusCacheKey(entity.getId(), attribute);
 
         // 命中缓存直接返回
-        Double cached = curiosBonusCache.get(cacheKey);
+        Double cached = cache.values.get(cacheKey);
         if (cached != null) {
             return cached;
         }
 
-        // 缓存未命中，执行实际计算
+        // 缓存未命中，执行实际计算并写入缓存
         double bonus = getCuriosAttributeBonus(entity, attribute);
-
-        // 写入缓存
-        curiosBonusCache.put(cacheKey, bonus);
-
+        cache.values.put(cacheKey, bonus);
         return bonus;
     }
 
     /**
      * 从饰品栏计算属性加成（实际计算逻辑）
-     * 完全模拟Minecraft的属性计算顺序
+     * 模拟Minecraft的属性计算顺序
      *
      * @param entity    实体
      * @param attribute 属性
@@ -152,7 +173,7 @@ public class AttributesUtil {
             return 0.0D;
         }
 
-        // 获取当前基础值（不含饰品栏加成，只有装备槽的）
+        // 获取当前基础值（不含饰品栏物品的原版修饰符，只有装备槽的）
         double currentBase = getAttributeBaseValueWithEquipment(entity, attribute);
 
         // Minecraft属性计算顺序：
@@ -181,7 +202,7 @@ public class AttributesUtil {
     }
 
     /**
-     * 获取属性的当前值（包含装备槽修改器，不含饰品栏）
+     * 获取属性的当前值（包含装备槽修改器，不含饰品栏物品的原版修饰符）
      *
      * @param entity    实体
      * @param attribute 属性
@@ -196,38 +217,5 @@ public class AttributesUtil {
         }
 
         return attribute.getDefaultValue();
-    }
-
-    /**
-     * 获取实体的属性基础值（不含任何修改器）
-     *
-     * @param entity    实体
-     * @param attribute 属性
-     * @return 基础值
-     */
-    public static double getAttributeBaseValue(@Nonnull LivingEntity entity, @Nonnull Attribute attribute) {
-        @Nullable AttributeInstance attributeInstance = entity.getAttribute(attribute);
-
-        if (attributeInstance != null) {
-            return attributeInstance.getBaseValue();
-        }
-
-        return attribute.getDefaultValue();
-    }
-
-    /**
-     * 设置实体的属性基础值
-     *
-     * @param entity    实体
-     * @param attribute 属性
-     * @param value     新的基础值
-     */
-    public static void setAttributeBaseValue(@Nonnull LivingEntity entity, @Nonnull Attribute attribute,
-                                             double value) {
-        @Nullable AttributeInstance attributeInstance = entity.getAttribute(attribute);
-
-        if (attributeInstance != null) {
-            attributeInstance.setBaseValue(value);
-        }
     }
 }

@@ -1,61 +1,53 @@
-// 文件：RiotEffect.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/effect/RiotEffect.java
 package pers.roinflam.battlecorrection.effect;
 
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.phys.AABB;
-import pers.roinflam.battlecorrection.utils.random.RandomUtil;
+import pers.roinflam.battlecorrection.utils.util.MobTargetUtil;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 /**
  * 暴动效果
- * 使生物持续攻击随机目标
+ * 使生物持续攻击附近的随机目标
+ * <p>
+ * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找（旧版本找不到目标时每 tick 都扫一遍 64 格）。
  */
 public class RiotEffect extends MobEffect {
 
+    /**
+     * 构造暴动效果
+     *
+     * @param category 效果类别
+     * @param color    效果颜色
+     */
     public RiotEffect(@Nonnull MobEffectCategory category, int color) {
         super(category, color);
     }
 
+    /**
+     * 每 tick 调用：按需为生物重新挑选攻击目标（仅服务端）
+     *
+     * @param entity    带有此效果的实体
+     * @param amplifier 效果等级
+     */
     @Override
     public void applyEffectTick(@Nonnull LivingEntity entity, int amplifier) {
-        if (entity instanceof Mob mob && !entity.level().isClientSide()) {
-            // 每100刻或目标死亡时重新选择目标
-            if (entity.level().getGameTime() % 100 == 0 ||
-                    mob.getTarget() == null ||
-                    !mob.getTarget().isAlive()) {
-
-                setRandomTarget(mob);
-            }
+        if (entity instanceof Mob mob && !entity.level().isClientSide() && MobTargetUtil.shouldRetarget(mob)) {
+            MobTargetUtil.retargetNearby(mob, false);
         }
-    }
-
-    @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
-        // 每tick都执行检查
-        return true;
     }
 
     /**
-     * 为生物设置随机攻击目标
+     * 每 tick 都执行 applyEffectTick
+     *
+     * @param duration  剩余持续时间
+     * @param amplifier 效果等级
+     * @return 始终为 true
      */
-    private void setRandomTarget(@Nonnull Mob attacker) {
-        AABB searchBox = attacker.getBoundingBox().inflate(64.0D);
-        List<Mob> nearbyMobs = attacker.level().getEntitiesOfClass(
-                Mob.class,
-                searchBox,
-                mob -> mob != attacker && mob.isAlive()
-        );
-
-        if (!nearbyMobs.isEmpty()) {
-            Mob randomTarget = nearbyMobs.get(RandomUtil.getInt(0, nearbyMobs.size() - 1));
-            attacker.setTarget(randomTarget);
-            randomTarget.setTarget(attacker);
-        }
+    @Override
+    public boolean isDurationEffectTick(int duration, int amplifier) {
+        return true;
     }
 }

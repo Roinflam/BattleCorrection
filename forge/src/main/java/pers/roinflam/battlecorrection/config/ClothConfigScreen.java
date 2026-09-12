@@ -1,5 +1,3 @@
-// ClothConfigScreen.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/config/ClothConfigScreen.java
 package pers.roinflam.battlecorrection.config;
 
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -365,7 +363,7 @@ public class ClothConfigScreen {
         speedCategory.addEntry(entryBuilder.startDoubleField(
                         Component.translatable("config.battlecorrection.bowSpeed"),
                         ConfigAttribute.BOW_SPEED.get())
-                .setDefaultValue(0.0)
+                .setDefaultValue(1.0)
                 .setMin(0.0)
                 .setTooltip(Component.translatable("config.battlecorrection.bowSpeed.tooltip"))
                 .setSaveConsumer(ConfigAttribute.BOW_SPEED::set)
@@ -374,7 +372,7 @@ public class ClothConfigScreen {
         speedCategory.addEntry(entryBuilder.startDoubleField(
                         Component.translatable("config.battlecorrection.preparationSpeed"),
                         ConfigAttribute.PREPARATION_SPEED.get())
-                .setDefaultValue(0.0)
+                .setDefaultValue(1.0)
                 .setMin(0.0)
                 .setTooltip(Component.translatable("config.battlecorrection.preparationSpeed.tooltip"))
                 .setSaveConsumer(ConfigAttribute.PREPARATION_SPEED::set)
@@ -429,6 +427,20 @@ public class ClothConfigScreen {
                 .setMin(0.0)
                 .setTooltip(Component.translatable("config.battlecorrection.criticalOverflowConversion.tooltip"))
                 .setSaveConsumer(ConfigAttribute.CRITICAL_OVERFLOW_CONVERSION::set)
+                .build());
+
+        // ═══════════════════════════════════════════════════════════════
+        // 饰品栏标记
+        // ═══════════════════════════════════════════════════════════════
+        ConfigCategory curiosCategory = builder.getOrCreateCategory(
+                Component.translatable("config.battlecorrection.category.curios"));
+
+        curiosCategory.addEntry(entryBuilder.startBooleanToggle(
+                        Component.translatable("config.battlecorrection.curioMarkEnabled"),
+                        ConfigAttribute.CURIO_MARK_ENABLED.get())
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.battlecorrection.curioMarkEnabled.tooltip"))
+                .setSaveConsumer(ConfigAttribute.CURIO_MARK_ENABLED::set)
                 .build());
 
         // ═══════════════════════════════════════════════════════════════

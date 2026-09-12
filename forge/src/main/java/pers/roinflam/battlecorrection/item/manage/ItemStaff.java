@@ -1,5 +1,3 @@
-// 文件：ItemStaff.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/manage/ItemStaff.java
 package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.ChatFormatting;

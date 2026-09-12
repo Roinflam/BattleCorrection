@@ -1,5 +1,3 @@
-// 文件：BaseSword.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/sword/BaseSword.java
 package pers.roinflam.battlecorrection.item.sword;
 
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +9,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 基础之剑
- * 攻击伤害: 9 (6基础 + 3剑基础)
+ * 面板攻击伤害: 10（玩家基础1 + 剑3 + 材质6）
  * 耐久: 1000
  */
 public class BaseSword extends SwordItem {

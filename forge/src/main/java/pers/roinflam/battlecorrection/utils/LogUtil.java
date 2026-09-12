@@ -1,5 +1,3 @@
-// 文件：LogUtil.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/LogUtil.java
 package pers.roinflam.battlecorrection.utils;
 
 import pers.roinflam.battlecorrection.BattleCorrection;
@@ -37,6 +35,18 @@ public class LogUtil {
      */
     public static void error(String message, Throwable throwable) {
         BattleCorrection.LOGGER.error(message, throwable);
+    }
+
+    /**
+     * 是否开启了详细日志
+     * <p>
+     * 调用方在拼接日志文本（String.format、getName().getString() 等）之前先用它判断，
+     * 关闭详细日志时就完全不产生这些临时字符串，避免在伤害、tick 等高频路径上白白分配对象。
+     *
+     * @return true = 配置中开启了详细日志
+     */
+    public static boolean isDetailed() {
+        return ConfigBattle.ENABLE_DETAILED_LOGGING.get();
     }
 
     /**

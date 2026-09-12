@@ -1,5 +1,3 @@
-// 文件：AdvancedSword.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/item/sword/AdvancedSword.java
 package pers.roinflam.battlecorrection.item.sword;
 
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +9,7 @@ import javax.annotation.Nonnull;
 
 /**
  * 进阶之剑
- * 攻击伤害: 99 (96基础 + 3剑基础)
+ * 面板攻击伤害: 100（玩家基础1 + 剑3 + 材质96）
  * 耐久: 10000
  */
 public class AdvancedSword extends SwordItem {

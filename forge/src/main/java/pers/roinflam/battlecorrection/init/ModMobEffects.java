@@ -1,5 +1,3 @@
-// 文件：ModMobEffects.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/init/ModMobEffects.java
 package pers.roinflam.battlecorrection.init;
 
 import net.minecraft.world.effect.MobEffect;

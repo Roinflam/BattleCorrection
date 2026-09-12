@@ -35,6 +35,6 @@ side = "BOTH"
 [[dependencies.battlecorrection]]
 modId = "curios"
 mandatory = false
-versionRange = "[5.0.0,)"
+versionRange = "[5.14.1,)"
 ordering = "AFTER"
 side = "BOTH"
