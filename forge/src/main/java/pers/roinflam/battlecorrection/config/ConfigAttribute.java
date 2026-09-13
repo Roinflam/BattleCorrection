@@ -39,6 +39,33 @@ public class ConfigAttribute {
     // 饰品栏标记
     public static final ForgeConfigSpec.BooleanValue CURIO_MARK_ENABLED;
 
+    /**
+     * 未标记饰品上原版格式属性（AttributeModifiers NBT、物品自带的、其他模组追加的）的生效范围
+     */
+    public enum CurioNbtAttributes {
+        /**
+         * 不生效（Curios 原样）
+         */
+        OFF,
+        /**
+         * 只有本模组的属性生效（battlecorrection:*）
+         */
+        MOD_ONLY,
+        /**
+         * 全部属性生效
+         */
+        ALL
+    }
+
+    public static final ForgeConfigSpec.EnumValue<CurioNbtAttributes> CURIO_NBT_ATTRIBUTES;
+
+    // 开发测试：给玩家 Curios 自带的 10 种默认饰品栏
+    public static final ForgeConfigSpec.BooleanValue DEV_CURIO_SLOTS;
+
+    // 物品编辑器
+    public static final ForgeConfigSpec.BooleanValue ITEM_EDITOR_ENABLED;
+    public static final ForgeConfigSpec.IntValue ITEM_EDITOR_MAX_NBT_KB;
+
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
@@ -264,6 +291,64 @@ public class ConfigAttribute {
                         "     已经戴着的物品在摘下前属性照常生效"
                 )
                 .define("curioMarkEnabled", true);
+
+        CURIO_NBT_ATTRIBUTES = builder
+                .comment(
+                        "[EN] Which vanilla-format attributes on an UNMARKED curio take effect while it is worn",
+                        "     (AttributeModifiers NBT, the item's own attributes, attributes added by other mods)",
+                        "     ALL = every attribute, MOD_ONLY = only battlecorrection:* attributes, OFF = none",
+                        "     Marked items always apply everything. Takes effect on next equip / relogin",
+                        "[中文] 未标记饰品上原版格式的属性戴着时哪些生效",
+                        "     （AttributeModifiers NBT、物品自带的、其他模组追加的）",
+                        "     ALL = 全部生效，MOD_ONLY = 只有 battlecorrection:* 的属性生效，OFF = 都不生效",
+                        "     标记过的物品始终全部生效。改完要重新戴上或重进才生效"
+                )
+                .defineEnum("curioNbtAttributes", CurioNbtAttributes.ALL);
+
+        DEV_CURIO_SLOTS = builder
+                .comment(
+                        "[EN] DEV / TESTING ONLY: give every player Curios' 10 default slot types",
+                        "     (head, necklace, back, body, bracelet, hands, ring, belt, charm, curio), 1 each",
+                        "     Curios only attaches a curios inventory to entities that have at least one slot type,",
+                        "     so in a bare dev environment players have none and nothing can be edited. Run /reload after changing",
+                        "     Keep this false on a real server: other accessory mods assign the slots there",
+                        "[中文] 仅开发测试用：给所有玩家 Curios 自带的 10 种默认饰品栏各 1 格",
+                        "     （头、项链、背、身体、手镯、手、戒指、腰带、护符、通用）",
+                        "     Curios 只给至少有一种饰品栏的实体装饰品栏能力，开发环境只装 Curios 时玩家一种都没有，什么都改不了",
+                        "     改完要 /reload。正式服保持 false：那边由别的饰品模组分配"
+                )
+                .define("devCurioSlots", false);
+
+        builder.pop();
+
+        // ═══════════════════════════════════════════════════════════════
+        // 物品编辑器
+        // ═══════════════════════════════════════════════════════════════
+        builder.comment(
+                "═══════════════════════════════════════════════════════════════",
+                "Item Editor - 物品编辑器（OP + 创造模式）",
+                "═══════════════════════════════════════════════════════════════"
+        ).push("itemEditor");
+
+        ITEM_EDITOR_ENABLED = builder
+                .comment(
+                        "[EN] Enable the in-game item editor (/battlecorrection edit, hotkeys I / O / P)",
+                        "     Only players with OP level 2 in creative mode can use it",
+                        "     false = command and hotkeys are rejected, saving is refused on the server",
+                        "[中文] 启用游戏内物品编辑器（/battlecorrection edit，快捷键 I / O / P）",
+                        "     只有 OP 2 级且处于创造模式的玩家能用",
+                        "     false = 命令和快捷键都不可用，服务端也会拒绝保存"
+                )
+                .define("itemEditorEnabled", true);
+
+        ITEM_EDITOR_MAX_NBT_KB = builder
+                .comment(
+                        "[EN] Max NBT size (KB) the editor is allowed to save onto one item",
+                        "     Larger NBT is rejected on the server. Vanilla packets cap at 2048 KB",
+                        "[中文] 编辑器允许保存到单件物品上的 NBT 大小上限（KB）",
+                        "     超过的服务端直接拒绝。原版网络包的硬上限是 2048 KB"
+                )
+                .defineInRange("itemEditorMaxNbtKb", 256, 1, 2048);
 
         builder.pop();
 

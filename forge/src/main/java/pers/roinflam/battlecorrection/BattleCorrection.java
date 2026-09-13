@@ -15,6 +15,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import pers.roinflam.battlecorrection.compat.CuriosIntegration;
+import pers.roinflam.battlecorrection.compat.DevCurioSlotsCondition;
 import pers.roinflam.battlecorrection.config.ClothConfigScreen;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
@@ -22,6 +23,7 @@ import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.init.ModCreativeTabs;
 import pers.roinflam.battlecorrection.init.ModItems;
 import pers.roinflam.battlecorrection.init.ModMobEffects;
+import pers.roinflam.battlecorrection.network.ModNetwork;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 /**
@@ -50,6 +52,9 @@ public class BattleCorrection {
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);
 
+        // 注册网络包（两端都要，顺序两端一致）
+        ModNetwork.register();
+
         // 注册配置
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigBattle.SPEC, "battlecorrection-battle.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigAttribute.SPEC, "battlecorrection-attribute.toml");
@@ -69,6 +74,9 @@ public class BattleCorrection {
     private void commonSetup(final FMLCommonSetupEvent event) {
         // 初始化Curios集成（在工作队列中执行，确保线程安全）
         event.enqueueWork(CuriosIntegration::init);
+
+        // 数据包条件：开发环境给玩家默认饰品栏（配置 devCurioSlots 控制）
+        event.enqueueWork(DevCurioSlotsCondition::register);
 
         LOGGER.info("战斗修正模组 - 通用设置完成");
     }

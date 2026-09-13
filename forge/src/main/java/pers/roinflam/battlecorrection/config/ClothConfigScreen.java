@@ -5,6 +5,9 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import pers.roinflam.battlecorrection.utils.util.MagicDamageClassifier;
+
+import java.util.ArrayList;
 
 /**
  * Cloth Config 配置界面
@@ -441,6 +444,56 @@ public class ClothConfigScreen {
                 .setDefaultValue(true)
                 .setTooltip(Component.translatable("config.battlecorrection.curioMarkEnabled.tooltip"))
                 .setSaveConsumer(ConfigAttribute.CURIO_MARK_ENABLED::set)
+                .build());
+
+        // ═══════════════════════════════════════════════════════════════
+        // 第三方魔法识别
+        // ═══════════════════════════════════════════════════════════════
+        ConfigCategory magicRecognitionCategory = builder.getOrCreateCategory(
+                Component.translatable("config.battlecorrection.category.magicRecognition"));
+
+        magicRecognitionCategory.addEntry(entryBuilder.startBooleanToggle(
+                        Component.translatable("config.battlecorrection.enableThirdPartyMagicRecognition"),
+                        ConfigBattle.ENABLE_THIRD_PARTY_MAGIC_RECOGNITION.get())
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.battlecorrection.enableThirdPartyMagicRecognition.tooltip"))
+                .setSaveConsumer(value -> {
+                    ConfigBattle.ENABLE_THIRD_PARTY_MAGIC_RECOGNITION.set(value);
+                    MagicDamageClassifier.invalidateCache();
+                })
+                .build());
+
+        magicRecognitionCategory.addEntry(entryBuilder.startStrList(
+                        Component.translatable("config.battlecorrection.magicDamageNamespaces"),
+                        new ArrayList<>(ConfigBattle.MAGIC_DAMAGE_NAMESPACES.get()))
+                .setDefaultValue(ConfigBattle.DEFAULT_MAGIC_DAMAGE_NAMESPACES)
+                .setTooltip(Component.translatable("config.battlecorrection.magicDamageNamespaces.tooltip"))
+                .setSaveConsumer(list -> {
+                    ConfigBattle.MAGIC_DAMAGE_NAMESPACES.set(list);
+                    MagicDamageClassifier.invalidateCache();
+                })
+                .build());
+
+        magicRecognitionCategory.addEntry(entryBuilder.startStrList(
+                        Component.translatable("config.battlecorrection.magicDamageTypeWhitelist"),
+                        new ArrayList<>(ConfigBattle.MAGIC_DAMAGE_TYPE_WHITELIST.get()))
+                .setDefaultValue(ConfigBattle.DEFAULT_MAGIC_DAMAGE_TYPE_WHITELIST)
+                .setTooltip(Component.translatable("config.battlecorrection.magicDamageTypeWhitelist.tooltip"))
+                .setSaveConsumer(list -> {
+                    ConfigBattle.MAGIC_DAMAGE_TYPE_WHITELIST.set(list);
+                    MagicDamageClassifier.invalidateCache();
+                })
+                .build());
+
+        magicRecognitionCategory.addEntry(entryBuilder.startStrList(
+                        Component.translatable("config.battlecorrection.magicDamageTypeBlacklist"),
+                        new ArrayList<>(ConfigBattle.MAGIC_DAMAGE_TYPE_BLACKLIST.get()))
+                .setDefaultValue(ConfigBattle.DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST)
+                .setTooltip(Component.translatable("config.battlecorrection.magicDamageTypeBlacklist.tooltip"))
+                .setSaveConsumer(list -> {
+                    ConfigBattle.MAGIC_DAMAGE_TYPE_BLACKLIST.set(list);
+                    MagicDamageClassifier.invalidateCache();
+                })
                 .build());
 
         // ═══════════════════════════════════════════════════════════════

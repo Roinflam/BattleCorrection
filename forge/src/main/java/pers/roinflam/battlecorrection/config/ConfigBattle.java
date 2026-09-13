@@ -2,6 +2,9 @@ package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 战斗配置类 - Battle Configuration Class (1.20.1)
  * 包含所有战斗相关的配置选项
@@ -44,6 +47,27 @@ public class ConfigBattle {
     // ===== 饥饿伤害衰减 =====
     public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY;
     public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY_LIMIT;
+
+    // ===== 第三方魔法识别 =====
+    /** 是否把第三方魔法模组的法术伤害识别为魔法伤害（总开关） */
+    public static final ForgeConfigSpec.BooleanValue ENABLE_THIRD_PARTY_MAGIC_RECOGNITION;
+    /** 按命名空间整体算魔法的模组 id 列表 */
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_NAMESPACES;
+    /** 精确算魔法的伤害类型 id 列表 */
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_WHITELIST;
+    /** 精确不算魔法的伤害类型 id 列表（优先级最高） */
+    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_BLACKLIST;
+
+    /** 命名空间默认值：目前确认过伤害源结构的五个魔法模组 */
+    public static final List<String> DEFAULT_MAGIC_DAMAGE_NAMESPACES = Arrays.asList(
+            "irons_spellbooks", "gtbcs_geomancy_plus", "goety", "ars_nouveau", "sweetmagic");
+
+    /** 白名单默认值：空 */
+    public static final List<String> DEFAULT_MAGIC_DAMAGE_TYPE_WHITELIST = Arrays.asList();
+
+    /** 黑名单默认值：Goety 的召唤物攻击、镰刀/末影刃斩击、战利品爆炸、遣散 */
+    public static final List<String> DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST = Arrays.asList(
+            "goety:summon", "goety:sword", "goety:loot_explode", "goety:loot_explode_owned", "goety:dismissed");
 
     // ===== 调试 =====
     public static final ForgeConfigSpec.BooleanValue ENABLE_DETAILED_LOGGING;
@@ -298,6 +322,57 @@ public class ConfigBattle {
                         "     0.70 = 最多减少70%伤害, 0.0 = 不设上限(默认)"
                 )
                 .defineInRange("hungerDamageDecayLimit", 0.0D, 0.0D, 1.0D);
+
+        builder.pop();
+
+        // ═══════════════════════════════════════════════════════════════
+        // 第三方魔法识别
+        // ═══════════════════════════════════════════════════════════════
+        builder.comment(
+                "═══════════════════════════════════════════════════════════════",
+                "Third-party Magic Recognition - 第三方魔法识别",
+                "  Decides which damage counts as 'magic' for the magicDamage attribute and the player magic attack / resistance multipliers.",
+                "  Magic is an independent layer on top of the base melee/arrow/projectile layer: base bonuses and multipliers always apply, magic stacks on top.",
+                "  Vanilla rule always applies: message_id contains 'magic', or damage type is in minecraft:witch_resistant_to.",
+                "  Summon/pet melee hits (direct entity is someone else's living minion) are never counted as magic.",
+                "  决定哪些伤害算「魔法伤害」（用于 magicDamage 属性、玩家魔法攻击/承受倍率）。",
+                "  魔法是叠在近战/箭矢/弹射物基础层之上的独立层：基础加成和倍率始终生效，魔法在其上叠加。",
+                "  原版规则始终生效：message_id 含 magic，或伤害类型在 minecraft:witch_resistant_to 里。",
+                "  召唤物/宠物替主人挥砍的命中一律不算魔法。",
+                "═══════════════════════════════════════════════════════════════"
+        ).push("magicRecognition");
+
+        ENABLE_THIRD_PARTY_MAGIC_RECOGNITION = builder
+                .comment(
+                        "[EN] Enable third-party magic recognition (forge:is_magic tag + namespace/whitelist/blacklist rules)",
+                        "     true = Enabled (default), false = vanilla rule only",
+                        "[中文] 启用第三方魔法识别（forge:is_magic tag + 命名空间/白名单/黑名单规则）",
+                        "     true = 启用(默认), false = 只保留原版规则"
+                )
+                .define("enableThirdPartyMagicRecognition", true);
+
+        MAGIC_DAMAGE_NAMESPACES = builder
+                .comment(
+                        "[EN] Damage-type namespaces treated as magic as a whole",
+                        "     e.g. 'goety' covers goety:direct_shock, goety:hellfire, ... every goety damage type",
+                        "[中文] 整个命名空间都算魔法的模组 id",
+                        "     例如 goety 覆盖 goety:direct_shock、goety:hellfire 等全部类型"
+                )
+                .defineList("magicDamageNamespaces", DEFAULT_MAGIC_DAMAGE_NAMESPACES, o -> o instanceof String);
+
+        MAGIC_DAMAGE_TYPE_WHITELIST = builder
+                .comment(
+                        "[EN] Exact damage-type ids always treated as magic, e.g. 'somemod:arcane_bolt'",
+                        "[中文] 精确算魔法的伤害类型 id，例如 somemod:arcane_bolt"
+                )
+                .defineList("magicDamageTypeWhitelist", DEFAULT_MAGIC_DAMAGE_TYPE_WHITELIST, o -> o instanceof String);
+
+        MAGIC_DAMAGE_TYPE_BLACKLIST = builder
+                .comment(
+                        "[EN] Exact damage-type ids never treated as magic (highest priority, overrides every other rule)",
+                        "[中文] 精确不算魔法的伤害类型 id（优先级最高，压过其他所有规则）"
+                )
+                .defineList("magicDamageTypeBlacklist", DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST, o -> o instanceof String);
 
         builder.pop();
 

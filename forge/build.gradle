@@ -74,9 +74,22 @@ dependencies {
     // ==================== 本地 jar 依赖（可选） ====================
 
     // 加载 forge/dependencies/ 文件夹里的所有 jar 文件
-    // 适合放一些没有发布到 Maven 仓库的库
+    // 适合放一些没有发布到 Maven 仓库的库，或者要在开发环境里直接运行的正式版模组 jar
+    //
+    // 模组 jar（带 META-INF/mods.toml）必须用 modImplementation：
+    // 正式版模组 jar 里的 Minecraft 类名/字段名是 SRG 混淆名（f_256982_ 这种），
+    // 开发环境用的是 Mojang 官方名，Loom 只对 mod 开头的依赖做"SRG → 官方名"重映射；
+    // 用普通 implementation 挂进来的模组不会被重映射，一初始化就 NoSuchFieldError。
+    // 普通 Java 库（没有 mods.toml）不引用 Minecraft 类，直接 implementation 即可。
     fileTree(dir: 'dependencies', include: '*.jar').each { File file ->
-        implementation files(file)
+        boolean isMod = new java.util.zip.ZipFile(file).withCloseable { zip ->
+            zip.getEntry('META-INF/mods.toml') != null
+        }
+        if (isMod) {
+            modImplementation files(file)
+        } else {
+            implementation files(file)
+        }
     }
 }
 

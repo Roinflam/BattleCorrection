@@ -1,6 +1,5 @@
 package pers.roinflam.battlecorrection.attributes;
 
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -21,13 +20,17 @@ import javax.annotation.Nonnull;
 /**
  * 弹射物伤害加成属性
  * 增加除箭矢外的弹射物攻击造成的伤害，如枪械模组中的子弹
+ * <p>
+ * 弹射物是"远程"基础层的一部分，魔法是独立于基础层的叠加层，两者互不排斥：
+ * 法术弹射物（火球、喷溅药水等）在这里照常吃弹射物加成，再由 AttributeMagicDamage 叠魔法加成。
+ * 旧版本在这里排掉了 WITCH_RESISTANT_TO 标签（喷溅药水不吃弹射物加成），现已按上述原则去掉。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeProjectileDamage {
 
     /**
      * 处理弹射物伤害事件
-     * 当实体被弹射物（非箭矢、非魔法）击中时触发
+     * 当实体被弹射物（非箭矢）击中时触发
      * 优先级 HIGH：固定加成统一在暴击倍率（NORMAL）之前结算，保证"先加后乘"
      *
      * @param evt 生物受伤事件（护甲计算之前触发）
@@ -42,7 +45,6 @@ public class AttributeProjectileDamage {
         Entity directEntity = damageSource.getDirectEntity();
         if (!(directEntity instanceof Projectile)
                 || directEntity instanceof AbstractArrow
-                || damageSource.is(DamageTypeTags.WITCH_RESISTANT_TO)
                 || !(damageSource.getEntity() instanceof LivingEntity attacker)) {
             return;
         }

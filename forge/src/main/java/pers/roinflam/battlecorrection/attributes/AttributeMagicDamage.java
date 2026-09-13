@@ -1,6 +1,5 @@
 package pers.roinflam.battlecorrection.attributes;
 
-import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,6 +13,7 @@ import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
+import pers.roinflam.battlecorrection.utils.util.MagicDamageClassifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,9 +22,11 @@ import javax.annotation.Nullable;
  * 魔法伤害加成属性
  * 增加魔法攻击造成的伤害，如药水伤害或模组中的法杖
  * <p>
- * 魔法伤害判定：
- * 1. 原版标签：WITCH_RESISTANT_TO (包含 magic, indirect_magic 等)
- * 2. 伤害类型ID包含 "magic" 字段（兼容模组）
+ * 魔法伤害判定统一交给 {@link MagicDamageClassifier}：
+ * 原版规则（WITCH_RESISTANT_TO 标签、伤害类型 message_id 含 "magic"）
+ * 加上可配置的第三方规则（forge:is_magic 标签、伤害类型命名空间、白/黑名单），
+ * Ars Nouveau / Goety / ISB / SweetMagic 这些 message_id 不带 magic 的法术也能被认出来；
+ * 召唤物替主人挥砍的命中一律不算魔法。
  * <p>
  * 只对"有攻击者"的魔法攻击加成：中毒这类没有来源的伤害在原版里也是 magic 类型，
  * 旧版本会给它们加上全局加成，全局值设成 5 时中毒每跳会从 1 变成 6。
@@ -45,8 +47,8 @@ public class AttributeMagicDamage {
         }
 
         DamageSource damageSource = evt.getSource();
-        // 判断是否为魔法伤害
-        if (!isMagicDamage(damageSource)) {
+        // 判断是否为魔法伤害（原版规则 + 第三方规则，见 MagicDamageClassifier）
+        if (!MagicDamageClassifier.isMagic(damageSource)) {
             return;
         }
 
@@ -83,23 +85,6 @@ public class AttributeMagicDamage {
                                 attributeValue, configDamage));
             }
         }
-    }
-
-    /**
-     * 判断是否为魔法伤害
-     *
-     * @param damageSource 伤害源
-     * @return true=魔法伤害, false=非魔法伤害
-     */
-    private static boolean isMagicDamage(@Nonnull DamageSource damageSource) {
-        // 1. 检查原版魔法伤害标签（女巫免疫的伤害类型）
-        if (damageSource.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
-            return true;
-        }
-
-        // 2. 检查伤害类型ID是否包含 "magic" 字段（兼容模组）
-        String damageTypeId = damageSource.getMsgId();
-        return damageTypeId.toLowerCase().contains("magic");
     }
 
     /**

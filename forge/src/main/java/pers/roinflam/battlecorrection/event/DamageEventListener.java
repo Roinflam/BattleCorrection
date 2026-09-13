@@ -15,6 +15,7 @@ import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
 import pers.roinflam.battlecorrection.utils.util.EntityLivingUtil;
+import pers.roinflam.battlecorrection.utils.util.MagicDamageClassifier;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -22,6 +23,11 @@ import javax.annotation.Nullable;
 /**
  * 伤害事件监听器
  * 处理连击修正和全局伤害倍率
+ * <p>
+ * 全局倍率分两层：近战/远程（箭矢、弹射物）按伤害的投递方式判定，是基础层，始终生效；
+ * 魔法由 {@link MagicDamageClassifier} 判定，是独立层，在基础层之上再乘一次。
+ * 例如玩家的火球 = 弹射物倍率 × 魔法倍率，玩家亲手打出的射线法术 = 近战倍率 × 魔法倍率。
+ * 旧版本把魔法和近战/远程做成了互斥，法术只吃魔法倍率，现已改为叠乘。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class DamageEventListener {
@@ -77,6 +83,10 @@ public class DamageEventListener {
 
     /**
      * 处理伤害事件 - 应用全局伤害倍率和饥饿衰减
+     * <p>
+     * 倍率结算顺序：基础层（玩家近战/箭矢/弹射物）→ 魔法层（玩家魔法）→ 饥饿衰减
+     * → 承受基础层（玩家承受近战/箭矢/弹射物）→ 承受魔法层（玩家承受魔法）。
+     * 全是乘法，先后顺序不影响结果。
      *
      * @param evt 生物伤害事件（护甲计算之后触发）
      */
@@ -105,30 +115,29 @@ public class DamageEventListener {
         // 只有开了详细日志才收集原因文本，关闭时不产生任何临时字符串
         @Nullable StringBuilder modificationReason = LogUtil.isDetailed() ? new StringBuilder() : null;
 
-        // 判断伤害类型并应用倍率
-        boolean isMagicDamage = isMagicDamage(damageSource);
+        // 魔法判定（见 MagicDamageClassifier：原版规则 + 第三方规则）；魔法是独立层，不影响下面的基础层判定
+        boolean isMagicDamage = MagicDamageClassifier.isMagic(damageSource);
 
-        if (!isMagicDamage) {
-            if (immediateSource instanceof Player) {
-                // 玩家近战攻击
-                float multiplier = ConfigBattle.PLAYER_MELEE_ATTACK.get().floatValue();
+        // ===== 基础层：按投递方式判定近战 / 箭矢 / 弹射物，魔法与否都照常生效 =====
+        if (immediateSource instanceof Player) {
+            // 玩家近战攻击（含玩家亲手打出的射线/触碰法术）
+            float multiplier = ConfigBattle.PLAYER_MELEE_ATTACK.get().floatValue();
+            finalDamage *= multiplier;
+            appendReason(modificationReason, "玩家近战倍率", multiplier);
+        } else if (!immediateSource.equals(trueSource) && trueSource instanceof Player) {
+            // 玩家远程攻击（含法术弹射物）
+            if (immediateSource instanceof AbstractArrow) {
+                float multiplier = ConfigBattle.PLAYER_ARROW_ATTACK.get().floatValue();
                 finalDamage *= multiplier;
-                appendReason(modificationReason, "玩家近战倍率", multiplier);
-            } else if (!immediateSource.equals(trueSource) && trueSource instanceof Player) {
-                // 玩家远程攻击
-                if (immediateSource instanceof AbstractArrow) {
-                    float multiplier = ConfigBattle.PLAYER_ARROW_ATTACK.get().floatValue();
-                    finalDamage *= multiplier;
-                    appendReason(modificationReason, "玩家箭矢倍率", multiplier);
-                } else if (immediateSource instanceof Projectile) {
-                    float multiplier = ConfigBattle.PLAYER_PROJECTILE_ATTACK.get().floatValue();
-                    finalDamage *= multiplier;
-                    appendReason(modificationReason, "玩家弹射物倍率", multiplier);
-                }
+                appendReason(modificationReason, "玩家箭矢倍率", multiplier);
+            } else if (immediateSource instanceof Projectile) {
+                float multiplier = ConfigBattle.PLAYER_PROJECTILE_ATTACK.get().floatValue();
+                finalDamage *= multiplier;
+                appendReason(modificationReason, "玩家弹射物倍率", multiplier);
             }
         }
 
-        // 玩家魔法攻击
+        // ===== 魔法层：在基础层之上独立叠乘 =====
         if ((immediateSource instanceof Player || trueSource instanceof Player) && isMagicDamage) {
             float multiplier = ConfigBattle.PLAYER_MAGIC_ATTACK.get().floatValue();
             finalDamage *= multiplier;
@@ -154,13 +163,13 @@ public class DamageEventListener {
             }
         }
 
-        // 玩家承受伤害倍率
+        // 玩家承受伤害倍率：同样是基础层（近战 / 箭矢 / 弹射物）始终生效，魔法层独立叠乘
         if (evt.getEntity() instanceof Player) {
-            if (immediateSource.equals(trueSource) && !isMagicDamage) {
+            if (immediateSource.equals(trueSource)) {
                 float multiplier = ConfigBattle.PLAYER_SUFFERS_MELEE.get().floatValue();
                 finalDamage *= multiplier;
                 appendReason(modificationReason, "玩家承受近战倍率", multiplier);
-            } else if (!immediateSource.equals(trueSource) && !isMagicDamage) {
+            } else {
                 if (immediateSource instanceof AbstractArrow) {
                     float multiplier = ConfigBattle.PLAYER_SUFFERS_ARROW.get().floatValue();
                     finalDamage *= multiplier;
@@ -205,22 +214,5 @@ public class DamageEventListener {
             builder.append(", ");
         }
         builder.append(String.format("%s: %.2fx", name, multiplier));
-    }
-
-    /**
-     * 判断是否为魔法伤害
-     *
-     * @param damageSource 伤害源
-     * @return true=魔法伤害, false=非魔法伤害
-     */
-    private static boolean isMagicDamage(@Nonnull DamageSource damageSource) {
-        // 1. 检查原版魔法伤害标签（女巫免疫的伤害类型）
-        if (damageSource.is(DamageTypeTags.WITCH_RESISTANT_TO)) {
-            return true;
-        }
-
-        // 2. 检查伤害类型ID是否包含 "magic" 字段（兼容模组）
-        String damageTypeId = damageSource.getMsgId();
-        return damageTypeId.toLowerCase().contains("magic");
     }
 }

@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
  * <p>
  * 这个类本身不引用 Curios；只有检测到装了 Curios 才会去调用 {@link CurioMarkCommand}，
  * 没装 Curios 时 CurioMarkCommand 这个类根本不会被加载，也就不会因为找不到 Curios 的类而崩溃。
+ * {@link ItemEditorCommand} 不依赖 Curios，始终注册。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class ModCommands {
@@ -25,6 +26,9 @@ public class ModCommands {
      */
     @SubscribeEvent
     public static void onRegisterCommands(@Nonnull RegisterCommandsEvent evt) {
+        ItemEditorCommand.register(evt.getDispatcher());
+        LogUtil.info("已注册 /battlecorrection edit 命令");
+
         if (ModList.get().isLoaded("curios")) {
             CurioMarkCommand.register(evt.getDispatcher());
             LogUtil.info("已注册 /battlecorrection curio 命令");

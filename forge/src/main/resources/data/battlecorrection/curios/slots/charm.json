@@ -1,0 +1,6 @@
+{
+  "validators": [
+    "curios:tag",
+    "battlecorrection:mark"
+  ]
+}

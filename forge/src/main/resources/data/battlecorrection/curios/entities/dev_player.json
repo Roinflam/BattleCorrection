@@ -1,0 +1,22 @@
+{
+  "conditions": [
+    {
+      "type": "battlecorrection:dev_curio_slots"
+    }
+  ],
+  "entities": [
+    "minecraft:player"
+  ],
+  "slots": [
+    "head",
+    "necklace",
+    "back",
+    "body",
+    "bracelet",
+    "hands",
+    "ring",
+    "belt",
+    "charm",
+    "curio"
+  ]
+}
