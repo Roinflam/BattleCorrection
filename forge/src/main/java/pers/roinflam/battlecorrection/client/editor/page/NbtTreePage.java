@@ -12,7 +12,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
@@ -34,11 +33,11 @@ import java.util.List;
 /**
  * NBT 树页：整件物品的 NBT 按树状结构增删改
  * <p>
- * 树的根是物品存盘时的完整结构 {@code {id, Count, tag}}。规则：
+ * 物品模式下树的根是存盘时的完整结构 {@code {id, Count, tag}}；实体 / 方块实体模式下根就是整份 NBT，下面的 id/Count 规则不适用。物品模式规则：
  * <ul>
  *   <li>id 只读（编辑器不允许换物品），id 和 Count 不能删、不能改名；Count 取 1-64</li>
  *   <li>根下面只能有这三个键，想加东西选中 tag 再加；tag 删掉 = 清空物品 NBT</li>
- *   <li>选中一行后，下面的名称/值框里改，点"应用"或按回车才写入；容器（复合/列表）没有值可改</li>
+ *   <li>选中一行后，下面的名称/值框里改，点"应用"或按回车才写入；容器（复合/列表）没有值可改；不在输入框里时按 Delete 删选中节点，点列表空白处取消选中</li>
  *   <li>添加：选中容器后选类型点"添加"；列表的元素类型必须一致，非空列表会自动锁定类型</li>
  *   <li>复制/粘贴：复制的节点记在编辑器内部（连名字一起），同时以 SNBT 写进系统剪贴板；
  *   粘贴优先用内部记的，没有就把系统剪贴板当 SNBT 解析</li>
@@ -50,7 +49,6 @@ public class NbtTreePage extends EditorPageBase {
     private static final String KEY_ID = "id";
     private static final String KEY_COUNT = "Count";
     private static final String KEY_TAG = "tag";
-    private static final String KEY_FORGE_CAPS = "ForgeCaps";
     private static final int BOX_HEIGHT = 14;
     private static final int FORM_HEIGHT = 2 * BOX_HEIGHT + 10;
     private static final int GAP = 4;
@@ -142,7 +140,9 @@ public class NbtTreePage extends EditorPageBase {
         int treeTop = y + 11;
         tree = add(new NbtTreeView(x, treeTop, width, formTop - 4 - treeTop).onSelect(this::onNodeSelected));
         tree.setRoot(root);
-        tree.expand("/" + KEY_TAG);
+        if (session.isItem()) {
+            tree.expand("/" + KEY_TAG);
+        }
         tree.rebuild();
 
         // 第一行：名称 / 值 / 应用
@@ -208,7 +208,7 @@ public class NbtTreePage extends EditorPageBase {
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         label(g, Component.translatable("gui.battlecorrection.editor.tree.header"), x, y);
         // 状态放在标题行右侧；没有状态时提示一下能力数据的事
-        if (status.getString().isEmpty() && session.hasForgeCaps()) {
+        if (status.getString().isEmpty() && session.isItem() && session.hasForgeCaps()) {
             Component note = Component.translatable("gui.battlecorrection.editor.tree.caps_note");
             g.drawString(font, note, x + width - font.width(note), y, EditorTheme.TEXT_DIM, false);
         }
@@ -258,12 +258,18 @@ public class NbtTreePage extends EditorPageBase {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        GuiEventListener focused = screen.getFocused();
+        boolean typing = focused == nameBox || focused == valueBox;
         if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) {
-            GuiEventListener focused = screen.getFocused();
-            if (focused == nameBox || focused == valueBox) {
+            if (typing) {
                 applyEdit();
                 return true;
             }
+        }
+        // 没在输入框里打字时按 Delete = 删除选中节点
+        if (keyCode == GLFW.GLFW_KEY_DELETE && !typing && tree != null && tree.selected() != null) {
+            deleteSelected();
+            return true;
         }
         return false;
     }
@@ -327,21 +333,22 @@ public class NbtTreePage extends EditorPageBase {
     }
 
     /**
-     * 根、以及根下面的 id 和 Count：不能删不能改名
+     * 根、以及（物品模式下）根下面的 id 和 Count：不能删不能改名
      */
-    private static boolean isProtected(@Nonnull NbtTreeView.Node node) {
+    private boolean isProtected(@Nonnull NbtTreeView.Node node) {
         if (node.isRoot()) {
             return true;
         }
-        return node.parent != null && node.parent.isRoot() && (KEY_ID.equals(node.key) || KEY_COUNT.equals(node.key));
+        return session.isItem() && node.parent != null && node.parent.isRoot()
+                && (KEY_ID.equals(node.key) || KEY_COUNT.equals(node.key));
     }
 
-    private static boolean isIdNode(@Nonnull NbtTreeView.Node node) {
-        return node.parent != null && node.parent.isRoot() && KEY_ID.equals(node.key);
+    private boolean isIdNode(@Nonnull NbtTreeView.Node node) {
+        return session.isItem() && node.parent != null && node.parent.isRoot() && KEY_ID.equals(node.key);
     }
 
-    private static boolean isCountNode(@Nonnull NbtTreeView.Node node) {
-        return node.parent != null && node.parent.isRoot() && KEY_COUNT.equals(node.key);
+    private boolean isCountNode(@Nonnull NbtTreeView.Node node) {
+        return session.isItem() && node.parent != null && node.parent.isRoot() && KEY_COUNT.equals(node.key);
     }
 
     /**
@@ -492,8 +499,8 @@ public class NbtTreePage extends EditorPageBase {
         }
 
         CompoundTag compound = (CompoundTag) container.tag;
-        if (container.isRoot()) {
-            // 根下面只允许 tag；id 和 Count 一直都在
+        if (container.isRoot() && session.isItem()) {
+            // 物品的根下面只允许 tag；id 和 Count 一直都在
             if (compound.contains(KEY_TAG) || !(tag instanceof CompoundTag)) {
                 setStatus("gui.battlecorrection.editor.tree.status.root_add", EditorTheme.WARNING);
                 return null;
@@ -602,23 +609,17 @@ public class NbtTreePage extends EditorPageBase {
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * 从物品副本读完整 NBT
+     * 读根：物品是 {id, Count, tag}，实体/方块实体是整份 NBT
      */
     private void loadFromItem() {
-        root = session.working().save(new CompoundTag());
-        root.remove(KEY_FORGE_CAPS);
+        root = session.loadRoot();
     }
 
     /**
-     * 把树的 Count 和 tag 写回物品副本，并重建树
+     * 把树写回会话，并重建树
      */
     private void pushToSession() {
-        ItemStack working = session.working();
-        if (root.contains(KEY_COUNT, Tag.TAG_ANY_NUMERIC)) {
-            working.setCount(Mth.clamp(root.getInt(KEY_COUNT),
-                    ApplyItemEditC2SPacket.MIN_COUNT, ApplyItemEditC2SPacket.MAX_COUNT));
-        }
-        session.setTag(root.contains(KEY_TAG, Tag.TAG_COMPOUND) ? root.getCompound(KEY_TAG).copy() : null);
+        session.pushRoot(root);
         if (tree != null) {
             tree.rebuild();
         }

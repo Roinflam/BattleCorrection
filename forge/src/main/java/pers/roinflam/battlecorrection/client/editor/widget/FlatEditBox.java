@@ -8,6 +8,10 @@ import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.editor.LegacyText;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * 单行输入框：原版 EditBox 换个边框颜色，再处理颜色码
@@ -26,6 +30,8 @@ public class FlatEditBox extends EditBox {
     public static final int DEFAULT_MAX_LENGTH = 4096;
 
     private final boolean legacyCodes;
+    @Nullable
+    private Consumer<List<String>> multiLinePaste;
 
     /**
      * @param font        字体
@@ -45,8 +51,27 @@ public class FlatEditBox extends EditBox {
         setMaxLength(DEFAULT_MAX_LENGTH);
     }
 
+    /**
+     * 粘贴多行文本时的处理（链式）
+     * <p>
+     * 不设的话多行文本会被原版把换行过滤掉揉成一行；设了就整段交给回调自己拆，回调里想往本框写第一行
+     * 直接再调 {@link #insertText}（没有换行不会再触发回调）。
+     *
+     * @param handler 回调，参数是按行拆好的文本
+     * @return this
+     */
+    @Nonnull
+    public FlatEditBox onMultiLinePaste(@Nonnull Consumer<List<String>> handler) {
+        this.multiLinePaste = handler;
+        return this;
+    }
+
     @Override
     public void insertText(@Nonnull String text) {
+        if (multiLinePaste != null && text.indexOf('\n') >= 0) {
+            multiLinePaste.accept(Arrays.asList(text.replace("\r", "").split("\n", -1)));
+            return;
+        }
         super.insertText(legacyCodes ? LegacyText.fromSection(text) : text);
     }
 

@@ -11,10 +11,17 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
@@ -26,6 +33,9 @@ import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.editor.ItemEditTarget;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
+import pers.roinflam.battlecorrection.editor.NbtEditTarget;
+import pers.roinflam.battlecorrection.network.ModNetwork;
+import pers.roinflam.battlecorrection.network.packet.RequestNbtEditC2SPacket;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
 
@@ -37,7 +47,8 @@ import javax.annotation.Nullable;
  * <p>
  * 三个快捷键（默认 I / O / P，可在按键设置里改）：编辑器、NBT 树、原始 NBT。
  * <ul>
- *   <li>没开任何界面时按：编辑主手物品。原版只在没界面时才给 KeyMapping 计数，所以走 ClientTickEvent 里的 consumeClick。</li>
+ *   <li>没开任何界面时按：主手有物品就编辑它；主手空着就看准星指着什么——实体（玩家除外）或带方块实体的方块
+ *   （箱子、熔炉、刷怪笼这类）——向服务端要它的 NBT 来编辑。原版只在没界面时才给 KeyMapping 计数，所以走 ClientTickEvent 里的 consumeClick。</li>
  *   <li>开着背包/箱子界面时按：原版不会触发 KeyMapping，改监听 ScreenEvent.KeyPressed.Post，
  *   自己比对键位，编辑鼠标指着的那一格；没指着东西就编辑主手。正在输入框里打字时不响应（不然在铁砧里打个 i 就弹编辑器）。</li>
  * </ul>
@@ -125,11 +136,11 @@ public final class ItemEditorClient {
                 return;
             }
             if (open) {
-                open(mc, ItemEditTarget.mainHand(), EditorPage.NAME, null);
+                openFromKey(mc, EditorPage.NAME);
             } else if (tree) {
-                open(mc, ItemEditTarget.mainHand(), EditorPage.TREE, null);
+                openFromKey(mc, EditorPage.TREE);
             } else if (raw) {
-                open(mc, ItemEditTarget.mainHand(), EditorPage.RAW, null);
+                openFromKey(mc, EditorPage.RAW);
             }
         }
 
@@ -161,6 +172,65 @@ public final class ItemEditorClient {
             open(mc, target, page, screen);
             evt.setCanceled(true);
         }
+    }
+
+    /**
+     * 没开界面时按键：主手有东西编辑主手，没有就编辑准星指着的实体 / 方块实体
+     *
+     * @param mc   Minecraft
+     * @param page 初始页面
+     */
+    private static void openFromKey(@Nonnull Minecraft mc, @Nonnull EditorPage page) {
+        LocalPlayer player = mc.player;
+        if (player == null) {
+            return;
+        }
+        if (!player.getMainHandItem().isEmpty()) {
+            open(mc, ItemEditTarget.mainHand(), page, null);
+            return;
+        }
+        if (!ItemEditorAccess.checkAndNotify(player)) {
+            return;
+        }
+        HitResult hit = mc.hitResult;
+        if (hit instanceof EntityHitResult entityHit) {
+            Entity entity = entityHit.getEntity();
+            if (entity instanceof Player) {
+                player.displayClientMessage(Component.translatable("message.battlecorrection.nbt.player_not_allowed"), true);
+                return;
+            }
+            ModNetwork.sendToServer(new RequestNbtEditC2SPacket(NbtEditTarget.entity(entity.getId()), page));
+            return;
+        }
+        if (hit instanceof BlockHitResult blockHit && hit.getType() == HitResult.Type.BLOCK && mc.level != null) {
+            BlockPos pos = blockHit.getBlockPos();
+            if (mc.level.getBlockEntity(pos) != null) {
+                ModNetwork.sendToServer(new RequestNbtEditC2SPacket(NbtEditTarget.blockEntity(pos), page));
+                return;
+            }
+            player.displayClientMessage(Component.translatable("message.battlecorrection.nbt.no_block_entity_here"), true);
+            return;
+        }
+        player.displayClientMessage(Component.translatable("message.battlecorrection.editor.no_target"), true);
+    }
+
+    /**
+     * 服务端把实体 / 方块实体的 NBT 发来了，开界面
+     *
+     * @param target 目标
+     * @param tag    NBT
+     * @param name   标题栏显示的名字
+     * @param page   初始页面
+     */
+    public static void openNbtFromServer(@Nonnull NbtEditTarget target, @Nonnull CompoundTag tag, @Nonnull Component name,
+                                         @Nonnull EditorPage page) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) {
+            return;
+        }
+        EditorSession session = EditorSession.forNbt(target, tag, name);
+        ItemEditorScreen editor = new ItemEditorScreen(session, page, null);
+        mc.tell(() -> mc.setScreen(editor));
     }
 
     /**
@@ -205,7 +275,7 @@ public final class ItemEditorClient {
             return;
         }
 
-        EditorSession session = new EditorSession(target, stack);
+        EditorSession session = EditorSession.forItem(target, stack);
         ItemEditorScreen editor = new ItemEditorScreen(session, page, parent);
         // 延后一帧再开：按键事件之后紧跟着的字符事件才不会打进新界面的输入框里
         mc.tell(() -> mc.setScreen(editor));

@@ -37,7 +37,7 @@ import java.util.function.Consumer;
  * 所以重建之后展开的还是展开的、选中的还是选中的。复合标签的子节点按键名排序显示，
  * 原版 CompoundTag 内部是 HashMap，本来就没有稳定顺序。
  * <p>
- * 点击行首的 +/- 或双击一行 = 展开/折叠；单击 = 选中。
+ * 点击行首的 +/- 或双击一行 = 展开/折叠；单击 = 选中；点列表空白处 = 取消选中。
  */
 public class NbtTreeView extends AbstractWidget {
 
@@ -344,6 +344,11 @@ public class NbtTreeView extends AbstractWidget {
     public void onClick(double mouseX, double mouseY) {
         int index = rowAt(mouseX, mouseY);
         if (index < 0) {
+            // 点在空白处：清掉选中
+            selectedPath = null;
+            if (onSelect != null) {
+                onSelect.accept(null);
+            }
             return;
         }
         Node node = rows.get(index);

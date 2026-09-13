@@ -65,6 +65,7 @@ public class ConfigAttribute {
     // 物品编辑器
     public static final ForgeConfigSpec.BooleanValue ITEM_EDITOR_ENABLED;
     public static final ForgeConfigSpec.IntValue ITEM_EDITOR_MAX_NBT_KB;
+    public static final ForgeConfigSpec.BooleanValue ITEM_EDITOR_QUALITY_TAGS;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
@@ -349,6 +350,15 @@ public class ConfigAttribute {
                         "     超过的服务端直接拒绝。原版网络包的硬上限是 2048 KB"
                 )
                 .defineInRange("itemEditorMaxNbtKb", 256, 1, 2048);
+
+        ITEM_EDITOR_QUALITY_TAGS = builder
+                .comment(
+                        "[EN] Show the 'minimum quality' selector on the editor's Tags page (feature in development)",
+                        "     Writes an Epic / Legendary / Myth / Genesis mark at the root of the item tag",
+                        "[中文] 在编辑器\"标签\"页显示\"最低品质\"选择（功能开发中）",
+                        "     写的是物品 tag 根下的 Epic / Legendary / Myth / Genesis 标记"
+                )
+                .define("itemEditorQualityTags", true);
 
         builder.pop();
 

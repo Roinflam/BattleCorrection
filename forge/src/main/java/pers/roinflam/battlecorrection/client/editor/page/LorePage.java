@@ -40,7 +40,7 @@ import java.util.List;
  * 这样没写颜色码的文字显示白色、不斜体，颜色码照常生效。勾"原版样式"则只写 {@code {"text":"..."}}，
  * 由原版渲染成紫色斜体。读取时如果第一行的样式是空的，就当成原版样式。
  * <p>
- * 输入框里按回车 = 在这一行下面插一行。
+ * 输入框里按回车 = 在这一行下面插一行；往某一行粘贴多行文本会自动拆成多行。
  */
 public class LorePage extends EditorPageBase {
 
@@ -139,6 +139,7 @@ public class LorePage extends EditorPageBase {
                     Component.translatable("gui.battlecorrection.editor.lore.hint"), true));
             row.box.setMaxLength(MAX_LINE_LENGTH);
             row.box.setResponder(value -> onLineChanged(rowIndex, value));
+            row.box.onMultiLinePaste(pasted -> pasteLines(rowIndex, pasted));
 
             int buttonX = x + 1 + boxWidth + 4;
             row.up = add(new FlatButton(buttonX, rowY + 1, BUTTON_WIDTH, BOX_HEIGHT, Component.literal("↑"),
@@ -310,6 +311,33 @@ public class LorePage extends EditorPageBase {
         scrollTo(index);
         rebind();
         focusLine(index);
+    }
+
+    /**
+     * 往某一行粘贴多行文本：第一行接在光标处，其余各占一行插在它下面
+     *
+     * @param rowIndex 控件行序号
+     * @param pasted   拆好的各行
+     */
+    private void pasteLines(int rowIndex, @Nonnull List<String> pasted) {
+        if (rowIndex >= rows.size() || pasted.isEmpty()) {
+            return;
+        }
+        Row row = rows.get(rowIndex);
+        int index = row.index;
+        if (index < 0 || index >= lines.size()) {
+            return;
+        }
+        // 第一行走正常插入（没有换行，不会再进这里），responder 会把它写进模型
+        row.box.insertText(pasted.get(0));
+        int insertAt = index + 1;
+        for (int i = 1; i < pasted.size(); i++) {
+            lines.add(insertAt++, LegacyText.fromSection(pasted.get(i)));
+        }
+        writeToItem();
+        scrollTo(Math.min(insertAt - 1, lines.size() - 1));
+        rebind();
+        focusLine(Math.min(insertAt - 1, lines.size() - 1));
     }
 
     /**

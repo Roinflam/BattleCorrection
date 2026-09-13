@@ -12,13 +12,20 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorScreen;
+import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatEditBox;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatToggle;
+import pers.roinflam.battlecorrection.client.editor.widget.PopupList;
+import pers.roinflam.battlecorrection.client.editor.widget.ScrollList;
+import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.editor.EditorPage;
+import pers.roinflam.battlecorrection.editor.ItemQuality;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.IntConsumer;
 
 /**
@@ -29,6 +36,8 @@ import java.util.function.IntConsumer;
  *   物品已有真实附魔时光效本来就有，开关锁定</li>
  *   <li>HideFlags：8 个位，每位隐藏一类提示信息</li>
  *   <li>CustomModelData、Damage、RepairCost、Count：数字</li>
+ *   <li>最低品质：提示框模组可以读的 Epic / Legendary / Myth / Genesis 标记，见 {@link ItemQuality}，
+ *   配置 itemEditorQualityTags 关掉就不显示这一行</li>
  * </ul>
  * 每个控件改完立刻写回物品副本；数字框输入非法内容时忽略，不报错。
  */
@@ -53,8 +62,30 @@ public class TagsPage extends EditorPageBase {
             {128, "upgrades"},
     };
 
+    /**
+     * 最低品质弹出列表里的一项
+     */
+    private static final class QualityRow implements ScrollList.Row {
+        final ItemQuality quality;
+
+        QualityRow(@Nonnull ItemQuality quality) {
+            this.quality = quality;
+        }
+
+        @Nonnull
+        @Override
+        public Component label() {
+            return quality.displayName();
+        }
+    }
+
     @Nullable
     private FlatToggle glintToggle;
+    @Nullable
+    private FlatButton qualityButton;
+    private final PopupList<QualityRow> qualityPopup = new PopupList<>();
+    private int qualityRowY = -1;
+    private int hideLabelY;
     private int numbersLabelY;
 
     /**
@@ -94,10 +125,24 @@ public class TagsPage extends EditorPageBase {
         } else {
             glintToggle.tooltip(Component.translatable("gui.battlecorrection.editor.tags.glint.tooltip"));
         }
-        cursorY += FlatToggle.HEIGHT + ROW_GAP + 8;
+        cursorY += FlatToggle.HEIGHT + ROW_GAP + 4;
+
+        // 最低品质：一行标签 + 弹出选择按钮（配置关了就不显示）
+        if (ConfigAttribute.ITEM_EDITOR_QUALITY_TAGS.get()) {
+            qualityRowY = cursorY;
+            int labelWidth = font.width(Component.translatable("gui.battlecorrection.editor.tags.quality")) + 6;
+            qualityButton = add(new FlatButton(x + labelWidth, cursorY, Math.min(120, width - labelWidth), NUMBER_BOX_HEIGHT,
+                    ItemQuality.read(working).displayName(), this::openQualityPopup)
+                    .tooltip(Component.translatable("gui.battlecorrection.editor.tags.quality.tooltip")));
+            cursorY += NUMBER_BOX_HEIGHT + 6;
+        } else {
+            qualityRowY = -1;
+            qualityButton = null;
+        }
 
         // 隐藏信息：标签在 render 里画，下面两列开关
-        cursorY += 11;
+        hideLabelY = cursorY + 4;
+        cursorY += 15;
         int hideFlags = tag != null ? tag.getInt("HideFlags") : 0;
         for (int i = 0; i < HIDE_FLAGS.length; i++) {
             int mask = (Integer) HIDE_FLAGS[i][0];
@@ -114,7 +159,7 @@ public class TagsPage extends EditorPageBase {
         // 数字：两列两行
         numbersLabelY = cursorY;
         cursorY += 11;
-        int numberRowHeight = NUMBER_BOX_HEIGHT + 12;
+        int numberRowHeight = NUMBER_BOX_HEIGHT + 16;
 
         addNumberBox(x, cursorY, columnWidth, "custom_model_data",
                 tag != null && tag.contains("CustomModelData", Tag.TAG_ANY_NUMERIC) ? tag.getInt("CustomModelData") : null,
@@ -139,7 +184,9 @@ public class TagsPage extends EditorPageBase {
         int columnWidth = (width - COLUMN_GAP) / 2;
         int rightX = x + columnWidth + COLUMN_GAP;
 
-        int hideLabelY = y + FlatToggle.HEIGHT + ROW_GAP + 8;
+        if (qualityRowY >= 0) {
+            label(g, Component.translatable("gui.battlecorrection.editor.tags.quality"), x, qualityRowY + 3);
+        }
         label(g, Component.translatable("gui.battlecorrection.editor.tags.hide"), x, hideLabelY);
         EditorTheme.divider(g, x, hideLabelY - 4, width);
 
@@ -148,7 +195,7 @@ public class TagsPage extends EditorPageBase {
 
         // 数字框的标签
         int firstRowLabelY = numbersLabelY + 11;
-        int secondRowLabelY = firstRowLabelY + NUMBER_BOX_HEIGHT + 12;
+        int secondRowLabelY = firstRowLabelY + NUMBER_BOX_HEIGHT + 16;
         label(g, Component.translatable("gui.battlecorrection.editor.tags.custom_model_data"), x, firstRowLabelY);
         ItemStack working = session.working();
         Component damageLabel = working.isDamageableItem()
@@ -157,6 +204,48 @@ public class TagsPage extends EditorPageBase {
         label(g, damageLabel, rightX, firstRowLabelY);
         label(g, Component.translatable("gui.battlecorrection.editor.tags.repair_cost"), x, secondRowLabelY);
         label(g, Component.translatable("gui.battlecorrection.editor.tags.count"), rightX, secondRowLabelY);
+    }
+
+    @Override
+    public void renderForeground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        qualityPopup.render(g, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return qualityPopup.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        return qualityPopup.mouseScrolled(mouseX, mouseY, delta);
+    }
+
+    @Override
+    public boolean onEscape() {
+        if (qualityPopup.isOpen()) {
+            qualityPopup.close();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 弹出最低品质列表
+     */
+    private void openQualityPopup() {
+        if (qualityButton == null) {
+            return;
+        }
+        List<QualityRow> rows = new ArrayList<>();
+        for (ItemQuality quality : ItemQuality.values()) {
+            rows.add(new QualityRow(quality));
+        }
+        qualityPopup.open(qualityButton.getX(), qualityButton.getY() + qualityButton.getHeight() + 2,
+                Math.max(qualityButton.getWidth(), 140), y + height, rows, row -> {
+            ItemQuality.apply(session.working(), row.quality);
+            qualityButton.setMessage(row.quality.displayName());
+        });
     }
 
     /**
@@ -175,7 +264,7 @@ public class TagsPage extends EditorPageBase {
     private FlatEditBox addNumberBox(int boxX, int labelY, int columnWidth, @Nonnull String key,
                                      @Nullable Integer initial, @Nonnull IntConsumer onChange, boolean active) {
         int boxWidth = Math.min(NUMBER_BOX_WIDTH, columnWidth - 2);
-        FlatEditBox box = add(new FlatEditBox(font, boxX + 1, labelY + 11, boxWidth, NUMBER_BOX_HEIGHT,
+        FlatEditBox box = add(new FlatEditBox(font, boxX + 1, labelY + 12, boxWidth, NUMBER_BOX_HEIGHT,
                 Component.translatable("gui.battlecorrection.editor.tags." + key + ".hint"), false));
         box.setMaxLength(10);
         box.setFilter(text -> text.isEmpty() || text.equals("-") || text.matches("-?\\d+"));

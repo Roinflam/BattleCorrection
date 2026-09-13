@@ -7,7 +7,10 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
+import pers.roinflam.battlecorrection.network.packet.ApplyNbtEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.OpenItemEditorS2CPacket;
+import pers.roinflam.battlecorrection.network.packet.OpenNbtEditorS2CPacket;
+import pers.roinflam.battlecorrection.network.packet.RequestNbtEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.SetCurioSlotsC2SPacket;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -27,7 +30,7 @@ public final class ModNetwork {
     /**
      * 协议版本，包格式变化时递增
      */
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     /**
      * 通道实例
@@ -67,6 +70,24 @@ public final class ModNetwork {
                 .encoder(SetCurioSlotsC2SPacket::encode)
                 .decoder(SetCurioSlotsC2SPacket::decode)
                 .consumerMainThread(SetCurioSlotsC2SPacket::handle)
+                .add();
+
+        CHANNEL.messageBuilder(RequestNbtEditC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(RequestNbtEditC2SPacket::encode)
+                .decoder(RequestNbtEditC2SPacket::decode)
+                .consumerMainThread(RequestNbtEditC2SPacket::handle)
+                .add();
+
+        CHANNEL.messageBuilder(OpenNbtEditorS2CPacket.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(OpenNbtEditorS2CPacket::encode)
+                .decoder(OpenNbtEditorS2CPacket::decode)
+                .consumerMainThread(OpenNbtEditorS2CPacket::handle)
+                .add();
+
+        CHANNEL.messageBuilder(ApplyNbtEditC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ApplyNbtEditC2SPacket::encode)
+                .decoder(ApplyNbtEditC2SPacket::decode)
+                .consumerMainThread(ApplyNbtEditC2SPacket::handle)
                 .add();
 
         LogUtil.info("网络通道注册完成，共 " + nextId + " 种网络包");

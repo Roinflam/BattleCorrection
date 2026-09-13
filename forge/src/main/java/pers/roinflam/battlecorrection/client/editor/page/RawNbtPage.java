@@ -6,18 +6,14 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.SnbtPrinterTagVisitor;
-import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
-import net.minecraft.world.item.ItemStack;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorScreen;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
-import pers.roinflam.battlecorrection.client.editor.widget.FlatMultiLineEditBox;
+import pers.roinflam.battlecorrection.client.editor.widget.FlatTextArea;
 import pers.roinflam.battlecorrection.editor.EditorPage;
-import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,9 +36,6 @@ public class RawNbtPage extends EditorPageBase {
     private static final int BUTTON_WIDTH = 64;
     private static final int GAP = 4;
     private static final String KEY_ID = "id";
-    private static final String KEY_COUNT = "Count";
-    private static final String KEY_TAG = "tag";
-    private static final String KEY_FORGE_CAPS = "ForgeCaps";
 
     /**
      * 状态
@@ -55,7 +48,7 @@ public class RawNbtPage extends EditorPageBase {
     }
 
     @Nullable
-    private FlatMultiLineEditBox box;
+    private FlatTextArea box;
     private Status status = Status.CLEAN;
     private String errorText = "";
 
@@ -91,7 +84,7 @@ public class RawNbtPage extends EditorPageBase {
     @Override
     protected void build() {
         int boxHeight = height - BUTTON_HEIGHT - GAP - 2;
-        box = add(new FlatMultiLineEditBox(font, x, y, width, boxHeight,
+        box = add(new FlatTextArea(font, x, y, width, boxHeight,
                 Component.translatable("gui.battlecorrection.editor.raw.empty"),
                 Component.translatable("gui.battlecorrection.editor.tab.raw")));
         // 不设字数上限：原版设了上限就会在框底下画一个"当前/上限"的计数器，正好压在状态文字上
@@ -100,7 +93,7 @@ public class RawNbtPage extends EditorPageBase {
         if (pendingText != null) {
             text = pendingText;
         } else {
-            text = prettyPrint(session.working());
+            text = prettyPrint(session.loadRoot());
             appliedText = text;
             status = Status.CLEAN;
         }
@@ -147,7 +140,7 @@ public class RawNbtPage extends EditorPageBase {
                 color = EditorTheme.DANGER;
                 break;
             default:
-                text = session.hasForgeCaps()
+                text = session.isItem() && session.hasForgeCaps()
                         ? Component.translatable("gui.battlecorrection.editor.raw.status.clean_caps")
                         : Component.translatable("gui.battlecorrection.editor.raw.status.clean");
                 color = EditorTheme.TEXT_DIM;
@@ -215,20 +208,16 @@ public class RawNbtPage extends EditorPageBase {
             return false;
         }
 
-        // id 必须还是这件物品；编辑器不允许在这里换物品
-        String id = parsed.getString(KEY_ID);
-        if (!session.itemId().toString().equals(id)) {
-            status = Status.ERROR;
-            errorText = I18n.get("gui.battlecorrection.editor.raw.status.id_changed", session.itemId());
-            return false;
+        if (session.isItem()) {
+            // id 必须还是这件物品；编辑器不允许在这里换物品
+            String id = parsed.getString(KEY_ID);
+            if (!session.itemId().toString().equals(id)) {
+                status = Status.ERROR;
+                errorText = I18n.get("gui.battlecorrection.editor.raw.status.id_changed", session.itemId());
+                return false;
+            }
         }
-
-        ItemStack working = session.working();
-        if (parsed.contains(KEY_COUNT, Tag.TAG_ANY_NUMERIC)) {
-            working.setCount(Mth.clamp(parsed.getInt(KEY_COUNT),
-                    ApplyItemEditC2SPacket.MIN_COUNT, ApplyItemEditC2SPacket.MAX_COUNT));
-        }
-        session.setTag(parsed.contains(KEY_TAG, Tag.TAG_COMPOUND) ? parsed.getCompound(KEY_TAG).copy() : null);
+        session.pushRoot(parsed);
 
         appliedText = text;
         pendingText = null;
@@ -243,7 +232,7 @@ public class RawNbtPage extends EditorPageBase {
         if (box == null) {
             return;
         }
-        String text = prettyPrint(session.working());
+        String text = prettyPrint(session.loadRoot());
         binding = true;
         box.setValue(text);
         binding = false;
@@ -262,17 +251,21 @@ public class RawNbtPage extends EditorPageBase {
         Minecraft.getInstance().keyboardHandler.setClipboard(box.getValue());
     }
 
+    @Override
+    public void onExternalChange() {
+        // 撤销/重做后物品副本变了，没应用的文本作废
+        pendingText = null;
+        status = Status.CLEAN;
+    }
+
     /**
-     * 把整件物品的存盘 NBT 格式化成带缩进换行的 SNBT
+     * 把根 NBT 格式化成带缩进换行的 SNBT
      *
-     * @param stack 物品
+     * @param root 根（物品是 {id, Count, tag}，实体/方块实体是整份）
      * @return 文本
      */
     @Nonnull
-    private static String prettyPrint(@Nonnull ItemStack stack) {
-        CompoundTag full = stack.save(new CompoundTag());
-        // 运行时能力数据，编辑器改不了，显示出来只会误导
-        full.remove(KEY_FORGE_CAPS);
-        return new SnbtPrinterTagVisitor().visit(full);
+    private static String prettyPrint(@Nonnull CompoundTag root) {
+        return new SnbtPrinterTagVisitor().visit(root);
     }
 }

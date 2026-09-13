@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.registries.ForgeRegistries;
 import pers.roinflam.battlecorrection.client.editor.CurioSlotsClient;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
@@ -44,7 +45,7 @@ import java.util.UUID;
  * <p>
  * 左边是物品上已有的属性修饰符（原版 AttributeModifiers 和本模组饰品栏专属的 BattleCorrectionCurioModifiers 合在一起显示），
  * 点一行选中后在下面改数值、运算方式、生效位置或删除；右边是全部已注册的属性，带搜索，
- * 按"本模组 → 原版 → Forge → 其他模组"排序，鼠标悬停显示说明（原版和本模组的有写，其他模组的没有）。
+ * 按"原版 → 本模组 → 其他模组（按模组名）"排序，鼠标悬停显示说明（原版、本模组、Forge 的有写，其他模组的没有）。
  * <p>
  * 生效位置决定写到哪个列表：
  * <ul>
@@ -54,6 +55,7 @@ import java.util.UUID;
  * 读不出来的条目（属性所在模组被删了、UUID 坏了）原样保留，显示为红字，只能删。
  * 运算方式和原版一样：加法直接加；乘以基础 = 基础值 ×(1 + 所有此类之和)；乘以总量 = 前面算完的结果 ×(1 + 值)。
  * <p>
+ * 数值框里直接输 {@code 20%} 会按百分比理解（0.2）并自动切成"乘以基础"；乘法类的数值在框里也按百分比显示。
  * 运算和位置都是点按钮弹出列表直接选。位置选了饰品栏时，会顺手把物品标记成"可放入该饰品栏"（不标的话戴不上，属性也就没用），
  * 状态栏会提示；不想要标记去"饰品栏"页取消。
  */
@@ -168,6 +170,7 @@ public class AttributesPage extends EditorPageBase {
         final ResourceLocation id;
         final Component name;
         final int group;
+        final String modName;
         final String searchText;
 
         Choice(@Nonnull Attribute attribute, @Nonnull ResourceLocation id) {
@@ -175,19 +178,21 @@ public class AttributesPage extends EditorPageBase {
             this.id = id;
             this.name = Component.translatable(attribute.getDescriptionId());
             this.group = groupOf(id.getNamespace());
-            this.searchText = (name.getString() + " " + id).toLowerCase(Locale.ROOT);
+            this.modName = modDisplayName(id.getNamespace());
+            this.searchText = (name.getString() + " " + id + " " + modName).toLowerCase(Locale.ROOT);
         }
 
+        /**
+         * 排序分组：原版 0 → 本模组 1 → 其他模组 2（其他模组之间按模组名）
+         */
         static int groupOf(@Nonnull String namespace) {
             switch (namespace) {
-                case Reference.MOD_ID:
-                    return 0;
                 case "minecraft":
+                    return 0;
+                case Reference.MOD_ID:
                     return 1;
-                case "forge":
-                    return 2;
                 default:
-                    return 3;
+                    return 2;
             }
         }
 
@@ -202,15 +207,26 @@ public class AttributesPage extends EditorPageBase {
         public Component secondary() {
             switch (group) {
                 case 0:
-                    return Component.translatable("gui.battlecorrection.editor.attr.group.mod");
-                case 1:
                     return Component.translatable("gui.battlecorrection.editor.attr.group.vanilla");
-                case 2:
-                    return Component.translatable("gui.battlecorrection.editor.attr.group.forge");
+                case 1:
+                    return Component.translatable("gui.battlecorrection.editor.attr.group.mod");
                 default:
-                    return Component.literal(id.getNamespace());
+                    return Component.literal(modName);
             }
         }
+    }
+
+    /**
+     * 模组显示名（minecraft → Minecraft；找不到就用命名空间本身）
+     */
+    @Nonnull
+    private static String modDisplayName(@Nonnull String namespace) {
+        if ("minecraft".equals(namespace)) {
+            return "Minecraft";
+        }
+        return ModList.get().getModContainerById(namespace)
+                .map(container -> container.getModInfo().getDisplayName())
+                .orElse(namespace);
     }
 
     /**
@@ -332,7 +348,7 @@ public class AttributesPage extends EditorPageBase {
         int cursorX = x + labelWidth;
         amountBox = add(new FlatEditBox(font, cursorX + 1, row1, 56, BOX_HEIGHT, Component.literal("0"), false));
         amountBox.setMaxLength(16);
-        amountBox.setFilter(text -> text.isEmpty() || text.matches("-?\\d*(\\.\\d*)?"));
+        amountBox.setFilter(text -> text.isEmpty() || text.matches("-?\\d*(\\.\\d*)?%?"));
         amountBox.setResponder(this::onAmountChanged);
         cursorX += 56 + 10;
 
@@ -417,6 +433,8 @@ public class AttributesPage extends EditorPageBase {
         List<FormattedCharSequence> lines = new ArrayList<>();
         lines.addAll(font.split(Component.translatable(attribute.getDescriptionId()).withStyle(ChatFormatting.WHITE), TOOLTIP_WIDTH));
         lines.addAll(font.split(Component.literal(id.toString()).withStyle(ChatFormatting.DARK_GRAY), TOOLTIP_WIDTH));
+        lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.attr.from", modDisplayName(id.getNamespace()))
+                .withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
         if (entry != null && entry.editable()) {
             lines.addAll(font.split(Component.literal(formatAmount(entry.amount, entry.operation) + "  ")
                     .append(entry.location.name()).withStyle(ChatFormatting.AQUA), TOOLTIP_WIDTH));
@@ -459,9 +477,26 @@ public class AttributesPage extends EditorPageBase {
         String defaultValue = NUMBER_FORMAT.format(attribute.getDefaultValue());
         if (attribute instanceof RangedAttribute ranged) {
             return Component.translatable("gui.battlecorrection.editor.attr.range", defaultValue,
-                    NUMBER_FORMAT.format(ranged.getMinValue()), NUMBER_FORMAT.format(ranged.getMaxValue()));
+                    formatBound(ranged.getMinValue()), formatBound(ranged.getMaxValue()));
         }
         return Component.translatable("gui.battlecorrection.editor.attr.default", defaultValue);
+    }
+
+    /**
+     * 范围端点：Double.MAX_VALUE 这种"没有上限"的值显示成"无上限"，不然会打印三百位数字
+     *
+     * @param value 端点
+     * @return 文本
+     */
+    @Nonnull
+    private static String formatBound(double value) {
+        if (value >= 1.0E15D) {
+            return I18n.get("gui.battlecorrection.editor.attr.range.unbounded_high");
+        }
+        if (value <= -1.0E15D) {
+            return I18n.get("gui.battlecorrection.editor.attr.range.unbounded_low");
+        }
+        return NUMBER_FORMAT.format(value);
     }
 
     /**
@@ -511,7 +546,7 @@ public class AttributesPage extends EditorPageBase {
     }
 
     /**
-     * 建立全部属性列表：本模组 → 原版 → Forge → 其他，同组内按显示名排序
+     * 建立全部属性列表：原版 → 本模组 → 其他模组按模组名，同组内按显示名排序
      */
     private void buildChoices() {
         allChoices.clear();
@@ -522,6 +557,7 @@ public class AttributesPage extends EditorPageBase {
             }
         }
         allChoices.sort(Comparator.comparingInt((Choice choice) -> choice.group)
+                .thenComparing(choice -> choice.modName, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(choice -> choice.name.getString(), String.CASE_INSENSITIVE_ORDER));
     }
 
@@ -574,7 +610,14 @@ public class AttributesPage extends EditorPageBase {
         }
         boolean editable = entry != null && entry.editable();
         binding = true;
-        amountBox.setValue(editable ? NUMBER_FORMAT.format(entry.amount) : "");
+        // 乘法类的数值按百分比显示（0.2 → 20%），加法按原数
+        String amountText = "";
+        if (editable) {
+            amountText = entry.operation == AttributeModifier.Operation.ADDITION
+                    ? NUMBER_FORMAT.format(entry.amount)
+                    : NUMBER_FORMAT.format(entry.amount * 100) + "%";
+        }
+        amountBox.setValue(amountText);
         binding = false;
         amountBox.active = editable;
         operationButton.active = editable;
@@ -627,15 +670,29 @@ public class AttributesPage extends EditorPageBase {
         if (entry == null || !entry.editable()) {
             return;
         }
+        boolean percent = text.endsWith("%");
         double value;
         try {
-            value = Double.parseDouble(text);
+            value = Double.parseDouble(percent ? text.substring(0, text.length() - 1) : text);
         } catch (NumberFormatException ignored) {
-            // "-"、"1." 这种输了一半的内容先不动
+            // "-"、"1."、"%" 这种输了一半的内容先不动
             return;
         }
         if (Double.isNaN(value) || Double.isInfinite(value)) {
             return;
+        }
+        if (percent) {
+            // 带 % 就按百分比：20% = 0.2；还是加法的话顺手切成"乘以基础"
+            value /= 100.0D;
+            if (entry.operation == AttributeModifier.Operation.ADDITION) {
+                entry.operation = AttributeModifier.Operation.MULTIPLY_BASE;
+                if (operationButton != null) {
+                    operationButton.setMessage(operationName(entry.operation));
+                }
+            }
+        } else if (entry.operation != AttributeModifier.Operation.ADDITION) {
+            // 乘法类的框里显示的是百分比，用户去掉 % 输的裸数也按百分比理解
+            value /= 100.0D;
         }
         entry.amount = value;
         writeToItem();
@@ -695,6 +752,8 @@ public class AttributesPage extends EditorPageBase {
             operationButton.setMessage(operationName(operation));
         }
         writeToItem();
+        // 数值框的显示方式随运算变（加法原数，乘法百分比）
+        setFormEnabled(entry);
     }
 
     /**

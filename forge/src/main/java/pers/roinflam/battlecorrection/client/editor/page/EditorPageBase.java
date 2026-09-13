@@ -192,6 +192,12 @@ public abstract class EditorPageBase {
     }
 
     /**
+     * 撤销/重做之后、重建页面之前调用：页面把自己没写回物品的临时状态（例如原始 NBT 页没应用的文本）丢掉
+     */
+    public void onExternalChange() {
+    }
+
+    /**
      * 切走或保存前调用
      *
      * @return false = 有问题，拦住这次切换/保存

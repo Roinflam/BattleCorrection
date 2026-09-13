@@ -55,7 +55,12 @@ public enum EditorPage {
     /**
      * 玩家自己的饰品栏数量（测试用，和物品无关）
      */
-    PLAYER_SLOTS("player_slots");
+    PLAYER_SLOTS("player_slots"),
+
+    /**
+     * 物品模板：把整件物品的 NBT 存下来套用到别的物品上
+     */
+    TEMPLATES("templates");
 
     private final String id;
 

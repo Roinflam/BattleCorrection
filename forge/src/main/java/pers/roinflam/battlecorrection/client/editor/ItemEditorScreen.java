@@ -19,12 +19,16 @@ import pers.roinflam.battlecorrection.client.editor.page.NbtTreePage;
 import pers.roinflam.battlecorrection.client.editor.page.PlayerSlotsPage;
 import pers.roinflam.battlecorrection.client.editor.page.RawNbtPage;
 import pers.roinflam.battlecorrection.client.editor.page.TagsPage;
+import pers.roinflam.battlecorrection.client.editor.page.TemplatesPage;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
 import pers.roinflam.battlecorrection.client.editor.widget.TabButton;
 import pers.roinflam.battlecorrection.compat.CuriosIntegration;
 import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.network.ModNetwork;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
+import pers.roinflam.battlecorrection.network.packet.ApplyNbtEditC2SPacket;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.ChatFormatting;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -67,10 +71,19 @@ public class ItemEditorScreen extends Screen {
     private static final int PAD = 6;
     private static final int FOOTER_BUTTON_WIDTH = 64;
     private static final int FOOTER_BUTTON_HEIGHT = 16;
+    /**
+     * 面板四角的准线角饰占的宽度，标题栏和底栏的内容从它里面让开
+     */
+    private static final int CORNER_CLEARANCE = 22;
 
     private final EditorSession session;
     @Nullable
     private final Screen parent;
+    private long tickCounter;
+    /**
+     * 已确认丢弃修改，关闭时不再弹确认
+     */
+    private boolean discardConfirmed;
     private final List<EditorPageBase> pages = new ArrayList<>();
     private final List<TabButton> tabs = new ArrayList<>();
     private final List<AbstractWidget> pageWidgets = new ArrayList<>();
@@ -97,19 +110,26 @@ public class ItemEditorScreen extends Screen {
         this.session = session;
         this.parent = parent;
 
-        pages.add(new NamePage(this, session));
-        pages.add(new LorePage(this, session));
-        pages.add(new TagsPage(this, session));
-        pages.add(new EnchantmentsPage(this, session));
-        pages.add(new AttributesPage(this, session));
-        // 饰品栏相关的两页只在装了 Curios 时才有，没装连标签都不显示
-        if (CuriosIntegration.isCuriosLoaded()) {
-            pages.add(new CuriosPage(this, session));
-        }
-        pages.add(new NbtTreePage(this, session));
-        pages.add(new RawNbtPage(this, session));
-        if (CuriosIntegration.isCuriosLoaded()) {
-            pages.add(new PlayerSlotsPage(this, session));
+        if (session.isItem()) {
+            pages.add(new NamePage(this, session));
+            pages.add(new LorePage(this, session));
+            pages.add(new TagsPage(this, session));
+            pages.add(new EnchantmentsPage(this, session));
+            pages.add(new AttributesPage(this, session));
+            // 饰品栏相关的两页只在装了 Curios 时才有，没装连标签都不显示
+            if (CuriosIntegration.isCuriosLoaded()) {
+                pages.add(new CuriosPage(this, session));
+            }
+            pages.add(new NbtTreePage(this, session));
+            pages.add(new RawNbtPage(this, session));
+            pages.add(new TemplatesPage(this, session));
+            if (CuriosIntegration.isCuriosLoaded()) {
+                pages.add(new PlayerSlotsPage(this, session));
+            }
+        } else {
+            // 实体 / 方块实体只有 NBT 可编辑
+            pages.add(new NbtTreePage(this, session));
+            pages.add(new RawNbtPage(this, session));
         }
 
         EditorPageBase start = findPage(initial);
@@ -144,10 +164,16 @@ public class ItemEditorScreen extends Screen {
 
         // 底栏按钮
         int buttonY = panelY + panelHeight - FOOTER_HEIGHT + (FOOTER_HEIGHT - FOOTER_BUTTON_HEIGHT) / 2;
-        int saveX = panelX + panelWidth - PAD - FOOTER_BUTTON_WIDTH;
+        int saveX = panelX + panelWidth - CORNER_CLEARANCE - FOOTER_BUTTON_WIDTH;
         int cancelX = saveX - 4 - FOOTER_BUTTON_WIDTH;
         addRenderableWidget(new FlatButton(cancelX, buttonY, FOOTER_BUTTON_WIDTH, FOOTER_BUTTON_HEIGHT,
                 Component.translatable("gui.battlecorrection.editor.cancel"), this::onClose));
+        if (session.isItem()) {
+            int copyWidth = Math.min(90, cancelX - 8 - (panelX + CORNER_CLEARANCE));
+            addRenderableWidget(new FlatButton(panelX + CORNER_CLEARANCE, buttonY, copyWidth, FOOTER_BUTTON_HEIGHT,
+                    Component.translatable("gui.battlecorrection.editor.copy_command"), this::copyGiveCommand)
+                    .tooltip(Component.translatable("gui.battlecorrection.editor.copy_command.tooltip")));
+        }
         addRenderableWidget(new FlatButton(saveX, buttonY, FOOTER_BUTTON_WIDTH, FOOTER_BUTTON_HEIGHT,
                 Component.translatable("gui.battlecorrection.editor.save"), this::save)
                 .style(FlatButton.Style.PRIMARY)
@@ -165,7 +191,7 @@ public class ItemEditorScreen extends Screen {
         panelX = (width - panelWidth) / 2;
         panelY = (height - panelHeight) / 2;
 
-        previewVisible = panelWidth >= PREVIEW_MIN_PANEL_WIDTH && current.wantsPreview();
+        previewVisible = session.isItem() && panelWidth >= PREVIEW_MIN_PANEL_WIDTH && current.wantsPreview();
         int previewWidth = previewVisible ? PREVIEW_WIDTH : 0;
 
         contentX = panelX + SIDEBAR_WIDTH + PAD;
@@ -252,22 +278,32 @@ public class ItemEditorScreen extends Screen {
         EditorTheme.headingLine(g, panelX + 4, bodyTop, panelWidth - 8);
         EditorTheme.rect(g, panelX + 4, bodyBottom, panelWidth - 8, 1, EditorTheme.DIVIDER);
 
-        // 标题栏：切角小槽里放图标 + 当前名字 + 界面标题
-        ItemStack working = session.working();
-        int iconX = panelX + PAD + 2;
+        // 标题栏：切角小槽里放图标 + 当前名字 + 界面标题（左右各让出角饰的位置）
+        int iconX = panelX + CORNER_CLEARANCE + 2;
         int iconY = panelY + (TITLE_HEIGHT - 16) / 2;
         EditorTheme.chamfer(g, iconX - 2, iconY - 2, 20, 20, 2, EditorTheme.ACCENT_MID);
         EditorTheme.chamfer(g, iconX - 1, iconY - 1, 18, 18, 1, EditorTheme.WELL);
-        g.renderItem(working, iconX, iconY);
-        g.renderItemDecorations(font, working, iconX, iconY);
+        if (session.isItem()) {
+            ItemStack working = session.working();
+            g.renderItem(working, iconX, iconY);
+            g.renderItemDecorations(font, working, iconX, iconY);
+        } else {
+            // 实体 / 方块实体没有图标，槽里画一个字母
+            String glyph = session.mode() == EditorSession.Mode.ENTITY ? "E" : "B";
+            g.drawString(font, glyph, iconX + 5, iconY + 4, EditorTheme.ACCENT_HI, false);
+        }
+        Component subjectTitle = session.subjectName();
+        Component modeTitle = session.isItem() ? title
+                : Component.translatable(session.mode() == EditorSession.Mode.ENTITY
+                ? "gui.battlecorrection.editor.title.entity" : "gui.battlecorrection.editor.title.block_entity");
         int nameX = iconX + 24;
-        int nameMaxWidth = panelWidth - (nameX - panelX) - font.width(title) - 3 * PAD;
+        int nameMaxWidth = panelWidth - (nameX - panelX) - font.width(modeTitle) - CORNER_CLEARANCE - 3 * PAD;
         g.enableScissor(nameX, panelY, nameX + Math.max(0, nameMaxWidth), panelY + TITLE_HEIGHT);
-        g.drawString(font, working.getHoverName(), nameX, panelY + (TITLE_HEIGHT - 8) / 2, EditorTheme.ACCENT_HI, false);
+        g.drawString(font, subjectTitle, nameX, panelY + (TITLE_HEIGHT - 8) / 2, EditorTheme.ACCENT_HI, false);
         g.disableScissor();
         // 右侧界面标题前面一颗呼吸的指示点
-        int titleX = panelX + panelWidth - PAD - 4 - font.width(title);
-        g.drawString(font, title, titleX, panelY + (TITLE_HEIGHT - 8) / 2, EditorTheme.TEXT_MUTED, false);
+        int titleX = panelX + panelWidth - CORNER_CLEARANCE - font.width(modeTitle);
+        g.drawString(font, modeTitle, titleX, panelY + (TITLE_HEIGHT - 8) / 2, EditorTheme.TEXT_MUTED, false);
         int dot = EditorTheme.lerp(EditorTheme.ACCENT_MID, EditorTheme.ACCENT_HI, EditorTheme.pulse());
         EditorTheme.rect(g, titleX - 7, panelY + TITLE_HEIGHT / 2 - 1, 3, 3, dot);
 
@@ -279,8 +315,8 @@ public class ItemEditorScreen extends Screen {
         renderPreview(g);
 
         // 悬停标题图标：显示完整提示框（预览栏没显示时靠这个看效果）
-        if (mouseX >= iconX && mouseX < iconX + 16 && mouseY >= iconY && mouseY < iconY + 16) {
-            g.renderTooltip(font, working, mouseX, mouseY);
+        if (session.isItem() && mouseX >= iconX && mouseX < iconX + 16 && mouseY >= iconY && mouseY < iconY + 16) {
+            g.renderTooltip(font, session.working(), mouseX, mouseY);
         }
     }
 
@@ -364,6 +400,14 @@ public class ItemEditorScreen extends Screen {
             save();
             return true;
         }
+        if (hasControlDown() && keyCode == GLFW.GLFW_KEY_Z && !hasShiftDown()) {
+            applyHistory(session.undo());
+            return true;
+        }
+        if (hasControlDown() && (keyCode == GLFW.GLFW_KEY_Y || (keyCode == GLFW.GLFW_KEY_Z && hasShiftDown()))) {
+            applyHistory(session.redo());
+            return true;
+        }
         return current.keyPressed(keyCode, scanCode, modifiers);
     }
 
@@ -378,7 +422,21 @@ public class ItemEditorScreen extends Screen {
 
     @Override
     public void tick() {
+        session.trackChanges(++tickCounter);
         current.tick();
+    }
+
+    /**
+     * 撤销/重做之后：通知当前页丢掉自己的临时状态并重建
+     *
+     * @param changed 撤销/重做有没有真的改动
+     */
+    private void applyHistory(boolean changed) {
+        if (!changed) {
+            return;
+        }
+        current.onExternalChange();
+        mountPage(current);
     }
 
     @Override
@@ -393,9 +451,44 @@ public class ItemEditorScreen extends Screen {
 
     @Override
     public void onClose() {
+        if (minecraft == null) {
+            return;
+        }
+        if (!discardConfirmed && session.isModified()) {
+            minecraft.setScreen(new ConfirmCloseScreen(this));
+            return;
+        }
+        minecraft.setScreen(parent);
+    }
+
+    /**
+     * 不管有没有改动直接关（保存成功后、或确认丢弃后用）
+     */
+    public void closeDiscard() {
+        discardConfirmed = true;
         if (minecraft != null) {
             minecraft.setScreen(parent);
         }
+    }
+
+    /**
+     * 把当前物品导出成 /give 命令放进剪贴板
+     */
+    private void copyGiveCommand() {
+        if (!session.isItem() || minecraft == null || minecraft.player == null) {
+            return;
+        }
+        session.cleanupEmpty();
+        ItemStack working = session.working();
+        CompoundTag tag = working.getTag();
+        String command = "/give @p " + session.itemId()
+                + (tag == null || tag.isEmpty() ? "" : tag.toString())
+                + " " + working.getCount();
+        minecraft.keyboardHandler.setClipboard(command);
+        String key = command.length() > 256
+                ? "message.battlecorrection.editor.command_copied_long"
+                : "message.battlecorrection.editor.command_copied";
+        minecraft.player.displayClientMessage(Component.translatable(key, command.length()).withStyle(ChatFormatting.GREEN), false);
     }
 
     /**
@@ -405,10 +498,14 @@ public class ItemEditorScreen extends Screen {
         if (!current.beforeLeave()) {
             return;
         }
-        session.cleanupEmpty();
-        ItemStack working = session.working();
-        ModNetwork.sendToServer(new ApplyItemEditC2SPacket(session.target(), session.itemId(),
-                working.getTag() == null ? null : working.getTag().copy(), working.getCount()));
-        onClose();
+        if (session.isItem()) {
+            session.cleanupEmpty();
+            ItemStack working = session.working();
+            ModNetwork.sendToServer(new ApplyItemEditC2SPacket(session.target(), session.itemId(),
+                    working.getTag() == null ? null : working.getTag().copy(), working.getCount()));
+        } else {
+            ModNetwork.sendToServer(new ApplyNbtEditC2SPacket(session.nbtTarget(), session.nbtWorking().copy()));
+        }
+        closeDiscard();
     }
 }
