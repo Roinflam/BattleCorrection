@@ -23,7 +23,7 @@ public class EditorHelpScreen extends Screen {
     /**
      * 行数
      */
-    private static final int ROWS = 13;
+    private static final int ROWS = 14;
 
     private static final int WIDTH = 380;
     private static final int KEY_WIDTH = 118;

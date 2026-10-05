@@ -23,6 +23,14 @@ public final class LegacyEdits {
             | LegacyComponents.formatBit(net.minecraft.ChatFormatting.STRIKETHROUGH);
 
     /**
+     * 五种格式的位全集：调用方传进来的格式掩码先和它取交集，多余的位不能混进"格式变没变"的比较里
+     */
+    private static final int ALL_FORMATS = LegacyComponents.formatBit(net.minecraft.ChatFormatting.BOLD)
+            | LegacyComponents.formatBit(net.minecraft.ChatFormatting.ITALIC)
+            | VISIBLE_ON_SPACE
+            | LegacyComponents.formatBit(net.minecraft.ChatFormatting.OBFUSCATED);
+
+    /**
      * 改写结果
      *
      * @param text  新的完整文本
@@ -81,11 +89,7 @@ public final class LegacyEdits {
     }
 
     /**
-     * 渐变：选区里每个看得见的字前面插一个 {@code &#RRGGBB}，颜色从 from 线性过渡到 to
-     * <p>
-     * 选区里原有的颜色码去掉（反正要被渐变盖掉），格式码（{@code &l} 等）会被颜色码清掉，所以逐字补在颜色码后面；
-     * 选区开始前已经打开的格式也算上。空白字符不占渐变的步数，沿用前一个字的颜色（带下划线 / 删除线时按位置取色）。
-     * 相邻的字颜色和格式都一样时不重复写代码。
+     * 两色渐变：颜色从 from 线性过渡到 to，等于两个色标的 {@link #gradient(String, int, int, int[], int)}
      *
      * @param text     编辑文本
      * @param selStart 选区起点
@@ -96,6 +100,47 @@ public final class LegacyEdits {
      */
     @Nonnull
     public static Result gradient(@Nonnull String text, int selStart, int selEnd, int from, int to) {
+        return gradient(text, selStart, selEnd, new int[]{from, to}, 0);
+    }
+
+    /**
+     * 多色标渐变，不额外加格式
+     *
+     * @param text     编辑文本
+     * @param selStart 选区起点
+     * @param selEnd   选区终点；和起点相同 = 没选，作用于全文
+     * @param stops    色标（至少一个），等距分布
+     * @return 改写结果
+     */
+    @Nonnull
+    public static Result gradient(@Nonnull String text, int selStart, int selEnd, @Nonnull int[] stops) {
+        return gradient(text, selStart, selEnd, stops, 0);
+    }
+
+    /**
+     * 渐变：选区里每个看得见的字前面插一个 {@code &#RRGGBB}，颜色沿着等距分布的色标分段线性过渡
+     * <p>
+     * 选区里原有的颜色码去掉（反正要被渐变盖掉），格式码（{@code &l} 等）会被颜色码清掉，所以逐字补在颜色码后面；
+     * 选区开始前已经打开的格式也算上。空白字符不占渐变的步数，沿用前一个字的颜色（带下划线 / 删除线时按位置取色）。
+     * 相邻的字颜色和格式都一样时不重复写代码。
+     * <p>
+     * 第一个字是第一个色标的颜色、最后一个字是最后一个色标的颜色；只有一个色标时整段是同一个颜色（调色盘"给选中的字换颜色"就是这么用的）。
+     * formats 是额外要打开的格式（调色盘的 B / I / U / S 开关），和选区里原有的格式一起逐字补在颜色码后面；
+     * 选区后面的文字照旧恢复原来的样式，不会被这些格式波及。
+     *
+     * @param text     编辑文本
+     * @param selStart 选区起点
+     * @param selEnd   选区终点；和起点相同 = 没选，作用于全文
+     * @param stops    色标（至少一个），等距分布
+     * @param formats  额外打开的格式，位掩码同 {@link LegacyComponents#formatBit}；0 = 不加
+     * @return 改写结果
+     */
+    @Nonnull
+    public static Result gradient(@Nonnull String text, int selStart, int selEnd, @Nonnull int[] stops, int formats) {
+        if (stops.length == 0) {
+            throw new IllegalArgumentException("gradient needs at least one colour stop");
+        }
+        formats &= ALL_FORMATS;
         List<LegacyText.Token> tokens = LegacyText.tokenize(text);
         int[] range = snap(tokens, selStart, selEnd);
         int first = range[0];
@@ -107,7 +152,7 @@ public final class LegacyEdits {
             emit(writer, tokens.get(i), text);
             state.apply(tokens.get(i), text);
         }
-        int active = state.added;
+        int active = state.added | formats;
 
         int steps = 0;
         for (int i = first; i < last; i++) {
@@ -125,7 +170,7 @@ public final class LegacyEdits {
             LegacyText.Token token = tokens.get(i);
             state.apply(token, text);
             switch (token.type()) {
-                case COLOR, HEX, RESET -> active = 0;
+                case COLOR, HEX, RESET -> active = formats;
                 case FORMAT -> active |= LegacyComponents.formatBit(token.format());
                 case CUSTOM, STRAY -> writer.raw(text.substring(token.start(), token.end()));
                 case TEXT, ESCAPE -> {
@@ -140,9 +185,9 @@ public final class LegacyEdits {
                         // 空白不占渐变的步数：沿用前一个字的颜色（没有就用起点色），只在格式变了时才写代码。
                         // 空格的粗体会改变宽度、下划线和删除线看得见，所以格式必须对
                         rgb = lastRgb >= 0 && (active & VISIBLE_ON_SPACE) == 0 ? lastRgb
-                                : lerp(from, to, steps <= 1 ? 0.0 : (double) Math.min(step, steps - 1) / (steps - 1));
+                                : ColorMath.sample(stops, steps <= 1 ? 0.0 : (double) Math.min(step, steps - 1) / (steps - 1));
                     } else {
-                        rgb = lerp(from, to, steps <= 1 ? 0.0 : (double) step / (steps - 1));
+                        rgb = ColorMath.sample(stops, steps <= 1 ? 0.0 : (double) step / (steps - 1));
                         step++;
                     }
                     if (rgb != lastRgb || active != lastActive) {
@@ -223,6 +268,63 @@ public final class LegacyEdits {
         int[] marks = {startMark, endMark};
         String result = writer.build("", marks);
         return new Result(result, marks[0], marks[1]);
+    }
+
+    /**
+     * 取一段示例文字（调色盘的渐变预览用）：选区（没选中就是全文）里看得见的字，格式码照留，颜色码去掉
+     * <p>
+     * 选区开始前已经打开的格式补在最前面；选区里的颜色码换成 {@code &r}（当时有格式开着才写）：颜色码本来会把前面的格式关掉，
+     * 直接删掉的话后面的字会错带上格式，换成 {@code &r} 效果一样又不带颜色。拿结果整段做 {@link #gradient}，
+     * 每个字的格式和对原文选区做渐变时一致（字数被截短时，颜色按截短后的字数重新分布）。
+     * 模组自定义代码和不成代码的 § 不要。surrogate 对算一个字，不会被截成半个。
+     *
+     * @param text     编辑文本
+     * @param selStart 选区起点
+     * @param selEnd   选区终点；和起点相同 = 没选，取全文
+     * @param maxChars 最多取几个字（按 Unicode 码点算）
+     * @return 编辑文本；选区里一个字都没有时返回空串
+     */
+    @Nonnull
+    public static String sample(@Nonnull String text, int selStart, int selEnd, int maxChars) {
+        List<LegacyText.Token> tokens = LegacyText.tokenize(text);
+        int[] range = snap(tokens, selStart, selEnd);
+        CodeState before = stateBefore(tokens, range[0], text);
+        LegacyText.Writer writer = new LegacyText.Writer(Math.min(text.length(), maxChars * 4) + 16);
+        writer.code(LegacyComponents.formatCodes(before.added));
+        // 示例里没有颜色，&r 只用来关格式：当前没有打开的格式就不用写
+        int open = before.added;
+        int count = 0;
+        boolean any = false;
+        for (int i = range[0]; i < range[1]; i++) {
+            LegacyText.Token token = tokens.get(i);
+            switch (token.type()) {
+                case COLOR, HEX, RESET -> {
+                    if (open != 0) {
+                        writer.code("&r");
+                        open = 0;
+                    }
+                }
+                case FORMAT -> {
+                    writer.raw(text.substring(token.start(), token.end()));
+                    open |= LegacyComponents.formatBit(token.format());
+                }
+                case TEXT, ESCAPE -> {
+                    if (i > range[0] && pairedLow(tokens, i)) {
+                        writer.literal(token.ch());
+                        continue;
+                    }
+                    if (count >= maxChars) {
+                        return writer.build();
+                    }
+                    writer.literal(token.ch());
+                    count++;
+                    any = true;
+                }
+                default -> {
+                }
+            }
+        }
+        return any ? writer.build() : "";
     }
 
     /**
@@ -390,15 +492,5 @@ public final class LegacyEdits {
 
     private static boolean sameState(@Nonnull CodeState a, @Nonnull CodeState b) {
         return a.added == b.added && java.util.Objects.equals(a.colorCode, b.colorCode);
-    }
-
-    /**
-     * RGB 线性插值
-     */
-    private static int lerp(int from, int to, double t) {
-        int r = (int) Math.round(((from >> 16) & 0xFF) + (((to >> 16) & 0xFF) - ((from >> 16) & 0xFF)) * t);
-        int g = (int) Math.round(((from >> 8) & 0xFF) + (((to >> 8) & 0xFF) - ((from >> 8) & 0xFF)) * t);
-        int b = (int) Math.round((from & 0xFF) + ((to & 0xFF) - (from & 0xFF)) * t);
-        return (r << 16) | (g << 8) | b;
     }
 }

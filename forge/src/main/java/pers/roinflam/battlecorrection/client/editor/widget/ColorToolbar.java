@@ -8,6 +8,8 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import pers.roinflam.battlecorrection.client.editor.ColorPaletteScreen;
+import pers.roinflam.battlecorrection.editor.ColorMath;
 import pers.roinflam.battlecorrection.editor.LegacyEdits;
 import pers.roinflam.battlecorrection.editor.LegacyText;
 
@@ -28,6 +30,10 @@ import java.util.function.Supplier;
  * 十六进制那一组：[色块 RRGGBB] [插入] [色块 RRGGBB] [渐变]。插入用左边的颜色；渐变把选中的文字（没选中就是整个框）
  * 从左边的颜色过渡到右边的颜色，逐字插 {@code &#RRGGBB}，粗体这类格式码保留（见 {@link LegacyEdits#gradient}）。
  * 两个颜色记在静态字段里，同一次游戏里换页、重开编辑器都还在。
+ * <p>
+ * 最后是"调色盘"按钮（{@link ColorPaletteScreen}）：拖着取色、多色标渐变、预设。两个十六进制框的颜色当作渐变头尾的初值带过去，
+ * 在调色盘里应用之后把头尾颜色写回这两个静态字段，回到编辑器重建工具条时框里就是新颜色。
+ * 那一行剩的地方放不下带文字的按钮时只画图标，免得为了它多占一行。
  * <p>
  * 宽度不够时自动换行，{@link #build} 返回实际占用的高度，页面据此往下排版。
  */
@@ -114,6 +120,13 @@ public final class ColorToolbar {
 
         int bottom() {
             return y + rowHeight;
+        }
+
+        /**
+         * 宽 width 的一块放在当前行还放不放得下（行首永远放得下：place 不会在行首换行）
+         */
+        boolean fits(int width) {
+            return x == left || x + width <= left + maxWidth;
         }
     }
 
@@ -222,7 +235,39 @@ public final class ColorToolbar {
                 .tooltip(Component.translatable("gui.battlecorrection.editor.hex.gradient.tooltip"))
                 .keepFocus());
 
+        // 调色盘：这一行放得下带文字的就带文字，只放得下图标就只画图标，都放不下就换行（换了行就有地方写字了）
+        flow.gap(FORMAT_GAP);
+        Component paletteLabel = Component.translatable("gui.battlecorrection.editor.palette.open");
+        int labeledWidth = PaletteButton.widthFor(font, paletteLabel, false);
+        boolean iconOnly = !flow.fits(labeledWidth) && flow.fits(PaletteButton.ICON_ONLY_WIDTH);
+        int paletteWidth = iconOnly ? PaletteButton.ICON_ONLY_WIDTH : labeledWidth;
+        int paletteX = flow.place(paletteWidth, FORMAT_HEIGHT);
+        add.accept(new PaletteButton(paletteX, flow.y, paletteWidth, FORMAT_HEIGHT, paletteLabel, iconOnly,
+                () -> openPalette(target, fromField, toField))
+                .tooltip(Component.translatable("gui.battlecorrection.editor.palette.open.tooltip"))
+                .keepFocus());
+
         return flow.bottom() - y;
+    }
+
+    /**
+     * 打开调色盘：带上目标框和两个十六进制框的颜色；应用之后头尾颜色写回静态字段（回到编辑器时工具条重建，框里就是新颜色）
+     */
+    private static void openPalette(@Nonnull Supplier<EditBox> target, @Nonnull HexColorField fromField,
+                                    @Nonnull HexColorField toField) {
+        Minecraft minecraft = Minecraft.getInstance();
+        Screen parent = minecraft.screen;
+        if (parent == null) {
+            return;
+        }
+        // 先取一次目标：Lore 页借这次调用记下"最近有焦点的行"，回到编辑器后靠它找回同一行
+        targetOf(target);
+        int from = fromField.rgb() >= 0 ? fromField.rgb() : Integer.parseInt(lastFrom, 16);
+        int to = toField.rgb() >= 0 ? toField.rgb() : Integer.parseInt(lastTo, 16);
+        minecraft.setScreen(new ColorPaletteScreen(parent, target, from, to, (head, tail) -> {
+            lastFrom = ColorMath.hex(head);
+            lastTo = ColorMath.hex(tail);
+        }));
     }
 
     /**
@@ -248,6 +293,16 @@ public final class ColorToolbar {
         if (box == null) {
             return;
         }
+        insertInto(box, code);
+    }
+
+    /**
+     * 往输入框的光标处（有选区就替换选区）插入一段代码，再把焦点还给它
+     *
+     * @param box  输入框
+     * @param code 编辑文本写法的代码
+     */
+    public static void insertInto(@Nonnull EditBox box, @Nonnull String code) {
         if (box instanceof FlatEditBox flat) {
             flat.insertCode(code);
         } else {
@@ -290,7 +345,7 @@ public final class ColorToolbar {
             start = flat.selectionStart();
             end = flat.selectionEnd();
         }
-        apply(box, LegacyEdits.gradient(box.getValue(), start, end, from, to));
+        applyEdit(box, LegacyEdits.gradient(box.getValue(), start, end, from, to));
     }
 
     /**
@@ -307,13 +362,16 @@ public final class ColorToolbar {
             start = flat.selectionStart();
             end = flat.selectionEnd();
         }
-        apply(box, LegacyEdits.stripCodes(box.getValue(), start, end));
+        applyEdit(box, LegacyEdits.stripCodes(box.getValue(), start, end));
     }
 
     /**
-     * 改写结果放回输入框，并选中改写过的那一段（方便接着换一组颜色重做）
+     * 改写结果放回输入框，并选中改写过的那一段（方便接着换一组颜色重做），焦点还给它
+     *
+     * @param box    输入框
+     * @param result 改写结果
      */
-    private static void apply(@Nonnull EditBox box, @Nonnull LegacyEdits.Result result) {
+    public static void applyEdit(@Nonnull EditBox box, @Nonnull LegacyEdits.Result result) {
         if (result.text().equals(box.getValue())) {
             refocus(box);
             return;
@@ -327,9 +385,11 @@ public final class ColorToolbar {
     }
 
     /**
-     * 焦点还给目标框（点十六进制框时焦点被拿走了）
+     * 焦点还给目标框（点十六进制框时焦点被拿走了；从调色盘回来时编辑器是重建过的，焦点是空的）
+     *
+     * @param box 输入框
      */
-    private static void refocus(@Nonnull EditBox box) {
+    public static void refocus(@Nonnull EditBox box) {
         Screen screen = Minecraft.getInstance().screen;
         if (screen != null && screen.getFocused() != box) {
             screen.setFocused(box);
