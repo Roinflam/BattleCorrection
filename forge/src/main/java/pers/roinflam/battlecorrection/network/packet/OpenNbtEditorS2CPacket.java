@@ -1,6 +1,7 @@
 package pers.roinflam.battlecorrection.network.packet;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -41,7 +42,7 @@ public class OpenNbtEditorS2CPacket {
     @Nonnull
     public static OpenNbtEditorS2CPacket decode(@Nonnull FriendlyByteBuf buf) {
         NbtEditTarget target = NbtEditTarget.read(buf);
-        CompoundTag tag = buf.readNbt();
+        CompoundTag tag = buf.readNbt(new NbtAccounter(ChunkedPacket.RECEIVE_NBT_QUOTA));
         Component name = buf.readComponent();
         EditorPage page = EditorPage.byOrdinal(buf.readVarInt());
         return new OpenNbtEditorS2CPacket(target, tag == null ? new CompoundTag() : tag, name, page);

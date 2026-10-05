@@ -20,8 +20,8 @@ import javax.annotation.Nonnull;
  * 物品编辑器命令（需要 OP 2 级 + 创造模式）
  * <pre>
  * /battlecorrection edit         编辑主手物品
- * /battlecorrection edit tree    直接打开 NBT 树页
- * /battlecorrection edit raw     直接打开原始 NBT 页
+ * /battlecorrection edit snbt    直接打开 SNBT 文本页（raw 是它的旧名，照样能用）
+ * /battlecorrection edit nbt     直接打开 NBT 树页（tree 是它的旧名，照样能用）
  * </pre>
  * 服务端校验通过后给客户端发一个"打开编辑器"的包，界面在客户端开；保存时客户端再发回来，服务端再校验一次。
  * <p>
@@ -43,10 +43,14 @@ public final class ItemEditorCommand {
                 .requires(source -> source.hasPermission(ItemEditorAccess.PERMISSION_LEVEL))
                 .then(Commands.literal("edit")
                         .executes(context -> open(context, EditorPage.NAME))
-                        .then(Commands.literal("tree")
-                                .executes(context -> open(context, EditorPage.TREE)))
+                        .then(Commands.literal("snbt")
+                                .executes(context -> open(context, EditorPage.RAW)))
                         .then(Commands.literal("raw")
-                                .executes(context -> open(context, EditorPage.RAW)))));
+                                .executes(context -> open(context, EditorPage.RAW)))
+                        .then(Commands.literal("nbt")
+                                .executes(context -> open(context, EditorPage.TREE)))
+                        .then(Commands.literal("tree")
+                                .executes(context -> open(context, EditorPage.TREE)))));
     }
 
     /**

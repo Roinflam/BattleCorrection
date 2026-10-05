@@ -5,6 +5,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -24,9 +25,10 @@ import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
 import pers.roinflam.battlecorrection.client.editor.widget.TabButton;
 import pers.roinflam.battlecorrection.compat.CuriosIntegration;
 import pers.roinflam.battlecorrection.editor.EditorPage;
-import pers.roinflam.battlecorrection.network.ModNetwork;
+import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.ApplyNbtEditC2SPacket;
+import pers.roinflam.battlecorrection.network.packet.ChunkedPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.ChatFormatting;
 
@@ -55,8 +57,18 @@ import java.util.List;
  * 窗口大小变化时原版会重新调 init()，这里重新算布局再把当前页挂一遍。
  * 列表类页面（附魔、属性）会要求收起预览栏（{@link EditorPageBase#wantsPreview()}），切页时重新算布局。
  * <p>
- * 保存：先给当前页一个 beforeLeave 的机会（原始 NBT 页要解析），再清理空标签，把副本的 NBT 和数量发给服务端，关界面。
+ * 保存：先给当前页一个 beforeLeave 的机会（SNBT 页要解析），再清理空标签，把副本的 NBT、数量和物品 ID 发给服务端，关界面。
  * Esc 或"取消"直接关，什么都不发。Ctrl+S = 保存。
+ * <p>
+ * 其它顺手的功能：
+ * <ul>
+ *   <li>点标题栏的物品图标（或 F4）换成别的物品，见 {@link ItemPickerScreen}。不用 F2：它是原版的截图键，按键在到达界面之前就被吃掉了</li>
+ *   <li>底栏"导入"：把剪贴板里的 /give 命令或物品 SNBT 整件导入，见 {@link ItemImport}</li>
+ *   <li>Ctrl+Tab / Ctrl+Shift+Tab 切页，Ctrl+1..9 直达第 N 页，F1 快捷键速查</li>
+ *   <li>标题带 * = 有未保存的改动；底栏显示这份 NBT 序列化后的大小，快到原版客户端的承受上限时变色</li>
+ * </ul>
+ * 性能上：撤销用的"内容有没有变"检测只在有键鼠输入的前后几个 tick 里做（闲着每秒才兜底查一次），
+ * 右侧预览的提示框行按内容版本号缓存，没改动就不重新生成。
  */
 public class ItemEditorScreen extends Screen {
 
@@ -75,6 +87,18 @@ public class ItemEditorScreen extends Screen {
      * 面板四角的准线角饰占的宽度，标题栏和底栏的内容从它里面让开
      */
     private static final int CORNER_CLEARANCE = 22;
+    /**
+     * 键鼠输入之后继续检测内容变化的 tick 数（页面可能晚一两个 tick 才把输入落到物品副本上）
+     */
+    private static final int INPUT_BOOST_TICKS = 4;
+    /**
+     * 没有输入时兜底检测的间隔（tick）
+     */
+    private static final int IDLE_POLL_TICKS = 20;
+    /**
+     * 提示条显示多久（tick）
+     */
+    private static final int FLASH_TICKS = 80;
 
     private final EditorSession session;
     @Nullable
@@ -99,6 +123,34 @@ public class ItemEditorScreen extends Screen {
     private int contentHeight;
     private int previewX;
     private boolean previewVisible;
+    private int titleIconX;
+    private int titleIconY;
+    private int statusX;
+    private int statusMaxX;
+    private int statusY;
+
+    /**
+     * 还要继续检测内容变化的 tick 数，有键鼠输入时重置
+     */
+    private int inputBoost;
+    private int modifiedRevision = -1;
+    private boolean modifiedCache;
+
+    /**
+     * 预览提示框行的缓存：按（内容版本，文字宽度，Shift 是否按着）失效
+     */
+    private int previewRevision = -1;
+    private int previewWrapWidth = -1;
+    private boolean previewShift;
+    @Nullable
+    private List<Component> previewComponents;
+    @Nullable
+    private List<FormattedCharSequence> previewWrapped;
+
+    @Nullable
+    private Component flashText;
+    private int flashColor;
+    private long flashUntil;
 
     /**
      * @param session 编辑会话
@@ -155,11 +207,14 @@ public class ItemEditorScreen extends Screen {
 
         // 左侧标签页：按页面顺序排；这次没创建的页（例如没装 Curios 时的饰品栏页）不显示标签
         int tabY = panelY + TITLE_HEIGHT + 2;
+        // 装了 Curios 有 10 个标签，窗口矮的时候（GUI 高 240）放不下 18 像素一个，按剩余高度压缩，免得盖住底栏
+        int bodyBottom = panelY + panelHeight - FOOTER_HEIGHT;
+        int tabHeight = Math.max(12, Math.min(TabButton.HEIGHT, (bodyBottom - tabY - 1) / Math.max(1, pages.size())));
         for (EditorPageBase page : pages) {
-            TabButton tab = new TabButton(panelX + 1, tabY, SIDEBAR_WIDTH - 1, page.title(), () -> switchPage(page));
+            TabButton tab = new TabButton(panelX + 1, tabY, SIDEBAR_WIDTH - 1, tabHeight, page.title(), () -> switchPage(page));
             tabs.add(tab);
             addRenderableWidget(tab);
-            tabY += TabButton.HEIGHT;
+            tabY += tabHeight;
         }
 
         // 底栏按钮
@@ -168,12 +223,25 @@ public class ItemEditorScreen extends Screen {
         int cancelX = saveX - 4 - FOOTER_BUTTON_WIDTH;
         addRenderableWidget(new FlatButton(cancelX, buttonY, FOOTER_BUTTON_WIDTH, FOOTER_BUTTON_HEIGHT,
                 Component.translatable("gui.battlecorrection.editor.cancel"), this::onClose));
+        statusX = panelX + CORNER_CLEARANCE;
         if (session.isItem()) {
             int copyWidth = Math.min(90, cancelX - 8 - (panelX + CORNER_CLEARANCE));
             addRenderableWidget(new FlatButton(panelX + CORNER_CLEARANCE, buttonY, copyWidth, FOOTER_BUTTON_HEIGHT,
                     Component.translatable("gui.battlecorrection.editor.copy_command"), this::copyGiveCommand)
                     .tooltip(Component.translatable("gui.battlecorrection.editor.copy_command.tooltip")));
+            int importX = panelX + CORNER_CLEARANCE + copyWidth + 4;
+            int importWidth = Math.min(54, cancelX - 8 - importX);
+            if (importWidth >= 30) {
+                addRenderableWidget(new FlatButton(importX, buttonY, importWidth, FOOTER_BUTTON_HEIGHT,
+                        Component.translatable("gui.battlecorrection.editor.import"), this::importFromClipboard)
+                        .tooltip(Component.translatable("gui.battlecorrection.editor.import.tooltip")));
+                statusX = importX + importWidth + 8;
+            } else {
+                statusX = panelX + CORNER_CLEARANCE + copyWidth + 8;
+            }
         }
+        statusMaxX = cancelX - 8;
+        statusY = buttonY + (FOOTER_BUTTON_HEIGHT - 8) / 2;
         addRenderableWidget(new FlatButton(saveX, buttonY, FOOTER_BUTTON_WIDTH, FOOTER_BUTTON_HEIGHT,
                 Component.translatable("gui.battlecorrection.editor.save"), this::save)
                 .style(FlatButton.Style.PRIMARY)
@@ -199,6 +267,8 @@ public class ItemEditorScreen extends Screen {
         contentWidth = panelWidth - SIDEBAR_WIDTH - previewWidth - (previewVisible ? 3 : 2) * PAD;
         contentHeight = panelHeight - TITLE_HEIGHT - FOOTER_HEIGHT - 2 * PAD;
         previewX = panelX + panelWidth - PAD - previewWidth;
+        titleIconX = panelX + CORNER_CLEARANCE + 2;
+        titleIconY = panelY + (TITLE_HEIGHT - 16) / 2;
     }
 
     /**
@@ -279,9 +349,10 @@ public class ItemEditorScreen extends Screen {
         EditorTheme.rect(g, panelX + 4, bodyBottom, panelWidth - 8, 1, EditorTheme.DIVIDER);
 
         // 标题栏：切角小槽里放图标 + 当前名字 + 界面标题（左右各让出角饰的位置）
-        int iconX = panelX + CORNER_CLEARANCE + 2;
-        int iconY = panelY + (TITLE_HEIGHT - 16) / 2;
-        EditorTheme.chamfer(g, iconX - 2, iconY - 2, 20, 20, 2, EditorTheme.ACCENT_MID);
+        int iconX = titleIconX;
+        int iconY = titleIconY;
+        boolean iconHover = session.isItem() && isOverTitleIcon(mouseX, mouseY);
+        EditorTheme.chamfer(g, iconX - 2, iconY - 2, 20, 20, 2, iconHover ? EditorTheme.ACCENT_HI : EditorTheme.ACCENT_MID);
         EditorTheme.chamfer(g, iconX - 1, iconY - 1, 18, 18, 1, EditorTheme.WELL);
         if (session.isItem()) {
             ItemStack working = session.working();
@@ -292,7 +363,9 @@ public class ItemEditorScreen extends Screen {
             String glyph = session.mode() == EditorSession.Mode.ENTITY ? "E" : "B";
             g.drawString(font, glyph, iconX + 5, iconY + 4, EditorTheme.ACCENT_HI, false);
         }
-        Component subjectTitle = session.subjectName();
+        Component subjectTitle = isModifiedCached()
+                ? Component.empty().append(session.subjectName()).append(Component.literal(" *").withStyle(ChatFormatting.GOLD))
+                : session.subjectName();
         Component modeTitle = session.isItem() ? title
                 : Component.translatable(session.mode() == EditorSession.Mode.ENTITY
                 ? "gui.battlecorrection.editor.title.entity" : "gui.battlecorrection.editor.title.block_entity");
@@ -313,11 +386,122 @@ public class ItemEditorScreen extends Screen {
         current.renderForeground(g, mouseX, mouseY, partialTick);
 
         renderPreview(g);
+        renderStatus(g);
 
-        // 悬停标题图标：显示完整提示框（预览栏没显示时靠这个看效果）
-        if (session.isItem() && mouseX >= iconX && mouseX < iconX + 16 && mouseY >= iconY && mouseY < iconY + 16) {
-            g.renderTooltip(font, session.working(), mouseX, mouseY);
+        // 悬停标题图标：显示完整提示框（预览栏没显示时靠这个看效果）+ 一行换物品的提示
+        if (iconHover) {
+            List<Component> lines = new ArrayList<>(previewComponents());
+            lines.add(Component.empty());
+            lines.add(Component.translatable("gui.battlecorrection.editor.item.change_hint").withStyle(ChatFormatting.AQUA));
+            g.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
+    }
+
+    private boolean isOverTitleIcon(int mouseX, int mouseY) {
+        return mouseX >= titleIconX - 2 && mouseX < titleIconX + 18 && mouseY >= titleIconY - 2 && mouseY < titleIconY + 18;
+    }
+
+    /**
+     * 有没有未保存的改动：按内容版本号缓存，没变化就不重新比较整份 NBT
+     */
+    private boolean isModifiedCached() {
+        int revision = session.revision();
+        if (revision != modifiedRevision) {
+            modifiedRevision = revision;
+            modifiedCache = session.isModified();
+        }
+        return modifiedCache;
+    }
+
+    /**
+     * 底栏中间：提示条（几秒后消失）或 NBT 大小
+     */
+    private void renderStatus(@Nonnull GuiGraphics g) {
+        int maxWidth = statusMaxX - statusX;
+        if (maxWidth < 40) {
+            return;
+        }
+        Component text;
+        int color;
+        if (flashText != null && tickCounter < flashUntil) {
+            text = flashText;
+            color = flashColor;
+        } else {
+            int bytes = session.measuredBytes();
+            text = Component.translatable("gui.battlecorrection.editor.size", formatBytes(bytes));
+            // 红 = 超过本机配置的上限或原版客户端的记账上限（保存会被拒）；黄 = 过了上限的一半
+            color = isOverLimit() ? EditorTheme.DANGER
+                    : bytes >= ItemEditorAccess.maxNbtBytes() / 2 ? EditorTheme.WARNING : EditorTheme.TEXT_DIM;
+        }
+        String plain = text.getString();
+        if (font.width(plain) > maxWidth) {
+            plain = font.plainSubstrByWidth(plain, maxWidth - font.width("…")) + "…";
+        }
+        g.drawString(font, plain, statusX, statusY, color, false);
+    }
+
+    /**
+     * 这份 NBT 现在超没超上限：本机配置的大小上限，或原版客户端的 2 MB 记账上限
+     * <p>
+     * 后台还没测完当前内容时按"没超"算（服务端收到时还会再卡一遍），不会误拦。
+     */
+    private boolean isOverLimit() {
+        return session.measuredIsCurrent()
+                && (session.measuredOverQuota() || session.measuredBytes() > ItemEditorAccess.maxNbtBytes());
+    }
+
+    /**
+     * 字节数的可读写法
+     */
+    @Nonnull
+    private static String formatBytes(int bytes) {
+        if (bytes < 1024) {
+            return bytes + " B";
+        }
+        if (bytes < 1024 * 1024) {
+            return String.format("%.1f KB", bytes / 1024.0);
+        }
+        return String.format("%.2f MB", bytes / 1048576.0);
+    }
+
+    /**
+     * 提示条
+     */
+    private void flash(@Nonnull Component text, int color) {
+        flashText = text;
+        flashColor = color;
+        flashUntil = tickCounter + FLASH_TICKS;
+    }
+
+    /**
+     * 物品完整提示框的各行（缓存）
+     */
+    @Nonnull
+    private List<Component> previewComponents() {
+        refreshPreviewCache(previewWrapWidth < 0 ? PREVIEW_WIDTH - 10 : previewWrapWidth);
+        return previewComponents == null ? List.of() : previewComponents;
+    }
+
+    /**
+     * 按需重建预览缓存：内容版本、文字宽度、Shift 状态任何一个变了才重新生成提示框行并折行
+     */
+    private void refreshPreviewCache(int wrapWidth) {
+        int revision = session.revision();
+        boolean shift = hasShiftDown();
+        if (previewComponents != null && revision == previewRevision && wrapWidth == previewWrapWidth && shift == previewShift) {
+            return;
+        }
+        // 在副本上取：原版遇到解析不了的 Lore 会把它从被查询的物品上直接删掉，不能让预览动到正在编辑的那一份
+        List<Component> lines = session.working().copy().getTooltipLines(minecraft == null ? null : minecraft.player, TooltipFlag.Default.NORMAL);
+        List<FormattedCharSequence> wrapped = new ArrayList<>();
+        for (Component line : lines) {
+            wrapped.addAll(font.split(line, wrapWidth));
+        }
+        previewComponents = lines;
+        previewWrapped = wrapped;
+        previewRevision = revision;
+        previewWrapWidth = wrapWidth;
+        previewShift = shift;
     }
 
     /**
@@ -355,9 +539,9 @@ public class ItemEditorScreen extends Screen {
         int textY = iconY + iconSize + 6;
         int textWidth = PREVIEW_WIDTH - 10;
         g.enableScissor(previewX + 1, textY, previewX + PREVIEW_WIDTH - 1, bottom - 1);
-        List<Component> lines = working.getTooltipLines(minecraft == null ? null : minecraft.player, TooltipFlag.Default.NORMAL);
-        for (Component line : lines) {
-            for (FormattedCharSequence wrapped : font.split(line, textWidth)) {
+        refreshPreviewCache(textWidth);
+        if (previewWrapped != null) {
+            for (FormattedCharSequence wrapped : previewWrapped) {
                 if (textY > bottom) {
                     break;
                 }
@@ -370,6 +554,7 @@ public class ItemEditorScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        inputBoost = INPUT_BOOST_TICKS;
         if (current.mouseScrolled(mouseX, mouseY, delta)) {
             return true;
         }
@@ -378,6 +563,11 @@ public class ItemEditorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        inputBoost = INPUT_BOOST_TICKS;
+        if (button == 0 && session.isItem() && isOverTitleIcon((int) mouseX, (int) mouseY)) {
+            openItemPicker();
+            return true;
+        }
         if (current.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
@@ -385,12 +575,51 @@ public class ItemEditorScreen extends Screen {
     }
 
     @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        inputBoost = INPUT_BOOST_TICKS;
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        inputBoost = INPUT_BOOST_TICKS;
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        inputBoost = INPUT_BOOST_TICKS;
+        return super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        inputBoost = INPUT_BOOST_TICKS;
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             if (current.onEscape()) {
                 return true;
             }
             onClose();
+            return true;
+        }
+        // 这几个全局快捷键要抢在输入框前面处理，输入框不该吃掉它们
+        if (keyCode == GLFW.GLFW_KEY_F1) {
+            openHelp();
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_F4 && session.isItem()) {
+            openItemPicker();
+            return true;
+        }
+        if (hasControlDown() && keyCode == GLFW.GLFW_KEY_TAB) {
+            cyclePage(hasShiftDown() ? -1 : 1);
+            return true;
+        }
+        if (hasControlDown() && keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_9) {
+            int index = keyCode - GLFW.GLFW_KEY_1;
+            if (index < pages.size()) {
+                switchPage(pages.get(index));
+            }
             return true;
         }
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
@@ -401,11 +630,15 @@ public class ItemEditorScreen extends Screen {
             return true;
         }
         if (hasControlDown() && keyCode == GLFW.GLFW_KEY_Z && !hasShiftDown()) {
-            applyHistory(session.undo());
+            if (commitPendingEdits()) {
+                applyHistory(session.undo());
+            }
             return true;
         }
         if (hasControlDown() && (keyCode == GLFW.GLFW_KEY_Y || (keyCode == GLFW.GLFW_KEY_Z && hasShiftDown()))) {
-            applyHistory(session.redo());
+            if (commitPendingEdits()) {
+                applyHistory(session.redo());
+            }
             return true;
         }
         return current.keyPressed(keyCode, scanCode, modifiers);
@@ -422,8 +655,108 @@ public class ItemEditorScreen extends Screen {
 
     @Override
     public void tick() {
-        session.trackChanges(++tickCounter);
+        tickCounter++;
+        // 比较整份 NBT 有成本：有输入的前后几个 tick 里每 tick 查，闲着时每秒兜底查一次
+        if (inputBoost > 0 || tickCounter % IDLE_POLL_TICKS == 0) {
+            if (inputBoost > 0) {
+                inputBoost--;
+            }
+            session.trackChanges(tickCounter);
+        }
         current.tick();
+    }
+
+    /**
+     * 按顺序切到下一页 / 上一页（首尾相接）
+     *
+     * @param delta 1 = 下一页，-1 = 上一页
+     */
+    private void cyclePage(int delta) {
+        int size = pages.size();
+        if (size < 2) {
+            return;
+        }
+        int index = pages.indexOf(current);
+        switchPage(pages.get(((index + delta) % size + size) % size));
+    }
+
+    private void openHelp() {
+        if (minecraft != null) {
+            minecraft.setScreen(new EditorHelpScreen(this));
+        }
+    }
+
+    /**
+     * 打开换物品的选择器；当前页有没应用的改动先让它落到副本里
+     */
+    private void openItemPicker() {
+        if (!session.isItem() || minecraft == null) {
+            return;
+        }
+        if (!current.beforeLeave()) {
+            return;
+        }
+        minecraft.setScreen(new ItemPickerScreen(this, session.itemId(), this::onItemPicked));
+    }
+
+    /**
+     * 选择器选定了新物品：换过去，NBT 和数量不变，当前页按新物品重建
+     */
+    private void onItemPicked(@Nonnull ResourceLocation id) {
+        try {
+            session.changeItem(id);
+        } catch (IllegalArgumentException e) {
+            flash(Component.literal(String.valueOf(e.getMessage())), EditorTheme.DANGER);
+            return;
+        }
+        current.onExternalChange();
+        mountPage(current);
+        // 提示条只有底栏中间那一小段宽，写注册名会被截断，用本地化的物品名
+        flash(Component.translatable("gui.battlecorrection.editor.item.changed", session.working().getItem().getDescription()),
+                EditorTheme.SUCCESS);
+    }
+
+    /**
+     * 把剪贴板里的物品整件导入（/give 命令、物品 ID + NBT、物品 SNBT 都行）；Ctrl+Z 可以撤销
+     */
+    private void importFromClipboard() {
+        if (!session.isItem() || minecraft == null) {
+            return;
+        }
+        if (!current.beforeLeave()) {
+            return;
+        }
+        ItemImport.Result result = ItemImport.parse(minecraft.keyboardHandler.getClipboard(),
+                session.itemId().toString(), session.working().getCount());
+        if (result.root() == null) {
+            flash(Component.translatable("gui.battlecorrection.editor.import.failed", String.valueOf(result.error())), EditorTheme.DANGER);
+            return;
+        }
+        try {
+            session.pushRoot(result.root());
+        } catch (IllegalArgumentException e) {
+            flash(Component.literal(String.valueOf(e.getMessage())), EditorTheme.DANGER);
+            return;
+        }
+        current.onExternalChange();
+        mountPage(current);
+        flash(Component.translatable("gui.battlecorrection.editor.import.done"), EditorTheme.SUCCESS);
+    }
+
+    /**
+     * 让当前页把还没写进物品副本的内容（SNBT 页里没点应用的文本）先落下来，并记进撤销栈
+     * <p>
+     * 整体撤销 / 重做会重建当前页，没落下来的文本会跟着丢。先落下来，撤销就是把这次修改一起撤掉，文本不会凭空消失；
+     * 落不下来（文本不合法）就什么都不做，文本留在原地。
+     *
+     * @return true = 可以继续撤销 / 重做
+     */
+    private boolean commitPendingEdits() {
+        if (!current.beforeLeave()) {
+            return false;
+        }
+        session.trackChanges(tickCounter);
+        return true;
     }
 
     /**
@@ -454,7 +787,10 @@ public class ItemEditorScreen extends Screen {
         if (minecraft == null) {
             return;
         }
-        if (!discardConfirmed && session.isModified()) {
+        // 当前页没写进副本的内容（SNBT 页没点应用的文本）先落一次：落得下来就算进"有改动"，落不下来也要走确认框，
+        // 不然点"取消"会悄悄丢掉用户刚写的东西
+        boolean pendingOk = discardConfirmed || current.beforeLeave();
+        if (!discardConfirmed && (!pendingOk || session.isModified())) {
             minecraft.setScreen(new ConfirmCloseScreen(this));
             return;
         }
@@ -498,13 +834,22 @@ public class ItemEditorScreen extends Screen {
         if (!current.beforeLeave()) {
             return;
         }
+        // 明摆着会被拒的先在本地拦住：关了界面再被服务端拒收，这次的修改就全丢了
+        session.trackChanges(tickCounter);
+        if (isOverLimit()) {
+            flash(Component.translatable("gui.battlecorrection.editor.save.too_big"), EditorTheme.DANGER);
+            return;
+        }
+        // 都走分片传输，NBT 多大都能发
         if (session.isItem()) {
             session.cleanupEmpty();
             ItemStack working = session.working();
-            ModNetwork.sendToServer(new ApplyItemEditC2SPacket(session.target(), session.itemId(),
-                    working.getTag() == null ? null : working.getTag().copy(), working.getCount()));
+            ApplyItemEditC2SPacket packet = new ApplyItemEditC2SPacket(session.target(), session.originalItemId(),
+                    session.itemId(), working.getTag() == null ? null : working.getTag().copy(), working.getCount());
+            ChunkedPacket.sendToServer(ChunkedPacket.Kind.APPLY_ITEM, packet::encode);
         } else {
-            ModNetwork.sendToServer(new ApplyNbtEditC2SPacket(session.nbtTarget(), session.nbtWorking().copy()));
+            ApplyNbtEditC2SPacket packet = new ApplyNbtEditC2SPacket(session.nbtTarget(), session.nbtWorking().copy());
+            ChunkedPacket.sendToServer(ChunkedPacket.Kind.APPLY_NBT, packet::encode);
         }
         closeDiscard();
     }

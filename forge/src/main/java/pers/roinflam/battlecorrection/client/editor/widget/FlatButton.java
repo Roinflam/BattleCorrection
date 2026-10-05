@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 
 import javax.annotation.Nonnull;
@@ -38,6 +39,7 @@ public class FlatButton extends AbstractWidget {
     @Nullable
     private Integer swatchColor;
     private boolean keepsFocus;
+    private boolean rawLabel;
 
     /**
      * @param x       左
@@ -116,6 +118,31 @@ public class FlatButton extends AbstractWidget {
         return keepsFocus;
     }
 
+    /**
+     * 标签按原样画，不解释其中的格式码
+     * <p>
+     * 原版画 Component 文字时会把 § 和它后面的一个字符当格式码吃掉，所以标签里要真的显示 § 号（"&→§"这种）
+     * 就得绕开：用不解析格式码的方式逐字画。tooltip 走的还是原版的路径，里面不能直接写 § 号。
+     *
+     * @return this
+     */
+    @Nonnull
+    public FlatButton raw() {
+        this.rawLabel = true;
+        return this;
+    }
+
+    /**
+     * 一个标签按原样画出来有多宽（配合 {@link #raw()} 排版用）
+     *
+     * @param font  字体
+     * @param label 标签
+     * @return 像素宽度
+     */
+    public static int rawWidth(@Nonnull Font font, @Nonnull Component label) {
+        return font.width(FormattedCharSequence.forward(label.getString(), net.minecraft.network.chat.Style.EMPTY));
+    }
+
     @Override
     public void onClick(double mouseX, double mouseY) {
         onPress.run();
@@ -163,6 +190,20 @@ public class FlatButton extends AbstractWidget {
         int textY = y + (h - 8) / 2;
         // 六边轮廓两端各收 3px，文字可用宽度相应减小；太长就裁掉
         int available = w - 8;
+        if (rawLabel) {
+            FormattedCharSequence raw = FormattedCharSequence.forward(label.getString(), net.minecraft.network.chat.Style.EMPTY);
+            int rawWidth = font.width(raw);
+            if (rawWidth > available) {
+                // 裁剪按字符数估，标签很短，不会走到这里；走到了就只画放得下的前半截
+                String text = label.getString();
+                int keep = Math.max(1, text.length() * available / Math.max(1, rawWidth) - 1);
+                g.drawString(font, FormattedCharSequence.forward(text.substring(0, Math.min(text.length(), keep)) + "…", net.minecraft.network.chat.Style.EMPTY),
+                        x + 4, textY, textColor, false);
+            } else {
+                g.drawString(font, raw, x + (w - rawWidth) / 2, textY, textColor, false);
+            }
+            return;
+        }
         if (font.width(label) > available) {
             String clipped = font.plainSubstrByWidth(label.getString(), Math.max(0, available - font.width("…"))) + "…";
             g.drawString(font, clipped, x + 4, textY, textColor, false);

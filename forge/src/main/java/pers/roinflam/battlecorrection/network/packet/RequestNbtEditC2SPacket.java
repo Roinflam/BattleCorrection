@@ -12,7 +12,6 @@ import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditTarget;
-import pers.roinflam.battlecorrection.network.ModNetwork;
 
 import javax.annotation.Nonnull;
 import java.util.function.Supplier;
@@ -78,6 +77,7 @@ public class RequestNbtEditC2SPacket {
             tag = NbtEditAccess.read(blockEntity);
             name = NbtEditAccess.name(blockEntity);
         }
-        ModNetwork.sendToPlayer(player, new OpenNbtEditorS2CPacket(target, tag, name, page));
+        OpenNbtEditorS2CPacket open = new OpenNbtEditorS2CPacket(target, tag, name, page);
+        ChunkedPacket.sendToPlayer(player, ChunkedPacket.Kind.OPEN_NBT, open::encode);
     }
 }

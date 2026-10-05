@@ -1,34 +1,215 @@
 package pers.roinflam.battlecorrection.client.editor.widget;
 
-import net.minecraft.SharedConstants;
+import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractScrollWidget;
-import net.minecraft.client.gui.components.MultilineTextField;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
+import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.FormattedCharSink;
+import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
+import pers.roinflam.battlecorrection.client.editor.snbt.BracketMatcher;
+import pers.roinflam.battlecorrection.client.editor.snbt.CharWidths;
+import pers.roinflam.battlecorrection.client.editor.snbt.ColorCodes;
+import pers.roinflam.battlecorrection.client.editor.snbt.SnbtEditing;
+import pers.roinflam.battlecorrection.client.editor.snbt.SnbtLexer;
+import pers.roinflam.battlecorrection.client.editor.snbt.TextDocument;
+import pers.roinflam.battlecorrection.client.editor.snbt.TextSearch;
+import pers.roinflam.battlecorrection.client.editor.snbt.WrapLayout;
 
 import javax.annotation.Nonnull;
-import java.util.function.Consumer;
+import javax.annotation.Nullable;
+import java.util.Arrays;
 
 /**
- * 多行文本框（原始 NBT 页用）
+ * SNBT 编辑框：行号栏 + 自动换行 + 语法高亮 + 括号配对 + 查找高亮 + 错误标记
  * <p>
- * 文字逻辑（光标、选区、增删、复制粘贴、换行）全部交给原版的 {@link MultilineTextField}，这里只负责画和接鼠标键盘。
- * 不直接用原版的 MultiLineEditBox 是因为它的鼠标处理有问题：选了一大段之后再点一下，选区不消，得按键盘才清；
- * 而它内部那个文本对象是私有的，子类没法修，只能自己包一层。这里点一下 = 光标移过去、选区清掉；按住拖 = 选；Shift+点 = 扩选。
+ * 以前这里包的是原版 MultilineTextField，但它有几处绕不过去的问题：输入和粘贴都过一遍 SharedConstants.filterText，
+ * § 会被吞掉（粘贴带颜色码的 SNBT，§c 只剩一个 c）；每次改动都整篇重新折行；画的时候每帧遍历全部行。
+ * 现在文本、光标、撤销都在 {@link TextDocument} 里，排版在 {@link WrapLayout} 里，这个控件只是它们的一个视图：
+ * <ul>
+ *   <li>每帧只画可视的那几行：二分找到首行，往下数到框底为止，全程不分配对象（行文本和行号都用复用的字符序列喂给字体）；</li>
+ *   <li>改动只增量重排改动点附近，分词结果按行缓存、只给可视行分词，超过 {@link #HIGHLIGHT_LIMIT} 个字符就不做语法高亮和括号配对；</li>
+ *   <li>字符宽度按码点查表缓存，排版和测宽都不走字体的字符串接口。</li>
+ * </ul>
+ * 鼠标：点一下移光标并清选区，Shift+点扩选，拖动选择（拖出框外自动滚），双击选词，三击选行，点行号选整行（可拖），拖滚动条。
+ * 键盘：方向键（Ctrl 按词、Shift 扩选）、Home（先到首个非空白）/ End、PgUp / PgDn（视图跟着翻页）、Ctrl+上下滚动一行、
+ * Ctrl+A / C / X / V（以及 Ctrl+Insert / Shift+Insert / Shift+Delete）、
+ * Ctrl+Z / Y / Shift+Z（文本级撤销，焦点在这里时一定吃掉，不会落到界面的整体撤销上）、
+ * Tab / Shift+Tab 缩进、Ctrl+D 复制行、Alt+上下移动行、回车自动缩进、括号引号自动补全。
+ * Ctrl+S、Ctrl+Tab、Ctrl+数字、Ctrl+Enter、Ctrl+F、Ctrl+G、F1、F3 不处理，留给页面和界面；
+ * Ctrl+Alt 加字母一律吃掉：那多半是 AltGr 在打字。
  * <p>
- * 外观走主题的凹槽样式：沟槽 + 内阴影 + 扫描线，焦点时外圈变青。选区用半透明青色盖在文字上。
+ * 光标落点：软折行的行末按约定算下一行行首，点击和上下移动不会把光标放在那里（见 {@link WrapLayout#caretOffsetAt}），
+ * 拖选和 Shift+点击可以选到行末。
  */
-public class FlatTextArea extends AbstractScrollWidget {
+public class FlatTextArea extends AbstractWidget {
+
+    /**
+     * 每行高度
+     */
+    public static final int ROW_HEIGHT = 10;
+
+    /**
+     * 超过这么多字符就不做语法高亮（只给 § 颜色码上色），也不做括号配对
+     */
+    public static final int HIGHLIGHT_LIMIT = 256 * 1024;
+
+    /**
+     * 逻辑行超过这么多字符就不给这一行做语法高亮：分词按整行来，6.4 万字符的一行分一遍约 1 毫秒，再长每次改动后的那一帧就明显变慢
+     */
+    public static final int LONG_LINE_CHARS = 64 * 1024;
+
+    private static final int PAD = 3;
+    private static final int GUTTER_PAD = 3;
+    private static final int SCROLLBAR_WIDTH = 3;
+    private static final int SCROLLBAR_HIT = 6;
+    private static final int MIN_WRAP_WIDTH = 24;
+    private static final int WHEEL_ROWS = 3;
+    private static final long MULTI_CLICK_MS = 350L;
+    private static final long BLINK_MS = 530L;
+    private static final int TOKEN_CACHE_LIMIT = 512;
+
+    // ── 颜色 ──
+    private static final int GUTTER_BG = 0xFF05090C;
+    private static final int GUTTER_LINE = 0xFF14232D;
+    private static final int LINE_NUMBER = 0xFF3D5563;
+    private static final int LINE_NUMBER_CURRENT = EditorTheme.TEXT_MUTED;
+    private static final int CURRENT_LINE = 0x1437C8FF;
+    private static final int CURRENT_LINE_UNFOCUSED = 0x0937C8FF;
+    private static final int SELECTION = EditorTheme.ACCENT_SOFT;
+    private static final int SELECTION_UNFOCUSED = 0x2237C8FF;
+    private static final int SEARCH_HIT = 0x50F2C25C;
+    private static final int BRACKET_MATCH = 0x5537C8FF;
+    private static final int BRACKET_BAD = 0x70FF5C7A;
+    private static final int ERROR_LINE = 0x1CFF5C7A;
+    private static final int OVERLAY_BG = 0xB0070C10;
+
+    private static final int FLAG_LINE_START = 1;
+    private static final int FLAG_NEWLINE = 2;
+
+    // ── 语法高亮配色（不带透明度） ──
+    private static final Style[] KIND_STYLES = new Style[SnbtLexer.KIND_COUNT];
+    private static final Style[] TINT_STYLES = new Style[16];
+    /**
+     * § 本身：下标 = 参数 + 1（0 = 重置码 r，1-16 = 颜色，17 = 格式码 k-o）
+     */
+    private static final Style[] SECTION_STYLES = new Style[18];
+    /**
+     * § 后面的代码字符，下标同上
+     */
+    private static final Style[] CODE_STYLES = new Style[18];
+
+    static {
+        int[] colors = new int[SnbtLexer.KIND_COUNT];
+        Arrays.fill(colors, EditorTheme.TEXT & 0xFFFFFF);
+        colors[SnbtLexer.KEY] = 0x8BD5F0;
+        colors[SnbtLexer.STRING] = 0xA6DB8C;
+        colors[SnbtLexer.ESCAPE] = 0xE5C07B;
+        colors[SnbtLexer.NUMBER] = 0xF2A65E;
+        colors[SnbtLexer.SUFFIX] = 0xB07A4C;
+        colors[SnbtLexer.BOOL] = 0xC792EA;
+        colors[SnbtLexer.BRACE] = 0xC9D7E0;
+        colors[SnbtLexer.BRACKET] = 0xC9D7E0;
+        colors[SnbtLexer.COLON] = 0x6F8B9A;
+        colors[SnbtLexer.COMMA] = 0x6F8B9A;
+        colors[SnbtLexer.ARRAY_TYPE] = 0xC792EA;
+        for (int kind = 0; kind < colors.length; kind++) {
+            KIND_STYLES[kind] = styleOf(colors[kind]);
+        }
+        int well = EditorTheme.WELL & 0xFFFFFF;
+        for (int i = 0; i < 16; i++) {
+            int readable = readable(ColorCodes.rgb(i));
+            TINT_STYLES[i] = styleOf(readable);
+            CODE_STYLES[i + 1] = styleOf(readable);
+            SECTION_STYLES[i + 1] = styleOf(mix(readable, well, 0.5F));
+        }
+        int format = 0xB48EAD;
+        int reset = EditorTheme.TEXT_MUTED & 0xFFFFFF;
+        CODE_STYLES[0] = styleOf(reset);
+        SECTION_STYLES[0] = styleOf(mix(reset, well, 0.5F));
+        CODE_STYLES[17] = styleOf(format);
+        SECTION_STYLES[17] = styleOf(mix(format, well, 0.5F));
+    }
+
+    /**
+     * 拖动的是什么
+     */
+    private enum Drag {
+        NONE,
+        TEXT,
+        GUTTER,
+        SCROLLBAR
+    }
 
     private final Font font;
-    private final MultilineTextField textField;
+    private final TextDocument doc;
     private final Component placeholder;
+    private final FontWidths widths;
+    private final WrapLayout layout;
+    private final RowText rowText = new RowText();
+    private final Digits digits = new Digits();
+    private final Int2ObjectOpenHashMap<int[]> tokenCache = new Int2ObjectOpenHashMap<>();
+    private final IntArrayList tokenScratch = new IntArrayList();
+    private final Runnable passes = this::renderPasses;
+    private long tokenCacheVersion = -1;
+
+    private int scrollPx;
+    private float preferredX = -1;
+    private boolean readOnly;
+    @Nullable
+    private Component overlay;
+    private int errorOffset = -1;
+    @Nullable
+    private TextSearch.Result search;
+    private boolean revealPending;
+
+    // ── 几何 ──
+    private int gutterDigits;
+    private int gutterWidth;
+    private int textLeft;
+    private int textRight;
+    private int textTop;
+    private int textBottom;
+
+    // ── 鼠标 ──
+    private Drag drag = Drag.NONE;
+    private int dragLine;
+    private double dragGrab;
+    private long lastClickTime;
+    private int lastClickOffset = -1;
+    private int clickCount;
+    private long lastAutoScroll;
+    private long caretEpoch;
+
+    // ── 括号配对缓存（按版本号 + 光标位置） ──
+    private long bracketVersion = -1;
+    private int bracketCursor = -1;
+    private int bracketAt = -1;
+    private int bracketMatch = -1;
+    private boolean bracketBad;
+
+    // ── 每帧的可视行（数组按框高预分配，帧内只填不分配） ──
+    private int[] visStart = new int[0];
+    private int[] visEnd = new int[0];
+    private int[] visLine = new int[0];
+    private int[] visFlags = new int[0];
+    private int visFirst;
+    private int visCount;
+    private boolean frameFocused;
+    @Nullable
+    private GuiGraphics frameGraphics;
 
     /**
      * @param font        字体
@@ -36,126 +217,213 @@ public class FlatTextArea extends AbstractScrollWidget {
      * @param y           上
      * @param width       宽
      * @param height      高
+     * @param doc         文档（页面持有，控件重建时沿用）
      * @param placeholder 空时显示的灰字提示
      * @param message     无障碍朗读用的名字
      */
-    public FlatTextArea(@Nonnull Font font, int x, int y, int width, int height, @Nonnull Component placeholder,
-                        @Nonnull Component message) {
+    public FlatTextArea(@Nonnull Font font, int x, int y, int width, int height, @Nonnull TextDocument doc,
+                        @Nonnull Component placeholder, @Nonnull Component message) {
         super(x, y, width, height, message);
         this.font = font;
+        this.doc = doc;
         this.placeholder = placeholder;
-        this.textField = new MultilineTextField(font, width - totalInnerPadding());
-        this.textField.setCursorListener(this::scrollToCursor);
+        this.widths = new FontWidths(font);
+        this.layout = new WrapLayout(widths);
+        updateGeometry();
+        layout.rebuild(doc, wrapWidth());
+        doc.setViewListener(this::onDocChanged);
+        // 恢复上次的滚动位置（页面切走再回来、窗口大小变化时控件是新建的）：顶端那一行 + 卷上去的像素，
+        // 滚到底时也能原样回到底（只记行的话会差半行）
+        scrollPx = layout.rowOf(doc.viewTop()) * ROW_HEIGHT + Math.min(ROW_HEIGHT - 1, doc.viewTopPixel());
+        clampScroll();
+        caretEpoch = Util.getMillis();
     }
 
-    /**
-     * 内容变化时的回调
-     *
-     * @param listener 回调
-     */
-    public void setValueListener(@Nonnull Consumer<String> listener) {
-        textField.setValueListener(listener);
-    }
+    // ═══════════════════════════════════════════════════════════════
+    // 给页面用的接口
+    // ═══════════════════════════════════════════════════════════════
 
     /**
-     * 整体替换内容（会触发回调，光标移到末尾）
-     *
-     * @param value 新内容
-     */
-    public void setValue(@Nonnull String value) {
-        textField.setValue(value);
-    }
-
-    /**
-     * 当前内容
-     *
-     * @return 文本
+     * 编辑的文档
      */
     @Nonnull
-    public String getValue() {
-        return textField.value();
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 输入
-    // ═══════════════════════════════════════════════════════════════
-
-    @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (!visible) {
-            return false;
-        }
-        // 先让父类处理滚动条拖拽；它对内容区的点击也可能返回 true，所以不能靠它的返回值决定要不要移光标
-        boolean onScrollbar = scrollbarVisible() && mouseX >= getX() + width - 8 && mouseX <= getX() + width
-                && mouseY >= getY() && mouseY < getY() + height;
-        if (onScrollbar) {
-            return super.mouseClicked(mouseX, mouseY, button);
-        }
-        if (button == 0 && withinContentAreaPoint(mouseX, mouseY)) {
-            // Shift+点 = 从原光标扩选到点击处；普通点 = 光标移过去并清掉选区
-            textField.setSelecting(Screen.hasShiftDown());
-            seekCursorScreen(mouseX, mouseY);
-            textField.setSelecting(false);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (super.mouseDragged(mouseX, mouseY, button, dragX, dragY)) {
-            return true;
-        }
-        if (button == 0 && visible && isFocused()) {
-            textField.setSelecting(true);
-            seekCursorScreen(mouseX, mouseY);
-            textField.setSelecting(false);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (!visible || !isFocused()) {
-            return false;
-        }
-        return textField.keyPressed(keyCode);
-    }
-
-    @Override
-    public boolean charTyped(char codePoint, int modifiers) {
-        if (!visible || !isFocused() || !SharedConstants.isAllowedChatCharacter(codePoint)) {
-            return false;
-        }
-        textField.insertText(Character.toString(codePoint));
-        return true;
+    public TextDocument document() {
+        return doc;
     }
 
     /**
-     * 把屏幕坐标换成文本框内坐标交给文本对象定位光标
+     * 只读（载入 / 格式化进行中时用）：还能移动光标、选择、复制，不能改
      */
-    private void seekCursorScreen(double mouseX, double mouseY) {
-        double localX = mouseX - getX() - innerPadding();
-        double localY = mouseY - getY() - innerPadding() + scrollAmount();
-        textField.seekCursorToPoint(localX, localY);
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+    }
+
+    public boolean isReadOnly() {
+        return readOnly;
     }
 
     /**
-     * 光标移出可视范围时把滚动位置跟过去
+     * 盖在文本上的一行提示（"载入中…"），null = 不盖
      */
-    private void scrollToCursor() {
-        int lineHeight = font.lineHeight;
-        int cursorLine = textField.getLineAtCursor();
-        double top = cursorLine * lineHeight;
-        double bottom = top + lineHeight;
-        double visibleTop = scrollAmount();
-        double visibleBottom = visibleTop + height - totalInnerPadding();
-        if (top < visibleTop) {
-            setScrollAmount(top);
-        } else if (bottom > visibleBottom) {
-            setScrollAmount(bottom - (height - totalInnerPadding()));
+    public void setOverlay(@Nullable Component overlay) {
+        this.overlay = overlay;
+    }
+
+    /**
+     * 解析错误的位置，-1 = 没有
+     */
+    public void setErrorMarker(int offset) {
+        this.errorOffset = offset;
+    }
+
+    /**
+     * 查找结果（版本号和文档对不上时不画）
+     */
+    public void setSearchResult(@Nullable TextSearch.Result result) {
+        this.search = result;
+    }
+
+    /**
+     * 是否在做语法高亮（文本太大时关掉）
+     */
+    public boolean isHighlighting() {
+        return doc.length() <= HIGHLIGHT_LIMIT;
+    }
+
+    /**
+     * 改位置和高度（查找栏开关时用；宽度不变）
+     *
+     * @param y      新的上边
+     * @param height 新的高度
+     */
+    public void setBounds(int y, int height) {
+        setY(y);
+        setHeight(height);
+        if (updateGeometry()) {
+            layout.rebuild(doc, wrapWidth());
         }
+        ensureLayout();
+        clampScroll();
+    }
+
+    /**
+     * 把光标滚到看得见的地方
+     *
+     * @param center true = 不在可视范围时滚到正中（跳转用），false = 只滚到刚好看见（打字用）
+     */
+    public void revealCursor(boolean center) {
+        revealPending = false;
+        revealOffset(doc.cursor(), center);
+    }
+
+    /**
+     * 把某个位置滚到看得见的地方
+     */
+    public void revealOffset(int offset, boolean center) {
+        ensureLayout();
+        int row = layout.rowOf(offset);
+        int top = row * ROW_HEIGHT;
+        int bottom = top + ROW_HEIGHT;
+        int view = viewHeight();
+        if (top >= scrollPx && bottom <= scrollPx + view) {
+            return;
+        }
+        if (center) {
+            setScroll(top - (view - ROW_HEIGHT) / 2);
+        } else if (top < scrollPx) {
+            setScroll(top);
+        } else {
+            setScroll(bottom - view);
+        }
+    }
+
+    /**
+     * 可视行数
+     */
+    public int visibleRows() {
+        return Math.max(1, viewHeight() / ROW_HEIGHT);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 几何 / 滚动
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 按当前位置、大小和行数算各区域；返回折行宽度有没有变
+     */
+    private boolean updateGeometry() {
+        int oldWrap = wrapWidth();
+        gutterDigits = Math.max(3, digitCount(doc.lineCount()));
+        gutterWidth = Math.round(widths.width('0') * gutterDigits) + GUTTER_PAD * 2;
+        textLeft = getX() + 2 + gutterWidth + PAD;
+        textRight = getX() + width - 2 - SCROLLBAR_WIDTH - PAD;
+        textTop = getY() + 2;
+        textBottom = getY() + height - 2;
+        int capacity = Math.max(1, viewHeight() / ROW_HEIGHT + 3);
+        if (visStart.length < capacity) {
+            visStart = new int[capacity];
+            visEnd = new int[capacity];
+            visLine = new int[capacity];
+            visFlags = new int[capacity];
+        }
+        return wrapWidth() != oldWrap;
+    }
+
+    private int wrapWidth() {
+        return Math.max(MIN_WRAP_WIDTH, textRight - textLeft);
+    }
+
+    private int viewHeight() {
+        return Math.max(ROW_HEIGHT, textBottom - textTop);
+    }
+
+    private int maxScroll() {
+        return Math.max(0, layout.rowCount() * ROW_HEIGHT - viewHeight());
+    }
+
+    private void setScroll(int value) {
+        scrollPx = Math.max(0, Math.min(value, maxScroll()));
+        int row = Math.min(layout.rowCount() - 1, scrollPx / ROW_HEIGHT);
+        doc.setViewTop(layout.rowStart(row), scrollPx - row * ROW_HEIGHT);
+    }
+
+    /**
+     * 排版落后于文档时整篇重排（正常不会发生：改动都会通知当前的视图；只有已经被新控件顶替掉监听的旧控件还收到输入时才会走到）。
+     * 输入处理都先过一遍，免得拿旧排版去算下标越界
+     */
+    private void ensureLayout() {
+        if (layout.version() != doc.version()) {
+            layout.rebuild(doc, wrapWidth());
+            clampScroll();
+        }
+    }
+
+    private void clampScroll() {
+        setScroll(scrollPx);
+    }
+
+    private static int digitCount(int value) {
+        int count = 1;
+        while (value >= 10) {
+            value /= 10;
+            count++;
+        }
+        return count;
+    }
+
+    /**
+     * 文档改了：增量重排；行数位数变了（行号栏变宽）就整篇重排
+     */
+    private void onDocChanged(@Nonnull TextDocument.Change change) {
+        if (Math.max(3, digitCount(doc.lineCount())) != gutterDigits && updateGeometry()) {
+            layout.rebuild(doc, wrapWidth());
+        } else {
+            layout.update(doc, change);
+        }
+        preferredX = -1;
+        revealPending = true;
+        caretEpoch = Util.getMillis();
+        clampScroll();
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -163,87 +431,991 @@ public class FlatTextArea extends AbstractScrollWidget {
     // ═══════════════════════════════════════════════════════════════
 
     @Override
-    protected int getInnerHeight() {
-        return font.lineHeight * textField.getLineCount();
-    }
+    protected void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        // 正常不会走到（改动都会通知）；万一漏了，整篇重排兜底
+        ensureLayout();
+        if (drag != Drag.NONE) {
+            continueDrag(mouseX, mouseY);
+        }
+        if (revealPending) {
+            revealPending = false;
+            revealOffset(doc.cursor(), false);
+        }
 
-    @Override
-    protected double scrollRate() {
-        return font.lineHeight / 2.0D;
-    }
-
-    @Override
-    protected void renderBorder(@Nonnull GuiGraphics g, int x, int y, int width, int height) {
+        int x = getX();
+        int y = getY();
         EditorTheme.well(g, x, y, width, height, true);
+        g.fill(x + 1, y + 1, x + 1 + gutterWidth, y + height - 1, GUTTER_BG);
+        g.fill(x + 1 + gutterWidth, y + 1, x + 2 + gutterWidth, y + height - 1, GUTTER_LINE);
+
+        g.enableScissor(x + 1, y + 1, x + width - 1, y + height - 1);
+        if (doc.length() == 0 && !isFocused() && overlay == null) {
+            g.drawWordWrap(font, placeholder, textLeft, textTop + 1, Math.max(10, textRight - textLeft), EditorTheme.TEXT_DIM);
+        } else {
+            prepareVisibleRows();
+            // 背景、文字、覆盖层三趟，各自成批提交；同类绘制连在一起，一帧只有几次绘制调用。
+            // 回调是构造时绑好的，画布通过字段传进去，免得每帧新建一个捕获参数的 lambda
+            frameGraphics = g;
+            g.drawManaged(passes);
+            frameGraphics = null;
+        }
+        g.disableScissor();
+
+        renderScrollbar(g, mouseX, mouseY);
+        if (overlay != null) {
+            g.fill(x + 1, y + 1, x + width - 1, y + height - 1, OVERLAY_BG);
+            int textWidth = font.width(overlay);
+            g.drawString(font, overlay, x + (width - textWidth) / 2, y + (height - 8) / 2, EditorTheme.TEXT_MUTED, false);
+        }
         if (isFocused()) {
             EditorTheme.wellOutline(g, x, y, width, height, EditorTheme.INPUT_BORDER_FOCUS);
         }
     }
 
-    @Override
-    protected void renderContents(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        String value = textField.value();
-        int left = getX() + innerPadding();
-        int lineHeight = font.lineHeight;
+    /**
+     * 找出可视行，填进预分配的数组：首行二分，之后顺序往下推，逻辑行号跟着行首推进
+     */
+    private void prepareVisibleRows() {
+        CharSequence text = doc.chars();
+        int length = text.length();
+        int rowCount = layout.rowCount();
+        int first = Math.min(rowCount - 1, scrollPx / ROW_HEIGHT);
+        int last = Math.min(rowCount - 1, (scrollPx + viewHeight() - 1) / ROW_HEIGHT);
+        int count = Math.min(visStart.length, last - first + 1);
+        int lineCount = doc.lineCount();
+        int line = doc.lineOf(layout.rowStart(first));
+        int nextLineStart = line + 1 < lineCount ? doc.lineStart(line + 1) : Integer.MAX_VALUE;
+        for (int k = 0; k < count; k++) {
+            int row = first + k;
+            int start = layout.rowStart(row);
+            while (start >= nextLineStart) {
+                line++;
+                nextLineStart = line + 1 < lineCount ? doc.lineStart(line + 1) : Integer.MAX_VALUE;
+            }
+            int end = layout.rowEnd(text, row);
+            int flags = 0;
+            if (start == doc.lineStart(line)) {
+                flags |= FLAG_LINE_START;
+            }
+            if (end < length && text.charAt(end) == '\n') {
+                flags |= FLAG_NEWLINE;
+            }
+            visStart[k] = start;
+            visEnd[k] = end;
+            visLine[k] = line;
+            visFlags[k] = flags;
+        }
+        visFirst = first;
+        visCount = count;
+        frameFocused = isFocused();
+        updateBracketMatch();
+    }
 
-        if (value.isEmpty() && !isFocused()) {
-            g.drawWordWrap(font, placeholder, left, getY() + innerPadding(), width - totalInnerPadding(), EditorTheme.TEXT_DIM);
+    private void renderPasses() {
+        GuiGraphics g = frameGraphics;
+        if (g == null || visCount == 0) {
             return;
         }
+        CharSequence text = doc.chars();
+        int cursor = doc.cursor();
+        int cursorLine = doc.lineOf(cursor);
+        int length = text.length();
+        int errorLine = errorOffset >= 0 && errorOffset <= length ? doc.lineOf(errorOffset) : -1;
+        int bandLeft = getX() + 2 + gutterWidth;
+        int bandRight = getX() + width - 2 - SCROLLBAR_WIDTH;
 
-        int cursor = textField.cursor();
-        boolean cursorVisible = isFocused() && (Util.getMillis() / 500L) % 2L == 0L;
-        boolean cursorInsideText = cursor < value.length();
-        int cursorX = left;
-        int lastLineY = getY() + innerPadding();
-        int lineY = getY() + innerPadding();
+        // ── 第一趟：背景（当前行、错误行、查找命中、括号配对） ──
+        for (int k = 0; k < visCount; k++) {
+            int rowY = rowY(visFirst + k);
+            if (visLine[k] == cursorLine) {
+                g.fill(bandLeft, rowY, bandRight, rowY + ROW_HEIGHT, frameFocused ? CURRENT_LINE : CURRENT_LINE_UNFOCUSED);
+            }
+            if (visLine[k] == errorLine) {
+                g.fill(bandLeft, rowY, bandRight, rowY + ROW_HEIGHT, ERROR_LINE);
+            }
+        }
+        renderSearchHits(g, text);
+        if (bracketAt >= 0) {
+            int color = bracketBad ? BRACKET_BAD : BRACKET_MATCH;
+            charBox(g, text, bracketAt, color);
+            if (bracketMatch >= 0) {
+                charBox(g, text, bracketMatch, color);
+            }
+        }
 
-        for (MultilineTextField.StringView line : textField.iterateLines()) {
-            boolean lineVisible = withinContentAreaTopBottom(lineY, lineY + lineHeight);
-            boolean cursorOnLine = cursorVisible && cursorInsideText && cursor >= line.beginIndex() && cursor <= line.endIndex();
-            if (lineVisible) {
-                if (cursorOnLine) {
-                    cursorX = g.drawString(font, value.substring(line.beginIndex(), cursor), left, lineY, EditorTheme.TEXT, false);
-                    g.fill(cursorX, lineY - 1, cursorX + 1, lineY + lineHeight, EditorTheme.ACCENT_HI);
-                    g.drawString(font, value.substring(cursor, line.endIndex()), cursorX, lineY, EditorTheme.TEXT, false);
+        // ── 第二趟：文字和行号 ──
+        boolean highlight = length <= HIGHLIGHT_LIMIT;
+        int gutterRight = getX() + 1 + gutterWidth - GUTTER_PAD;
+        for (int k = 0; k < visCount; k++) {
+            int rowY = rowY(visFirst + k);
+            int[] tokens = highlight ? tokensFor(visLine[k]) : null;
+            rowText.set(text, visStart[k], visEnd[k], tokens);
+            g.drawString(font, rowText, textLeft, rowY + 1, EditorTheme.TEXT, false);
+            if ((visFlags[k] & FLAG_LINE_START) != 0) {
+                digits.set(visLine[k] + 1);
+                int color = visLine[k] == errorLine ? EditorTheme.DANGER
+                        : visLine[k] == cursorLine ? LINE_NUMBER_CURRENT : LINE_NUMBER;
+                g.drawString(font, digits, gutterRight - digits.width(widths), rowY + 1, color, false);
+            }
+        }
+
+        // ── 第三趟：选区、错误下划线、光标 ──
+        int selectionStart = doc.selectionStart();
+        int selectionEnd = doc.selectionEnd();
+        if (selectionStart != selectionEnd) {
+            int color = frameFocused ? SELECTION : SELECTION_UNFOCUSED;
+            for (int k = 0; k < visCount; k++) {
+                int start = visStart[k];
+                int end = visEnd[k];
+                boolean coversBreak = (visFlags[k] & FLAG_NEWLINE) != 0 && selectionStart <= end && selectionEnd > end;
+                int a = Math.max(selectionStart, start);
+                int b = Math.min(selectionEnd, end);
+                if (a < b || coversBreak) {
+                    int rowY = rowY(visFirst + k);
+                    int x1 = textX(text, start, a);
+                    int x2 = textX(text, start, Math.max(a, b)) + (coversBreak ? 4 : 0);
+                    if (x2 > x1) {
+                        g.fill(x1, rowY, x2, rowY + ROW_HEIGHT, color);
+                    }
+                }
+            }
+        }
+        if (errorOffset >= 0 && errorOffset <= length) {
+            renderErrorMark(g, text);
+        }
+        boolean caretOn = frameFocused && ((Util.getMillis() - caretEpoch) / BLINK_MS) % 2 == 0;
+        if (caretOn) {
+            int k = visibleIndex(layout.rowOf(cursor));
+            if (k >= 0) {
+                int rowY = rowY(visFirst + k);
+                int caretX = textX(text, visStart[k], cursor);
+                g.fill(caretX, rowY, caretX + 1, rowY + ROW_HEIGHT, EditorTheme.ACCENT_HI);
+            }
+        }
+    }
+
+    private int rowY(int row) {
+        return textTop + row * ROW_HEIGHT - scrollPx;
+    }
+
+    /**
+     * 行首到 offset 的横坐标（屏幕坐标）
+     */
+    private int textX(@Nonnull CharSequence text, int rowStart, int offset) {
+        return textLeft + Math.round(layout.measure(text, rowStart, offset));
+    }
+
+    /**
+     * 显示行在可视数组里的下标，不可见返回 -1
+     */
+    private int visibleIndex(int row) {
+        int k = row - visFirst;
+        return k >= 0 && k < visCount ? k : -1;
+    }
+
+    /**
+     * 给一个字符垫一块底色（括号配对用）
+     */
+    private void charBox(@Nonnull GuiGraphics g, @Nonnull CharSequence text, int offset, int color) {
+        int k = visibleIndex(layout.rowOf(offset));
+        if (k < 0 || offset >= visEnd[k]) {
+            return;
+        }
+        int rowY = rowY(visFirst + k);
+        g.fill(textX(text, visStart[k], offset), rowY, textX(text, visStart[k], offset + 1), rowY + ROW_HEIGHT, color);
+    }
+
+    /**
+     * 查找命中：从可视范围第一行之前的命中开始，顺着行往下，指针只前进不回退
+     */
+    private void renderSearchHits(@Nonnull GuiGraphics g, @Nonnull CharSequence text) {
+        TextSearch.Result result = search;
+        if (result == null || result.count() == 0 || result.version() != doc.version()) {
+            return;
+        }
+        int[] hits = result.hits();
+        int count = result.count();
+        int needle = result.length();
+        int hit = result.lowerBound(Math.max(0, visStart[0] - needle + 1));
+        for (int k = 0; k < visCount; k++) {
+            int start = visStart[k];
+            int end = visEnd[k];
+            while (hit < count && hits[hit] + needle <= start) {
+                hit++;
+            }
+            int rowY = rowY(visFirst + k);
+            for (int j = hit; j < count && hits[j] < end; j++) {
+                int a = Math.max(hits[j], start);
+                int b = Math.min(hits[j] + needle, end);
+                g.fill(textX(text, start, a), rowY, textX(text, start, b), rowY + ROW_HEIGHT, SEARCH_HIT);
+            }
+        }
+    }
+
+    /**
+     * 解析错误：出错字符下面一道红线（在行尾或文末时画一小段），行号栏左边一道红条
+     */
+    private void renderErrorMark(@Nonnull GuiGraphics g, @Nonnull CharSequence text) {
+        int k = visibleIndex(layout.rowOf(errorOffset));
+        if (k < 0) {
+            return;
+        }
+        int rowY = rowY(visFirst + k);
+        int start = visStart[k];
+        int end = visEnd[k];
+        int x1 = textX(text, start, Math.min(errorOffset, end));
+        int x2;
+        if (errorOffset < end) {
+            int next = errorOffset + 1;
+            if (Character.isHighSurrogate(text.charAt(errorOffset)) && next < end) {
+                next++;
+            }
+            x2 = textX(text, start, next);
+        } else {
+            x2 = x1 + 4;
+        }
+        x2 = Math.max(x2, x1 + 2);
+        int underline = rowY + ROW_HEIGHT - 1;
+        g.fill(x1, underline, x2, underline + 1, EditorTheme.DANGER);
+        // 波浪：隔一个像素往上抬一格
+        for (int px = x1; px < x2; px += 2) {
+            g.fill(px, underline - 1, px + 1, underline, EditorTheme.DANGER);
+        }
+        g.fill(getX() + 1, rowY, getX() + 3, rowY + ROW_HEIGHT, EditorTheme.DANGER);
+    }
+
+    private void renderScrollbar(@Nonnull GuiGraphics g, int mouseX, int mouseY) {
+        int max = maxScroll();
+        if (max <= 0) {
+            return;
+        }
+        int trackX = getX() + width - 1 - SCROLLBAR_WIDTH;
+        int trackTop = getY() + 1;
+        int trackHeight = height - 2;
+        g.fill(trackX, trackTop, trackX + SCROLLBAR_WIDTH, trackTop + trackHeight, EditorTheme.ACCENT_FAINT);
+        // 错误位置在滚动条上标一道红线，长文本里一眼能看到错在哪一段
+        if (errorOffset >= 0 && errorOffset <= doc.length()) {
+            int markY = trackTop + (int) ((long) trackHeight * layout.rowOf(errorOffset) / Math.max(1, layout.rowCount()));
+            g.fill(trackX - 1, markY, trackX + SCROLLBAR_WIDTH, Math.min(trackTop + trackHeight, markY + 2), EditorTheme.DANGER);
+        }
+        int thumbHeight = thumbHeight();
+        int thumbY = thumbY();
+        boolean hot = drag == Drag.SCROLLBAR || (mouseX >= getX() + width - SCROLLBAR_HIT && mouseX < getX() + width
+                && mouseY >= getY() && mouseY < getY() + height);
+        g.fill(trackX, thumbY, trackX + SCROLLBAR_WIDTH, thumbY + thumbHeight, hot ? EditorTheme.ACCENT_HOVER : EditorTheme.ACCENT);
+        g.fill(trackX + 1, thumbY + 1, trackX + 2, thumbY + thumbHeight - 1, EditorTheme.ACCENT_HI);
+    }
+
+    private int thumbHeight() {
+        int trackHeight = height - 2;
+        int content = Math.max(1, layout.rowCount() * ROW_HEIGHT);
+        return Math.max(10, Math.min(trackHeight, (int) ((long) trackHeight * viewHeight() / content)));
+    }
+
+    private int thumbY() {
+        int max = maxScroll();
+        int travel = height - 2 - thumbHeight();
+        return getY() + 1 + (max <= 0 ? 0 : (int) ((long) travel * scrollPx / max));
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 分词缓存 / 括号配对
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 一个逻辑行的词（按版本号缓存，文本一改全部作废——作废后只有可视的那几行会被重新分词）
+     * <p>
+     * 分词以整个逻辑行为单位，超长的行（压成一行的大 NBT）每打一个字都要整行重分，返回 null 不做语法高亮，只给 § 颜色码上色。
+     *
+     * @return 词，超长行返回 null
+     */
+    @Nullable
+    private int[] tokensFor(int line) {
+        if (doc.lineEnd(line) - doc.lineStart(line) > LONG_LINE_CHARS) {
+            return null;
+        }
+        if (tokenCacheVersion != doc.version()) {
+            tokenCache.clear();
+            tokenCacheVersion = doc.version();
+        }
+        int[] tokens = tokenCache.get(line);
+        if (tokens == null) {
+            if (tokenCache.size() >= TOKEN_CACHE_LIMIT) {
+                tokenCache.clear();
+            }
+            tokenScratch.clear();
+            SnbtLexer.tokenizeLine(doc.chars(), doc.lineStart(line), doc.lineEnd(line), doc.lexStateAtLine(line), tokenScratch);
+            tokens = tokenScratch.toIntArray();
+            tokenCache.put(line, tokens);
+        }
+        return tokens;
+    }
+
+    /**
+     * 光标贴着括号时找另一半（光标右边的优先）；按版本号 + 光标位置缓存，不变就不重算
+     */
+    private void updateBracketMatch() {
+        int cursor = doc.cursor();
+        if (bracketVersion == doc.version() && bracketCursor == cursor) {
+            return;
+        }
+        bracketVersion = doc.version();
+        bracketCursor = cursor;
+        bracketAt = -1;
+        bracketMatch = -1;
+        bracketBad = false;
+        if (!isHighlighting()) {
+            // 大文本和语法高亮一样不做：光标停在根括号上时要从头扫到尾（2MB 约 10 毫秒），
+            // 而且文本每改一次、光标每挪一次都可能再扫一遍
+            return;
+        }
+        int at = BracketMatcher.isStructural(doc, cursor) ? cursor
+                : cursor > 0 && BracketMatcher.isStructural(doc, cursor - 1) ? cursor - 1 : -1;
+        if (at < 0) {
+            return;
+        }
+        bracketAt = at;
+        bracketMatch = BracketMatcher.findMatch(doc, at);
+        bracketBad = bracketMatch < 0 || BracketMatcher.partner(doc.charAt(at)) != doc.charAt(bracketMatch);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 鼠标
+    // ═══════════════════════════════════════════════════════════════
+
+    private boolean within(double mouseX, double mouseY) {
+        return mouseX >= getX() && mouseX < getX() + width && mouseY >= getY() && mouseY < getY() + height;
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!visible || !active || button != 0 || !within(mouseX, mouseY)) {
+            return false;
+        }
+        ensureLayout();
+        long now = Util.getMillis();
+        caretEpoch = now;
+        lastAutoScroll = now;
+        preferredX = -1;
+        // 点在上下边框那两个像素里时按首尾可见行算，不然会选到框外半行（拖动时才需要越界，见 continueDrag）
+        double clickY = Math.max(textTop, Math.min(textBottom - 1, mouseY));
+
+        if (maxScroll() > 0 && mouseX >= getX() + width - SCROLLBAR_HIT) {
+            int thumbY = thumbY();
+            int thumbHeight = thumbHeight();
+            if (mouseY >= thumbY && mouseY < thumbY + thumbHeight) {
+                dragGrab = mouseY - thumbY;
+            } else {
+                // 点在滑轨空白处：滑块中心跳到鼠标位置，接着可以直接拖
+                dragGrab = thumbHeight / 2.0;
+                scrollToThumb(mouseY - dragGrab);
+            }
+            drag = Drag.SCROLLBAR;
+            return true;
+        }
+
+        if (mouseX < getX() + 2 + gutterWidth) {
+            int line = doc.lineOf(layout.rowStart(rowAt(clickY)));
+            int anchorLine = Screen.hasShiftDown() ? doc.lineOf(doc.anchor()) : line;
+            SnbtEditing.selectLines(doc, anchorLine, line);
+            dragLine = anchorLine;
+            drag = Drag.GUTTER;
+            return true;
+        }
+
+        boolean shift = Screen.hasShiftDown();
+        // 只放光标时落在软折行末尾会画到下一行开头，往回收一个字符；Shift 扩选要能选到行末，不收
+        int offset = shift ? offsetAt(mouseX, clickY) : caretAt(mouseX, clickY);
+        if (now - lastClickTime < MULTI_CLICK_MS && Math.abs(offset - lastClickOffset) <= 1) {
+            clickCount = clickCount % 3 + 1;
+        } else {
+            clickCount = 1;
+        }
+        lastClickTime = now;
+        lastClickOffset = offset;
+        if (clickCount == 2) {
+            int[] word = SnbtEditing.wordAt(doc.chars(), offset);
+            doc.setSelection(word[0], word[1]);
+            drag = Drag.NONE;
+        } else if (clickCount == 3) {
+            int line = doc.lineOf(offset);
+            SnbtEditing.selectLines(doc, line, line);
+            drag = Drag.NONE;
+        } else {
+            // Shift+点 = 从原来的固定端扩选；普通点 = 光标移过去、选区清掉
+            doc.moveCursor(offset, shift);
+            drag = Drag.TEXT;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        // 界面会把"拖动"转给当前焦点；点了不抢焦点的按钮之后拖鼠标也会转到这里，所以只认自己发起的拖动
+        if (button != 0 || drag == Drag.NONE) {
+            return false;
+        }
+        if (!Minecraft.getInstance().mouseHandler.isLeftPressed()) {
+            drag = Drag.NONE;
+            return false;
+        }
+        ensureLayout();
+        applyDrag(mouseX, mouseY);
+        return true;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (button == 0 && drag != Drag.NONE) {
+            drag = Drag.NONE;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        if (!visible) {
+            return false;
+        }
+        ensureLayout();
+        setScroll(scrollPx - (int) Math.round(delta * WHEEL_ROWS * ROW_HEIGHT));
+        if (drag == Drag.TEXT || drag == Drag.GUTTER) {
+            applyDrag(mouseX, mouseY);
+        }
+        return true;
+    }
+
+    private void applyDrag(double mouseX, double mouseY) {
+        caretEpoch = Util.getMillis();
+        switch (drag) {
+            case SCROLLBAR -> scrollToThumb(mouseY - dragGrab);
+            case TEXT -> doc.moveCursor(offsetAt(mouseX, mouseY), true);
+            case GUTTER -> SnbtEditing.selectLines(doc, dragLine, doc.lineOf(layout.rowStart(rowAt(mouseY))));
+            default -> {
+            }
+        }
+    }
+
+    /**
+     * 每帧调用：按住拖到框外时自动滚动并继续扩选；鼠标在框外松开时界面不会通知这里，靠查按键状态收尾
+     */
+    private void continueDrag(int mouseX, int mouseY) {
+        if (!Minecraft.getInstance().mouseHandler.isLeftPressed()) {
+            drag = Drag.NONE;
+            return;
+        }
+        long now = Util.getMillis();
+        long elapsed = Math.min(100L, now - lastAutoScroll);
+        lastAutoScroll = now;
+        if (drag == Drag.SCROLLBAR) {
+            return;
+        }
+        int outside = mouseY < textTop ? mouseY - textTop : mouseY > textBottom ? mouseY - textBottom : 0;
+        if (outside == 0) {
+            return;
+        }
+        // 离框越远滚得越快
+        int speed = 120 + 12 * Math.abs(outside);
+        int amount = (int) Math.max(1, speed * elapsed / 1000);
+        setScroll(scrollPx + (outside < 0 ? -amount : amount));
+        applyDrag(mouseX, mouseY);
+    }
+
+    private void scrollToThumb(double thumbTop) {
+        int travel = height - 2 - thumbHeight();
+        if (travel <= 0) {
+            return;
+        }
+        double fraction = (thumbTop - (getY() + 1)) / travel;
+        setScroll((int) Math.round(fraction * maxScroll()));
+    }
+
+    /**
+     * 纵坐标对应的显示行（框外的夹到首尾）
+     */
+    private int rowAt(double mouseY) {
+        int row = (int) Math.floor((mouseY - textTop + scrollPx) / ROW_HEIGHT);
+        return Math.max(0, Math.min(layout.rowCount() - 1, row));
+    }
+
+    /**
+     * 屏幕坐标对应的文本下标（拖选用：软折行的行末也能选到）
+     */
+    private int offsetAt(double mouseX, double mouseY) {
+        int row = rowAt(mouseY);
+        CharSequence text = doc.chars();
+        return layout.offsetAt(text, layout.rowStart(row), layout.rowEnd(text, row), mouseX - textLeft);
+    }
+
+    /**
+     * 屏幕坐标对应的光标位置（放光标用：不会落在软折行末尾，见 {@link WrapLayout#caretOffsetAt}）
+     */
+    private int caretAt(double mouseX, double mouseY) {
+        return layout.caretOffsetAt(doc.chars(), rowAt(mouseY), mouseX - textLeft);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 键盘
+    // ═══════════════════════════════════════════════════════════════
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (!visible || !isFocused()) {
+            return false;
+        }
+        boolean ctrl = Screen.hasControlDown();
+        boolean shift = Screen.hasShiftDown();
+        boolean alt = Screen.hasAltDown();
+        caretEpoch = Util.getMillis();
+        ensureLayout();
+
+        if (ctrl && alt && keyCode >= GLFW.GLFW_KEY_A && keyCode <= GLFW.GLFW_KEY_Z) {
+            // AltGr 在 Windows 上会附带一个左 Ctrl（GLFW 多数时候能认出来滤掉，但不保证），不少键盘布局靠它打字
+            // （波兰语 AltGr+Z = ż、AltGr+S = ś），字符随后从 charTyped 进来；按键本身吃掉，
+            // 万一被当成 Ctrl 组合键，也不会落到界面的 Ctrl+S 保存、Ctrl+Z 整体撤销上
+            return true;
+        }
+        if (ctrl && !alt) {
+            switch (keyCode) {
+                case GLFW.GLFW_KEY_Z -> {
+                    if (!readOnly) {
+                        if (shift) {
+                            doc.redo();
+                        } else {
+                            doc.undo();
+                        }
+                    }
+                    return true;
+                }
+                case GLFW.GLFW_KEY_Y -> {
+                    if (!readOnly) {
+                        doc.redo();
+                    }
+                    return true;
+                }
+                case GLFW.GLFW_KEY_A -> {
+                    doc.selectAll();
+                    return true;
+                }
+                case GLFW.GLFW_KEY_C -> {
+                    copySelection();
+                    return true;
+                }
+                case GLFW.GLFW_KEY_X -> {
+                    copySelection();
+                    if (!readOnly && doc.hasSelection()) {
+                        SnbtEditing.deleteSelection(doc, TextDocument.EditKind.COMMAND);
+                    }
+                    return true;
+                }
+                case GLFW.GLFW_KEY_V -> {
+                    if (!readOnly) {
+                        SnbtEditing.paste(doc, Minecraft.getInstance().keyboardHandler.getClipboard());
+                    }
+                    return true;
+                }
+                case GLFW.GLFW_KEY_D -> {
+                    if (!readOnly) {
+                        SnbtEditing.duplicateLines(doc);
+                    }
+                    return true;
+                }
+                default -> {
+                    // 其余 Ctrl 组合键往下走（方向键等），或者留给页面 / 界面（Ctrl+S、Ctrl+F……）
+                }
+            }
+        }
+
+        switch (keyCode) {
+            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> {
+                if (ctrl) {
+                    // Ctrl+Enter = 应用，页面处理
+                    return false;
+                }
+                if (!readOnly) {
+                    SnbtEditing.newline(doc);
+                }
+                return true;
+            }
+            case GLFW.GLFW_KEY_BACKSPACE -> {
+                if (!readOnly) {
+                    SnbtEditing.backspace(doc, ctrl);
+                }
+                return true;
+            }
+            case GLFW.GLFW_KEY_DELETE -> {
+                if (shift && !ctrl) {
+                    // Shift+Delete = 剪切（Windows 的老习惯）
+                    copySelection();
+                    if (!readOnly && doc.hasSelection()) {
+                        SnbtEditing.deleteSelection(doc, TextDocument.EditKind.COMMAND);
+                    }
+                } else if (!readOnly) {
+                    SnbtEditing.deleteForward(doc, ctrl);
+                }
+                return true;
+            }
+            case GLFW.GLFW_KEY_TAB -> {
+                if (ctrl) {
+                    // Ctrl+Tab 切页，界面处理
+                    return false;
+                }
+                if (!readOnly) {
+                    if (shift) {
+                        SnbtEditing.outdent(doc);
+                    } else {
+                        SnbtEditing.indent(doc);
+                    }
+                }
+                return true;
+            }
+            case GLFW.GLFW_KEY_LEFT -> {
+                moveHorizontal(-1, ctrl, shift);
+                return true;
+            }
+            case GLFW.GLFW_KEY_RIGHT -> {
+                moveHorizontal(1, ctrl, shift);
+                return true;
+            }
+            case GLFW.GLFW_KEY_UP, GLFW.GLFW_KEY_DOWN -> {
+                boolean up = keyCode == GLFW.GLFW_KEY_UP;
+                if (alt && !ctrl) {
+                    if (!readOnly) {
+                        SnbtEditing.moveLines(doc, up);
+                    }
+                } else if (ctrl) {
+                    setScroll(scrollPx + (up ? -ROW_HEIGHT : ROW_HEIGHT));
                 } else {
-                    cursorX = g.drawString(font, value.substring(line.beginIndex(), line.endIndex()), left, lineY, EditorTheme.TEXT, false);
+                    moveVertical(up ? -1 : 1, shift);
                 }
+                return true;
             }
-            lastLineY = lineY;
-            lineY += lineHeight;
+            case GLFW.GLFW_KEY_PAGE_UP, GLFW.GLFW_KEY_PAGE_DOWN -> {
+                // 视图和光标一起翻一页，光标留在屏幕上同一个位置
+                int rows = keyCode == GLFW.GLFW_KEY_PAGE_UP ? -visibleRows() : visibleRows();
+                setScroll(scrollPx + rows * ROW_HEIGHT);
+                moveVertical(rows, shift);
+                return true;
+            }
+            case GLFW.GLFW_KEY_HOME -> {
+                moveTo(ctrl ? 0 : SnbtEditing.smartHome(doc, doc.cursor()), shift);
+                return true;
+            }
+            case GLFW.GLFW_KEY_END -> {
+                moveTo(ctrl ? doc.length() : doc.lineEnd(doc.lineOf(doc.cursor())), shift);
+                return true;
+            }
+            case GLFW.GLFW_KEY_INSERT -> {
+                // Shift+Insert 粘贴、Ctrl+Insert 复制；单按 Insert 不做改写模式，吃掉
+                if (shift && !ctrl) {
+                    if (!readOnly) {
+                        SnbtEditing.paste(doc, Minecraft.getInstance().keyboardHandler.getClipboard());
+                    }
+                } else if (ctrl && !shift) {
+                    copySelection();
+                }
+                return true;
+            }
+            default -> {
+                return false;
+            }
         }
-        // 光标在文本末尾：画在最后一行末尾
-        if (cursorVisible && !cursorInsideText && withinContentAreaTopBottom(lastLineY, lastLineY + lineHeight)) {
-            g.fill(cursorX, lastLineY - 1, cursorX + 1, lastLineY + lineHeight, EditorTheme.ACCENT_HI);
-        }
+    }
 
-        // 选区：半透明青色盖在文字上
-        MultilineTextField.StringView selected = textField.getSelected();
-        if (selected.beginIndex() != selected.endIndex()) {
-            int selectionY = getY() + innerPadding();
-            for (MultilineTextField.StringView line : textField.iterateLines()) {
-                if (selected.beginIndex() > line.endIndex()) {
-                    selectionY += lineHeight;
-                    continue;
-                }
-                if (line.beginIndex() > selected.endIndex()) {
-                    break;
-                }
-                if (withinContentAreaTopBottom(selectionY, selectionY + lineHeight)) {
-                    int startX = font.width(value.substring(line.beginIndex(), Math.max(selected.beginIndex(), line.beginIndex())));
-                    int endX = selected.endIndex() > line.endIndex()
-                            ? width - innerPadding()
-                            : font.width(value.substring(line.beginIndex(), selected.endIndex()));
-                    g.fill(left + startX, selectionY, left + endX, selectionY + lineHeight, EditorTheme.ACCENT_SOFT);
-                }
-                selectionY += lineHeight;
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (!visible || !isFocused() || !SnbtEditing.isTypeable(codePoint)) {
+            return false;
+        }
+        if (!readOnly) {
+            ensureLayout();
+            SnbtEditing.typeChar(doc, codePoint);
+            preferredX = -1;
+            caretEpoch = Util.getMillis();
+            // 键入右括号 / 闭引号时可能只是挪了光标，文本没变，不会触发改动回调，这里补一次滚动跟随
+            revealOffset(doc.cursor(), false);
+        }
+        return true;
+    }
+
+    @Override
+    public void setFocused(boolean focused) {
+        super.setFocused(focused);
+        if (!focused) {
+            drag = Drag.NONE;
+            doc.sealHistory();
+        } else {
+            caretEpoch = Util.getMillis();
+        }
+    }
+
+    private void moveTo(int pos, boolean extend) {
+        doc.moveCursor(pos, extend);
+        preferredX = -1;
+        revealOffset(pos, false);
+    }
+
+    private void moveHorizontal(int direction, boolean word, boolean extend) {
+        CharSequence text = doc.chars();
+        int length = text.length();
+        if (doc.hasSelection() && !extend && !word) {
+            // 有选区时不带 Shift 按左右：光标落到选区对应的一端，选区消掉
+            moveTo(direction < 0 ? doc.selectionStart() : doc.selectionEnd(), false);
+            return;
+        }
+        int pos = doc.cursor();
+        int target;
+        if (word) {
+            target = direction < 0 ? SnbtEditing.previousWordBoundary(text, pos) : SnbtEditing.nextWordBoundary(text, pos);
+        } else {
+            target = Math.max(0, Math.min(length, pos + direction));
+            // 两个码元组成的字符（surrogate pair）当一个字符走
+            if (target > 0 && target < length && Character.isLowSurrogate(text.charAt(target))
+                    && Character.isHighSurrogate(text.charAt(target - 1))) {
+                target += direction;
             }
+        }
+        moveTo(target, extend);
+    }
+
+    /**
+     * 上下移动：按显示行走，横坐标记住第一次按下时的位置（经过短行再回到长行时列不丢）
+     */
+    private void moveVertical(int rows, boolean extend) {
+        CharSequence text = doc.chars();
+        int cursor = doc.cursor();
+        int row = layout.rowOf(cursor);
+        if (preferredX < 0) {
+            preferredX = layout.measure(text, layout.rowStart(row), cursor);
+        }
+        int target = row + rows;
+        int pos;
+        if (target < 0) {
+            pos = 0;
+        } else if (target >= layout.rowCount()) {
+            pos = text.length();
+        } else {
+            // 不落在软折行末尾：那里按约定画在下一行开头，再按一次下方向键会越过一行
+            pos = layout.caretOffsetAt(text, target, preferredX);
+        }
+        float keep = preferredX;
+        doc.moveCursor(pos, extend);
+        preferredX = keep;
+        revealOffset(pos, false);
+    }
+
+    private void copySelection() {
+        if (doc.hasSelection()) {
+            Minecraft.getInstance().keyboardHandler.setClipboard(doc.selectedText());
         }
     }
 
     @Override
     protected void updateWidgetNarration(@Nonnull NarrationElementOutput output) {
         output.add(NarratedElementType.TITLE, getMessage());
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 配色工具
+    // ═══════════════════════════════════════════════════════════════
+
+    @Nonnull
+    private static Style styleOf(int rgb) {
+        return Style.EMPTY.withColor(TextColor.fromRgb(rgb & 0xFFFFFF));
+    }
+
+    /**
+     * § 颜色在深色底上看得清：太暗的颜色（黑、深蓝、深灰……）往白色提亮
+     */
+    private static int readable(int rgb) {
+        int r = (rgb >> 16) & 0xFF;
+        int g = (rgb >> 8) & 0xFF;
+        int b = rgb & 0xFF;
+        float luminance = (0.299F * r + 0.587F * g + 0.114F * b) / 255F;
+        float lift = Math.max(0F, Math.min(0.45F, (0.5F - luminance) * 0.8F));
+        return mix(rgb, 0xFFFFFF, lift);
+    }
+
+    private static int mix(int a, int b, float t) {
+        int r = Math.round(((a >> 16) & 0xFF) * (1 - t) + ((b >> 16) & 0xFF) * t);
+        int g = Math.round(((a >> 8) & 0xFF) * (1 - t) + ((b >> 8) & 0xFF) * t);
+        int bl = Math.round((a & 0xFF) * (1 - t) + (b & 0xFF) * t);
+        return (r << 16) | (g << 8) | bl;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 复用的字符序列
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 一个显示行的文字，按词上色后逐字喂给字体；整个控件复用一个实例，画的时候不截子串、不分配
+     * <p>
+     * 用 FormattedCharSequence 而不是 String 交给字体，是因为字体画 String 时会把 § 当格式码吃掉，这里要把 § 原样画出来。
+     */
+    private static final class RowText implements FormattedCharSequence {
+
+        private CharSequence text = "";
+        private int from;
+        private int to;
+        @Nullable
+        private int[] tokens;
+
+        void set(@Nonnull CharSequence text, int from, int to, @Nullable int[] tokens) {
+            this.text = text;
+            this.from = from;
+            this.to = to;
+            this.tokens = tokens;
+        }
+
+        @Override
+        public boolean accept(@Nonnull FormattedCharSink sink) {
+            int[] tokens = this.tokens;
+            int t = tokens == null ? 0 : firstToken(tokens, from);
+            boolean afterSection = false;
+            int i = from;
+            while (i < to) {
+                char c = text.charAt(i);
+                int codePoint;
+                int length = 1;
+                if (Character.isHighSurrogate(c) && i + 1 < to && Character.isLowSurrogate(text.charAt(i + 1))) {
+                    codePoint = Character.toCodePoint(c, text.charAt(i + 1));
+                    length = 2;
+                } else {
+                    codePoint = Character.isSurrogate(c) ? 0xFFFD : c;
+                }
+                Style style;
+                if (tokens != null) {
+                    while (t < tokens.length && tokens[t + 1] <= i) {
+                        t += 3;
+                    }
+                    style = t < tokens.length && tokens[t] <= i ? styleOfToken(tokens[t + 2]) : Style.EMPTY;
+                } else {
+                    // 大文本不分词：只给 § 颜色码本身上色
+                    style = Style.EMPTY;
+                    if (afterSection && ColorCodes.isLegalCode(c)) {
+                        style = CODE_STYLES[codeIndex(c)];
+                    } else if (c == ColorCodes.SECTION && i + 1 < text.length() && ColorCodes.isLegalCode(text.charAt(i + 1))) {
+                        style = SECTION_STYLES[codeIndex(text.charAt(i + 1))];
+                    }
+                    afterSection = c == ColorCodes.SECTION;
+                }
+                if (!sink.accept(i - from, style, codePoint)) {
+                    return false;
+                }
+                i += length;
+            }
+            return true;
+        }
+
+        private static int codeIndex(char code) {
+            int index = ColorCodes.colorIndex(code);
+            return index >= 0 ? index + 1 : ColorCodes.isReset(code) ? 0 : 17;
+        }
+
+        @Nonnull
+        private static Style styleOfToken(int packed) {
+            int kind = SnbtLexer.kindOf(packed);
+            int arg = SnbtLexer.argOf(packed);
+            return switch (kind) {
+                case SnbtLexer.TINTED -> TINT_STYLES[arg];
+                case SnbtLexer.SECTION -> SECTION_STYLES[arg + 1];
+                case SnbtLexer.SECTION_CODE -> CODE_STYLES[arg + 1];
+                default -> KIND_STYLES[kind];
+            };
+        }
+
+        /**
+         * 第一个终点 > offset 的词（三个 int 一组，二分）
+         */
+        private static int firstToken(@Nonnull int[] tokens, int offset) {
+            int low = 0;
+            int high = tokens.length / 3;
+            while (low < high) {
+                int mid = (low + high) >>> 1;
+                if (tokens[mid * 3 + 1] <= offset) {
+                    low = mid + 1;
+                } else {
+                    high = mid;
+                }
+            }
+            return low * 3;
+        }
+    }
+
+    /**
+     * 行号：复用一个字符缓冲，不每帧拼字符串
+     */
+    private static final class Digits implements FormattedCharSequence {
+
+        private final char[] buffer = new char[12];
+        private int start = buffer.length;
+
+        void set(int value) {
+            int p = buffer.length;
+            int v = Math.max(0, value);
+            do {
+                buffer[--p] = (char) ('0' + v % 10);
+                v /= 10;
+            } while (v > 0);
+            start = p;
+        }
+
+        int width(@Nonnull CharWidths widths) {
+            float sum = 0;
+            for (int i = start; i < buffer.length; i++) {
+                sum += widths.width(buffer[i]);
+            }
+            return Math.round(sum);
+        }
+
+        @Override
+        public boolean accept(@Nonnull FormattedCharSink sink) {
+            for (int i = start; i < buffer.length; i++) {
+                if (!sink.accept(i - start, Style.EMPTY, buffer[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    /**
+     * 按码点查字体宽度并缓存（BMP 用数组，其余用哈希表）
+     * <p>
+     * 宽度取自字体自己的 StringSplitter，和实际绘制的前进宽度完全一致；不用 font.width(String) 是因为它会把 § 当格式码。
+     */
+    private static final class FontWidths implements CharWidths {
+
+        private final StringSplitter splitter;
+        private final float[] bmp = new float[65536];
+        private final Int2FloatOpenHashMap supplementary = new Int2FloatOpenHashMap();
+
+        FontWidths(@Nonnull Font font) {
+            this.splitter = font.getSplitter();
+            Arrays.fill(bmp, -1F);
+        }
+
+        @Override
+        public float width(int codePoint) {
+            if (codePoint >= 0 && codePoint < bmp.length) {
+                float width = bmp[codePoint];
+                if (width < 0) {
+                    width = measure(codePoint);
+                    bmp[codePoint] = width;
+                }
+                return width;
+            }
+            if (supplementary.containsKey(codePoint)) {
+                return supplementary.get(codePoint);
+            }
+            float width = measure(codePoint);
+            supplementary.put(codePoint, width);
+            return width;
+        }
+
+        private float measure(int codePoint) {
+            return splitter.stringWidth(FormattedCharSequence.codepoint(codePoint, Style.EMPTY));
+        }
     }
 }

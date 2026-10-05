@@ -344,12 +344,17 @@ public class ConfigAttribute {
 
         ITEM_EDITOR_MAX_NBT_KB = builder
                 .comment(
-                        "[EN] Max NBT size (KB) the editor is allowed to save onto one item",
-                        "     Larger NBT is rejected on the server. Vanilla packets cap at 2048 KB",
-                        "[中文] 编辑器允许保存到单件物品上的 NBT 大小上限（KB）",
-                        "     超过的服务端直接拒绝。原版网络包的硬上限是 2048 KB"
+                        "[EN] Max NBT size (KB) the editor may save onto one item, entity or block entity",
+                        "     The editor sends large NBT in chunks, so the network is no longer the limit. The real",
+                        "     limit is the vanilla client: it refuses to decode an item slot whose NBT is around 2 MB or",
+                        "     more and disconnects, so an oversized item can lock its holder out of the server",
+                        "     Raise it with care; anything above 2048 is likely to break item sync",
+                        "[中文] 编辑器允许保存到单个物品 / 实体 / 方块实体上的 NBT 大小上限（KB）",
+                        "     编辑器的大 NBT 是分片发送的，网络本身不再限制大小。真正的上限在原版客户端：",
+                        "     物品格子的 NBT 到 2 MB 左右客户端就解不出来，会直接断线，超大物品能把持有者锁在服务器外面",
+                        "     调大要谨慎，超过 2048 基本一定会出问题"
                 )
-                .defineInRange("itemEditorMaxNbtKb", 256, 1, 2048);
+                .defineInRange("itemEditorMaxNbtKb", 1024, 16, 8192);
 
         ITEM_EDITOR_QUALITY_TAGS = builder
                 .comment(

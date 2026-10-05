@@ -8,6 +8,8 @@ import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.network.simple.SimpleChannel;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.ApplyNbtEditC2SPacket;
+import pers.roinflam.battlecorrection.network.packet.ChunkedC2SPacket;
+import pers.roinflam.battlecorrection.network.packet.ChunkedS2CPacket;
 import pers.roinflam.battlecorrection.network.packet.OpenItemEditorS2CPacket;
 import pers.roinflam.battlecorrection.network.packet.OpenNbtEditorS2CPacket;
 import pers.roinflam.battlecorrection.network.packet.RequestNbtEditC2SPacket;
@@ -30,7 +32,7 @@ public final class ModNetwork {
     /**
      * 协议版本，包格式变化时递增
      */
-    private static final String PROTOCOL_VERSION = "2";
+    private static final String PROTOCOL_VERSION = "6";
 
     /**
      * 通道实例
@@ -60,12 +62,6 @@ public final class ModNetwork {
                 .consumerMainThread(OpenItemEditorS2CPacket::handle)
                 .add();
 
-        CHANNEL.messageBuilder(ApplyItemEditC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ApplyItemEditC2SPacket::encode)
-                .decoder(ApplyItemEditC2SPacket::decode)
-                .consumerMainThread(ApplyItemEditC2SPacket::handle)
-                .add();
-
         CHANNEL.messageBuilder(SetCurioSlotsC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
                 .encoder(SetCurioSlotsC2SPacket::encode)
                 .decoder(SetCurioSlotsC2SPacket::decode)
@@ -78,16 +74,18 @@ public final class ModNetwork {
                 .consumerMainThread(RequestNbtEditC2SPacket::handle)
                 .add();
 
-        CHANNEL.messageBuilder(OpenNbtEditorS2CPacket.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(OpenNbtEditorS2CPacket::encode)
-                .decoder(OpenNbtEditorS2CPacket::decode)
-                .consumerMainThread(OpenNbtEditorS2CPacket::handle)
+        // 保存物品 / 保存 NBT / 打开 NBT 编辑器这三种包不直接注册到通道上：它们的内层编解码只给分片层用。
+        // 直接注册的话，任何玩家都能绕开分片层的权限和体积检查，凭一个声明了超大数组长度的小包让服务端分配巨额内存。
+        // 分片传输：两个方向各一个类（SimpleChannel 按类找编解码器，同一个类不能注册两个方向）
+        CHANNEL.messageBuilder(ChunkedC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ChunkedC2SPacket::encode)
+                .decoder(ChunkedC2SPacket::decode)
+                .consumerMainThread(ChunkedC2SPacket::handle)
                 .add();
-
-        CHANNEL.messageBuilder(ApplyNbtEditC2SPacket.class, nextId++, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(ApplyNbtEditC2SPacket::encode)
-                .decoder(ApplyNbtEditC2SPacket::decode)
-                .consumerMainThread(ApplyNbtEditC2SPacket::handle)
+        CHANNEL.messageBuilder(ChunkedS2CPacket.class, nextId++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(ChunkedS2CPacket::encode)
+                .decoder(ChunkedS2CPacket::decode)
+                .consumerMainThread(ChunkedS2CPacket::handle)
                 .add();
 
         LogUtil.info("网络通道注册完成，共 " + nextId + " 种网络包");

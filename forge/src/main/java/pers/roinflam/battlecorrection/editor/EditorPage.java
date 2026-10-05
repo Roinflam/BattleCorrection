@@ -48,7 +48,7 @@ public enum EditorPage {
     TREE("tree"),
 
     /**
-     * 原始 NBT 文本
+     * SNBT 文本（界面上叫 SNBT；枚举名和 id 保持 RAW / raw，网络包和翻译键都按它走）
      */
     RAW("raw"),
 

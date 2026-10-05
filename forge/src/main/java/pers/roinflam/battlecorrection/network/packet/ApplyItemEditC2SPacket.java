@@ -1,17 +1,18 @@
 package pers.roinflam.battlecorrection.network.packet;
 
-import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.network.NetworkEvent;
 import net.minecraftforge.registries.ForgeRegistries;
-import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.editor.ItemEditTarget;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -23,12 +24,14 @@ import java.util.function.Supplier;
 /**
  * 客户端 → 服务端：保存编辑器里的修改
  * <p>
- * 带上"编辑的是哪一格 + 当时的物品 ID + 新 NBT + 新数量"。服务端拿到后按顺序校验：
- * 功能开关 → OP 且创造 → 那一格还有物品 → 物品 ID 没变 → NBT 大小没超上限，全过了才写回。
+ * 带上"编辑的是哪一格 + 打开时那一格的物品 ID + 保存后的物品 ID + 新 NBT + 新数量"。服务端拿到后按顺序校验：
+ * 功能开关 → OP 且创造 → 那一格还有物品 → 那一格的物品还是打开时的那件 → 新物品 ID 是已注册的物品，
+ * 全过了才写回。包走 {@link ChunkedPacket} 分片，体积上限由配置决定（分片层在解码之前就卡掉了）。
  * 任何一步不过都回一条红字，什么都不改。客户端上的检查一概不信。
  * <p>
- * 物品 ID 不允许改（只改 NBT 和数量），要换物品就换一件再编辑。
- * 数量限制在 1-64：NBT 里 Count 是一个 byte，再大就溢出了。
+ * "打开时的物品 ID"只用来确认格子里的东西没被换过；保存后的物品 ID 和它不同就是换了物品：
+ * 按新物品重建，NBT 和数量沿用编辑结果，原物品附带的 Forge 能力数据属于旧物品，不带过去。
+ * 数量限制在 1-127：NBT 里 Count 是一个 byte，再大就溢出了。
  */
 public class ApplyItemEditC2SPacket {
 
@@ -40,24 +43,27 @@ public class ApplyItemEditC2SPacket {
     /**
      * 数量上限
      */
-    public static final int MAX_COUNT = 64;
+    public static final int MAX_COUNT = 127;
 
     private final ItemEditTarget target;
     private final ResourceLocation itemId;
+    private final ResourceLocation newItemId;
     @Nullable
     private final CompoundTag tag;
     private final int count;
 
     /**
      * @param target 编辑目标
-     * @param itemId 编辑时的物品 ID（防止格子里的东西换了还照写）
-     * @param tag    新 NBT；null = 清空 NBT
-     * @param count  新数量
+     * @param itemId    打开编辑器时那一格的物品 ID（防止格子里的东西换了还照写）
+     * @param newItemId 保存后的物品 ID；和 itemId 相同 = 不换物品
+     * @param tag       新 NBT；null = 清空 NBT
+     * @param count     新数量
      */
     public ApplyItemEditC2SPacket(@Nonnull ItemEditTarget target, @Nonnull ResourceLocation itemId,
-                                  @Nullable CompoundTag tag, int count) {
+                                  @Nonnull ResourceLocation newItemId, @Nullable CompoundTag tag, int count) {
         this.target = target;
         this.itemId = itemId;
+        this.newItemId = newItemId;
         this.tag = tag;
         this.count = count;
     }
@@ -70,14 +76,16 @@ public class ApplyItemEditC2SPacket {
     public void encode(@Nonnull FriendlyByteBuf buf) {
         target.write(buf);
         buf.writeResourceLocation(itemId);
+        buf.writeResourceLocation(newItemId);
         buf.writeNbt(tag);
         buf.writeVarInt(count);
     }
 
     /**
-     * 解码
+     * 解码（只由分片层调用）
      * <p>
-     * readNbt 自带 2MB 上限，超过直接抛异常断开，不会把内存吃满。
+     * 读 NBT 用和原版客户端解物品格子相同的 2 MB 记账（{@link ChunkedPacket#VANILLA_NBT_QUOTA}）：
+     * 声明了超大数组长度的 NBT 在分配之前就会被拦下；记账超限的物品原版客户端也解不开，写进存档只会让持有者每次进服都掉线。
      *
      * @param buf 缓冲
      * @return 包
@@ -86,9 +94,10 @@ public class ApplyItemEditC2SPacket {
     public static ApplyItemEditC2SPacket decode(@Nonnull FriendlyByteBuf buf) {
         ItemEditTarget target = ItemEditTarget.read(buf);
         ResourceLocation itemId = buf.readResourceLocation();
-        CompoundTag tag = buf.readNbt();
+        ResourceLocation newItemId = buf.readResourceLocation();
+        CompoundTag tag = buf.readNbt(new NbtAccounter(ChunkedPacket.VANILLA_NBT_QUOTA));
         int count = buf.readVarInt();
-        return new ApplyItemEditC2SPacket(target, itemId, tag, count);
+        return new ApplyItemEditC2SPacket(target, itemId, newItemId, tag, count);
     }
 
     /**
@@ -132,17 +141,18 @@ public class ApplyItemEditC2SPacket {
             return;
         }
 
-        if (tag != null) {
-            int bytes = measureBytes(tag);
-            int limit = ItemEditorAccess.maxNbtBytes();
-            if (bytes > limit) {
-                player.sendSystemMessage(failure("message.battlecorrection.editor.save_failed.too_large",
-                        ConfigAttribute.ITEM_EDITOR_MAX_NBT_KB.get()));
+        boolean changeItem = !newItemId.equals(itemId);
+        ItemStack edited;
+        if (changeItem) {
+            Item item = ForgeRegistries.ITEMS.getValue(newItemId);
+            if (item == null || item == Items.AIR || !ForgeRegistries.ITEMS.containsKey(newItemId)) {
+                player.sendSystemMessage(failure("message.battlecorrection.editor.save_failed.unknown_item", newItemId));
                 return;
             }
+            edited = new ItemStack(item);
+        } else {
+            edited = current.copy();
         }
-
-        ItemStack edited = current.copy();
         edited.setTag(tag == null || tag.isEmpty() ? null : tag);
         edited.setCount(Mth.clamp(count, MIN_COUNT, MAX_COUNT));
 
@@ -155,24 +165,11 @@ public class ApplyItemEditC2SPacket {
 
         player.sendSystemMessage(Component.translatable("message.battlecorrection.editor.saved",
                 edited.getDisplayName()).withStyle(ChatFormatting.GREEN));
-        LogUtil.info(String.format("%s 用物品编辑器修改了物品 %s（%s），数量 %d",
+        LogUtil.info(changeItem
+                ? String.format("%s 用物品编辑器把 %s 换成了 %s（%s），数量 %d",
+                player.getName().getString(), itemId, newItemId, edited.getHoverName().getString(), edited.getCount())
+                : String.format("%s 用物品编辑器修改了物品 %s（%s），数量 %d",
                 player.getName().getString(), edited.getHoverName().getString(), itemId, edited.getCount()));
-    }
-
-    /**
-     * 算一份 NBT 序列化后占多少字节（和网络包里的大小一致）
-     *
-     * @param tag NBT
-     * @return 字节数
-     */
-    private static int measureBytes(@Nonnull CompoundTag tag) {
-        FriendlyByteBuf sizer = new FriendlyByteBuf(Unpooled.buffer());
-        try {
-            sizer.writeNbt(tag);
-            return sizer.readableBytes();
-        } finally {
-            sizer.release();
-        }
     }
 
     /**

@@ -34,7 +34,19 @@ public class TabButton extends AbstractWidget {
      * @param onPress 点击回调
      */
     public TabButton(int x, int y, int width, @Nonnull Component label, @Nonnull Runnable onPress) {
-        super(x, y, width, HEIGHT, label);
+        this(x, y, width, HEIGHT, label, onPress);
+    }
+
+    /**
+     * @param x       左
+     * @param y       上
+     * @param width   宽
+     * @param height  高（标签多、窗口矮的时候比默认的 {@link #HEIGHT} 小）
+     * @param label   文字
+     * @param onPress 点击回调
+     */
+    public TabButton(int x, int y, int width, int height, @Nonnull Component label, @Nonnull Runnable onPress) {
+        super(x, y, width, height, label);
         this.onPress = onPress;
     }
 

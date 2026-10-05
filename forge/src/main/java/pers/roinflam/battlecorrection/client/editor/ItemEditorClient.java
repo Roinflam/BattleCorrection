@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
 /**
  * 物品编辑器的客户端入口：快捷键 + 打开界面
  * <p>
- * 三个快捷键（默认 I / O / P，可在按键设置里改）：编辑器、NBT 树、原始 NBT。
+ * 三个快捷键（默认 I / O / P，可在按键设置里改）：编辑器、SNBT 文本、NBT 树。
  * <ul>
  *   <li>没开任何界面时按：主手有物品就编辑它；主手空着就看准星指着什么——实体（玩家除外）或带方块实体的方块
  *   （箱子、熔炉、刷怪笼这类）——向服务端要它的 NBT 来编辑。原版只在没界面时才给 KeyMapping 计数，所以走 ClientTickEvent 里的 consumeClick。</li>
@@ -71,15 +71,18 @@ public final class ItemEditorClient {
             KeyConflictContext.UNIVERSAL, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_I, KEY_CATEGORY);
 
     /**
-     * 打开 NBT 树（默认 O）
+     * 直接打开 SNBT 文本页（默认 O）
+     * <p>
+     * 键名和旧版的"NBT 树 / 原始 NBT"不同是故意的：游戏会把每个按键当前的绑定写进 options.txt，
+     * 沿用旧键名的话玩家机器上存着的旧绑定（O = 树）会盖掉这里的新默认值，两个键还会撞在一起。
      */
-    public static final KeyMapping KEY_OPEN_TREE = new KeyMapping("key.battlecorrection.item_editor_tree",
+    public static final KeyMapping KEY_OPEN_SNBT = new KeyMapping("key.battlecorrection.item_editor_snbt",
             KeyConflictContext.UNIVERSAL, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, KEY_CATEGORY);
 
     /**
-     * 打开原始 NBT（默认 P）
+     * 打开 NBT 树（默认 P）
      */
-    public static final KeyMapping KEY_OPEN_RAW = new KeyMapping("key.battlecorrection.item_editor_raw",
+    public static final KeyMapping KEY_OPEN_NBT = new KeyMapping("key.battlecorrection.item_editor_nbt",
             KeyConflictContext.UNIVERSAL, InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_P, KEY_CATEGORY);
 
     private ItemEditorClient() {
@@ -102,8 +105,8 @@ public final class ItemEditorClient {
         @SubscribeEvent
         public static void onRegisterKeyMappings(@Nonnull RegisterKeyMappingsEvent evt) {
             evt.register(KEY_OPEN);
-            evt.register(KEY_OPEN_TREE);
-            evt.register(KEY_OPEN_RAW);
+            evt.register(KEY_OPEN_SNBT);
+            evt.register(KEY_OPEN_NBT);
             LogUtil.info("物品编辑器快捷键已注册（默认 I / O / P）");
         }
     }
@@ -130,17 +133,17 @@ public final class ItemEditorClient {
             Minecraft mc = Minecraft.getInstance();
             // 点击计数得清掉，否则开着界面时攒下的点击会在关界面后突然触发
             boolean open = KEY_OPEN.consumeClick();
-            boolean tree = KEY_OPEN_TREE.consumeClick();
-            boolean raw = KEY_OPEN_RAW.consumeClick();
+            boolean snbt = KEY_OPEN_SNBT.consumeClick();
+            boolean tree = KEY_OPEN_NBT.consumeClick();
             if (mc.player == null || mc.screen != null) {
                 return;
             }
             if (open) {
                 openFromKey(mc, EditorPage.NAME);
+            } else if (snbt) {
+                openFromKey(mc, EditorPage.RAW);
             } else if (tree) {
                 openFromKey(mc, EditorPage.TREE);
-            } else if (raw) {
-                openFromKey(mc, EditorPage.RAW);
             }
         }
 
@@ -297,11 +300,11 @@ public final class ItemEditorClient {
         if (!KEY_OPEN.isUnbound() && KEY_OPEN.matches(keyCode, scanCode)) {
             return EditorPage.NAME;
         }
-        if (!KEY_OPEN_TREE.isUnbound() && KEY_OPEN_TREE.matches(keyCode, scanCode)) {
-            return EditorPage.TREE;
-        }
-        if (!KEY_OPEN_RAW.isUnbound() && KEY_OPEN_RAW.matches(keyCode, scanCode)) {
+        if (!KEY_OPEN_SNBT.isUnbound() && KEY_OPEN_SNBT.matches(keyCode, scanCode)) {
             return EditorPage.RAW;
+        }
+        if (!KEY_OPEN_NBT.isUnbound() && KEY_OPEN_NBT.matches(keyCode, scanCode)) {
+            return EditorPage.TREE;
         }
         return null;
     }

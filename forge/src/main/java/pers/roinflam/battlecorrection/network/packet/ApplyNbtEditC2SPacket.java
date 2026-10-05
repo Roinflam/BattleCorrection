@@ -1,15 +1,14 @@
 package pers.roinflam.battlecorrection.network.packet;
 
-import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.network.NetworkEvent;
-import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditTarget;
@@ -21,7 +20,7 @@ import java.util.function.Supplier;
 /**
  * 客户端 → 服务端：把编辑后的实体 / 方块实体 NBT 写回
  * <p>
- * 校验：功能开关 → OP 且创造 → 目标还在（且不是玩家、在距离内）→ NBT 大小没超上限。写法见 {@link NbtEditAccess}。
+ * 校验：功能开关 → OP 且创造 → 目标还在（且不是玩家、在距离内）。NBT 大小不限（走 {@link ChunkedPacket} 分片）。写法见 {@link NbtEditAccess}。
  */
 public class ApplyNbtEditC2SPacket {
 
@@ -41,7 +40,7 @@ public class ApplyNbtEditC2SPacket {
     @Nonnull
     public static ApplyNbtEditC2SPacket decode(@Nonnull FriendlyByteBuf buf) {
         NbtEditTarget target = NbtEditTarget.read(buf);
-        CompoundTag tag = buf.readNbt();
+        CompoundTag tag = buf.readNbt(new NbtAccounter(ChunkedPacket.VANILLA_NBT_QUOTA));
         return new ApplyNbtEditC2SPacket(target, tag == null ? new CompoundTag() : tag);
     }
 
@@ -56,20 +55,6 @@ public class ApplyNbtEditC2SPacket {
         }
         if (!ItemEditorAccess.canUse(player)) {
             player.sendSystemMessage(ItemEditorAccess.noPermissionMessage());
-            return;
-        }
-
-        FriendlyByteBuf sizer = new FriendlyByteBuf(Unpooled.buffer());
-        int bytes;
-        try {
-            sizer.writeNbt(tag);
-            bytes = sizer.readableBytes();
-        } finally {
-            sizer.release();
-        }
-        if (bytes > ItemEditorAccess.maxNbtBytes()) {
-            player.sendSystemMessage(Component.translatable("message.battlecorrection.editor.save_failed.too_large",
-                    ConfigAttribute.ITEM_EDITOR_MAX_NBT_KB.get()).withStyle(ChatFormatting.RED));
             return;
         }
 

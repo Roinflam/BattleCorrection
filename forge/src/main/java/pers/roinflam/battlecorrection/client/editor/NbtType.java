@@ -43,6 +43,17 @@ public enum NbtType {
     INT_ARRAY(Tag.TAG_INT_ARRAY, "int_array", "i[]"),
     LONG_ARRAY(Tag.TAG_LONG_ARRAY, "long_array", "l[]");
 
+    /**
+     * 按类型 ID 查表；树每帧每行都要查类型，values() 每次都会复制一份数组，不能在那里用
+     */
+    private static final NbtType[] BY_ID = new NbtType[Tag.TAG_LONG_ARRAY + 1];
+
+    static {
+        for (NbtType type : values()) {
+            BY_ID[type.id] = type;
+        }
+    }
+
     private final byte id;
     private final String key;
     private final String badge;
@@ -108,12 +119,37 @@ public enum NbtType {
      */
     @Nullable
     public static NbtType byId(byte id) {
-        for (NbtType type : values()) {
-            if (type.id == id) {
-                return type;
-            }
+        return id >= 0 && id < BY_ID.length ? BY_ID[id] : null;
+    }
+
+    /**
+     * 是不是数字（byte / short / int / long / float / double）
+     *
+     * @return true = 数字
+     */
+    public boolean isNumber() {
+        return this == BYTE || this == SHORT || this == INT || this == LONG || this == FLOAT || this == DOUBLE;
+    }
+
+    /**
+     * 整数类型的取值范围文字（"-128 ~ 127"），给输入提示用
+     *
+     * @return 范围；不是整数类型返回 null
+     */
+    @Nullable
+    public String integerRange() {
+        switch (this) {
+            case BYTE:
+                return Byte.MIN_VALUE + " ~ " + Byte.MAX_VALUE;
+            case SHORT:
+                return Short.MIN_VALUE + " ~ " + Short.MAX_VALUE;
+            case INT:
+                return Integer.MIN_VALUE + " ~ " + Integer.MAX_VALUE;
+            case LONG:
+                return Long.MIN_VALUE + " ~ " + Long.MAX_VALUE;
+            default:
+                return null;
         }
-        return null;
     }
 
     /**
