@@ -1,6 +1,9 @@
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+
+import javax.annotation.Nonnull;
 
 /**
  * 属性配置类 - Attribute Configuration Class (1.20.1)
@@ -368,5 +371,33 @@ public class ConfigAttribute {
         builder.pop();
 
         SPEC = builder.build();
+    }
+
+    /**
+     * 编辑器 NBT 大小上限的旧默认值（KB）：3.0.0 的默认就是它，配置文件里留着这个值的基本都是没动过的老配置
+     */
+    private static final int LEGACY_NBT_KB_DEFAULT = 256;
+
+    /**
+     * 编辑器 NBT 大小上限的新默认值（KB），和上面 {@link #ITEM_EDITOR_MAX_NBT_KB} 的默认一致
+     */
+    private static final int NBT_KB_DEFAULT = 1024;
+
+    /**
+     * 配置加载时的一次性迁移：旧版默认的 256 KB 换成新默认
+     * <p>
+     * 默认值改了以后，已经生成过配置文件的玩家和服主不会自动拿到新值（文件里存的还是旧的 256），
+     * 又不能让他们为这个自己去翻配置。256 是旧的默认值，当作没动过处理；换过后文件里是 1024，下次加载不会再触发。
+     *
+     * @param event 配置加载事件
+     */
+    public static void onConfigLoading(@Nonnull ModConfigEvent.Loading event) {
+        if (event.getConfig().getSpec() != SPEC) {
+            return;
+        }
+        if (ITEM_EDITOR_MAX_NBT_KB.get() == LEGACY_NBT_KB_DEFAULT) {
+            ITEM_EDITOR_MAX_NBT_KB.set(NBT_KB_DEFAULT);
+            ITEM_EDITOR_MAX_NBT_KB.save();
+        }
     }
 }

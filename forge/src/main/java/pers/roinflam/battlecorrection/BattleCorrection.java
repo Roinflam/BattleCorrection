@@ -51,6 +51,7 @@ public class BattleCorrection {
         // 注册生命周期事件
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(ConfigAttribute::onConfigLoading);
 
         // 注册网络包（两端都要，顺序两端一致）
         ModNetwork.register();
