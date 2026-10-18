@@ -396,6 +396,14 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.ALMIGHTY_BLOODTHIRSTY::set)
                 .build());
 
+        healingCategory.addEntry(entryBuilder.startBooleanToggle(
+                        Component.translatable("config.battlecorrection.lifestealHealBonus"),
+                        ConfigAttribute.LIFESTEAL_HEAL_BONUS.get())
+                .setDefaultValue(true)
+                .setTooltip(Component.translatable("config.battlecorrection.lifestealHealBonus.tooltip"))
+                .setSaveConsumer(ConfigAttribute.LIFESTEAL_HEAL_BONUS::set)
+                .build());
+
         // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 防御
         // ═══════════════════════════════════════════════════════════════

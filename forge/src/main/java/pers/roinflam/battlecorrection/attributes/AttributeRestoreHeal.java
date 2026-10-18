@@ -20,6 +20,33 @@ import javax.annotation.Nonnull;
 public class AttributeRestoreHeal {
 
     /**
+     * 正在结算一次不吃治疗加成的吸血回血（只在服务端线程读写）
+     */
+    private static boolean healingWithoutBonus = false;
+
+    /**
+     * 吸血类属性的回血入口
+     * <p>
+     * 仍然走 {@link LivingEntity#heal(float)}，其他模组的治疗事件照常触发；
+     * 配置 lifestealAffectedByHealBonus 关闭时，这次治疗不乘本模组的治疗倍率。
+     *
+     * @param entity 回血的实体（服务端）
+     * @param amount 吸血算出的回血量
+     */
+    public static void healFromLifesteal(@Nonnull LivingEntity entity, float amount) {
+        if (ConfigAttribute.LIFESTEAL_HEAL_BONUS.get()) {
+            entity.heal(amount);
+            return;
+        }
+        healingWithoutBonus = true;
+        try {
+            entity.heal(amount);
+        } finally {
+            healingWithoutBonus = false;
+        }
+    }
+
+    /**
      * 处理治疗事件
      * 当实体恢复生命值时触发
      *
@@ -27,7 +54,7 @@ public class AttributeRestoreHeal {
      */
     @SubscribeEvent
     public static void onLivingHeal(@Nonnull LivingHealEvent evt) {
-        if (evt.getEntity().level().isClientSide()) {
+        if (evt.getEntity().level().isClientSide() || healingWithoutBonus) {
             return;
         }
 

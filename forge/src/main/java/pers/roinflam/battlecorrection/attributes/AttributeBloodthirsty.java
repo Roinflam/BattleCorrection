@@ -59,7 +59,7 @@ public class AttributeBloodthirsty {
         float healAmount = damage * healRatio;
 
         if (healAmount > 0) {
-            attacker.heal(healAmount);
+            AttributeRestoreHeal.healFromLifesteal(attacker, healAmount);
 
             if (LogUtil.isDetailed()) {
                 LogUtil.debugAttribute("吸血", attacker.getName().getString(), attributeValue, configValue, healRatio);

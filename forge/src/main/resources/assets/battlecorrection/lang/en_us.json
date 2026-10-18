@@ -141,6 +141,8 @@
   "config.battlecorrection.bloodthirsty.tooltip": "Restore health based on melee damage dealt.\n§cRequires full attack charge to trigger!§r\n§70.2§r = Restore 20% of damage as health\n§70.0§r = Disabled (default)\nExample: Deal 10 damage → Heal 2 HP",
   "config.battlecorrection.almightyBloodthirsty": "Universal Lifesteal",
   "config.battlecorrection.almightyBloodthirsty.tooltip": "Restore health based on ALL damage dealt.\nWorks with: melee, arrows, projectiles, magic.\n§cMelee still requires full attack charge!§r\n§70.2§r = Restore 20% of all damage as health\n§70.0§r = Disabled (default)",
+  "config.battlecorrection.lifestealHealBonus": "Lifesteal Uses Healing Bonus",
+  "config.battlecorrection.lifestealHealBonus.tooltip": "Whether melee and universal lifesteal heals are also multiplied by the Healing Received Multiplier and the Restore Heal attribute\n§7On§r = Boosted by healing bonus (default)\n§7Off§r = Always heals damage × lifesteal ratio, easier to balance classes",
   "_comment15": "========== 配置项 - RPG防御 ==========",
   "config.battlecorrection.immuneDamage": "Damage Immunity Chance",
   "config.battlecorrection.immuneDamage.tooltip": "Percentage chance to completely dodge an attack.\nRange: 0-100%\n§725§r = 25% chance to dodge\n§70§r = Never dodge (default)\n§cDoes not work against unblockable damage!§r",

@@ -22,6 +22,7 @@ public class ConfigAttribute {
     public static final ForgeConfigSpec.DoubleValue RESTORE_HEAL;
     public static final ForgeConfigSpec.DoubleValue BLOODTHIRSTY;
     public static final ForgeConfigSpec.DoubleValue ALMIGHTY_BLOODTHIRSTY;
+    public static final ForgeConfigSpec.BooleanValue LIFESTEAL_HEAL_BONUS;
 
     // ===== 防御属性 =====
     public static final ForgeConfigSpec.DoubleValue IMMUNE_DAMAGE;
@@ -148,6 +149,17 @@ public class ConfigAttribute {
                         "     对近战、箭矢、弹射物和魔法伤害有效"
                 )
                 .defineInRange("almightyBloodthirsty", 0.0D, 0.0D, Double.MAX_VALUE);
+
+        LIFESTEAL_HEAL_BONUS = builder
+                .comment(
+                        "[EN] Whether lifesteal (melee and universal) is boosted by healing bonus",
+                        "     true = Lifesteal heals are multiplied by restoreHeal and the Restore Heal attribute (default)",
+                        "     false = Lifesteal always heals exactly damage x ratio, healing bonus is ignored",
+                        "[中文] 吸血（近战吸血和全能吸血）是否吃治疗加成",
+                        "     true = 吸血回的血也乘 restoreHeal 和「治疗恢复」属性(默认)",
+                        "     false = 吸血固定回 伤害 × 比例，不吃治疗加成"
+                )
+                .define("lifestealAffectedByHealBonus", true);
 
         builder.pop();
 

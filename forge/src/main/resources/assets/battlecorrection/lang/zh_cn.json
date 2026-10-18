@@ -141,6 +141,8 @@
   "config.battlecorrection.bloodthirsty.tooltip": "根据近战伤害恢复生命值\n§c需要完全蓄力才能触发！§r\n§70.2§r = 恢复造成伤害的20%为生命\n§70.0§r = 禁用（默认）\n例：造成10点伤害 → 恢复2点生命",
   "config.battlecorrection.almightyBloodthirsty": "全能吸血比例",
   "config.battlecorrection.almightyBloodthirsty.tooltip": "根据所有类型伤害恢复生命值\n对近战、箭矢、弹射物、魔法均有效\n§c近战仍需要完全蓄力！§r\n§70.2§r = 恢复所有伤害的20%为生命\n§70.0§r = 禁用（默认）",
+  "config.battlecorrection.lifestealHealBonus": "吸血吃治疗加成",
+  "config.battlecorrection.lifestealHealBonus.tooltip": "近战吸血和全能吸血回的血，是否也乘「治疗恢复倍率」和装备上的「治疗恢复」属性\n§7开启§r = 吃治疗加成（默认）\n§7关闭§r = 固定回 伤害 × 吸血比例，便于平衡职业",
   "_comment15": "========== 配置项 - RPG防御 ==========",
   "config.battlecorrection.immuneDamage": "伤害免疫几率",
   "config.battlecorrection.immuneDamage.tooltip": "完全闪避攻击的百分比几率\n范围：0-100%\n§725§r = 25%几率闪避\n§70§r = 从不闪避（默认）\n§c对无视无敌的伤害无效！§r",

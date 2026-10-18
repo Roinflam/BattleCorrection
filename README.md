@@ -501,6 +501,14 @@ RPG 整合包和服务器。
 </details>
 
 <details>
+<summary><b>吸血会吃治疗加成吗？</b></summary>
+
+默认会：吸血回的血和其他治疗一样，会乘上治疗倍率配置（restoreHeal）和装备上的「治疗恢复」属性。
+不想让两者叠加，把属性配置里的「吸血吃治疗加成」（`lifestealAffectedByHealBonus`）关掉，吸血就固定回 伤害 × 吸血比例。
+
+</details>
+
+<details>
 <summary><b>什么是溢出机制？</b></summary>
 
 当暴击率超过 100% 时，超出部分会转化为额外暴击伤害。例如，150% 暴击率 = 100% 暴击 + 0.5 倍额外暴击伤害（转化比例可配置）。
