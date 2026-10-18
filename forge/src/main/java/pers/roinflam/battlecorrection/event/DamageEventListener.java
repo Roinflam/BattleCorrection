@@ -3,6 +3,7 @@ package pers.roinflam.battlecorrection.event;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -103,6 +104,12 @@ public class DamageEventListener {
             return;
         }
 
+        // 玩家承受的环境伤害：背后没有活物攻击者，单独结算，不走下面按攻击者分的倍率
+        if (evt.getEntity() instanceof Player && isEnvironmental(damageSource)) {
+            applyEnvironmentMultiplier(evt, damageSource);
+            return;
+        }
+
         @Nullable Entity trueSource = damageSource.getEntity();
         @Nullable Entity immediateSource = damageSource.getDirectEntity();
         if (trueSource == null || immediateSource == null) {
@@ -196,6 +203,59 @@ public class DamageEventListener {
                         originalDamage, finalDamage,
                         modificationReason.toString());
             }
+        }
+    }
+
+    /**
+     * 是否环境伤害：伤害背后没有活物攻击者，也不是发射器之类打出来的弹射物。
+     * 摔落、火焰、岩浆、溺水、窒息、中毒/凋零效果、无主 TNT 都算；
+     * 坠落方块、闪电的"来源实体"是它们自己（不是活物），同样算环境。
+     */
+    private static boolean isEnvironmental(@Nonnull DamageSource source) {
+        return !(source.getEntity() instanceof LivingEntity) && !(source.getDirectEntity() instanceof Projectile);
+    }
+
+    /**
+     * 玩家承受环境伤害倍率：总倍率 × 命中的类别倍率（火焰、爆炸可能同时命中），
+     * 再用「最大生命百分比 / 固定值取较大者」做下限。倍率全是 1 且下限为 0 时不动伤害；
+     * 调用方已经排除了无视无敌的伤害（虚空、/kill）。
+     */
+    private static void applyEnvironmentMultiplier(@Nonnull LivingDamageEvent evt, @Nonnull DamageSource source) {
+        float multiplier = ConfigBattle.PLAYER_SUFFERS_ENVIRONMENT.get().floatValue();
+        if (source.is(DamageTypeTags.IS_FALL)) {
+            multiplier *= ConfigBattle.PLAYER_SUFFERS_FALL.get().floatValue();
+        }
+        if (source.is(DamageTypeTags.IS_FIRE)) {
+            multiplier *= ConfigBattle.PLAYER_SUFFERS_FIRE.get().floatValue();
+        }
+        if (source.is(DamageTypeTags.IS_DROWNING)) {
+            multiplier *= ConfigBattle.PLAYER_SUFFERS_DROWNING.get().floatValue();
+        }
+        if (source.is(DamageTypeTags.IS_FREEZING)) {
+            multiplier *= ConfigBattle.PLAYER_SUFFERS_FREEZING.get().floatValue();
+        }
+        if (source.is(DamageTypeTags.IS_EXPLOSION)) {
+            multiplier *= ConfigBattle.PLAYER_SUFFERS_EXPLOSION.get().floatValue();
+        }
+
+        // 下限：最大生命百分比与固定值取较大者，在倍率之后兜底
+        float minPercent = ConfigBattle.PLAYER_ENVIRONMENT_MIN_PERCENT.get().floatValue();
+        float minFlat = ConfigBattle.PLAYER_ENVIRONMENT_MIN_FLAT.get().floatValue();
+        // 倍率为 0 表示免疫，不再套下限
+        float floor = multiplier > 0 ? Math.max(evt.getEntity().getMaxHealth() * minPercent, minFlat) : 0.0F;
+
+        float originalDamage = evt.getAmount();
+        float newDamage = Math.max(originalDamage * multiplier, floor);
+        if (newDamage == originalDamage) {
+            return;
+        }
+        evt.setAmount(newDamage);
+
+        if (LogUtil.isDetailed()) {
+            LogUtil.debugDamage("环境伤害调整", source.type().msgId(),
+                    evt.getEntity().getName().getString(),
+                    originalDamage, newDamage,
+                    String.format("玩家承受环境伤害倍率: %.2fx, 下限: %.2f", multiplier, floor));
         }
     }
 

@@ -181,6 +181,79 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_MAGIC::set)
                 .build());
 
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersEnvironment"),
+                        ConfigBattle.PLAYER_SUFFERS_ENVIRONMENT.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersEnvironment.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_ENVIRONMENT::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersFall"),
+                        ConfigBattle.PLAYER_SUFFERS_FALL.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersFall.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_FALL::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersFire"),
+                        ConfigBattle.PLAYER_SUFFERS_FIRE.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersFire.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_FIRE::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersDrowning"),
+                        ConfigBattle.PLAYER_SUFFERS_DROWNING.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersDrowning.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_DROWNING::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersFreezing"),
+                        ConfigBattle.PLAYER_SUFFERS_FREEZING.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersFreezing.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_FREEZING::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerSuffersExplosion"),
+                        ConfigBattle.PLAYER_SUFFERS_EXPLOSION.get())
+                .setDefaultValue(1.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerSuffersExplosion.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_SUFFERS_EXPLOSION::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerEnvironmentMinPercent"),
+                        ConfigBattle.PLAYER_ENVIRONMENT_MIN_PERCENT.get())
+                .setDefaultValue(0.0)
+                .setMin(0.0)
+                .setMax(1.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerEnvironmentMinPercent.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_ENVIRONMENT_MIN_PERCENT::set)
+                .build());
+
+        defenseCategory.addEntry(entryBuilder.startDoubleField(
+                        Component.translatable("config.battlecorrection.playerEnvironmentMinFlat"),
+                        ConfigBattle.PLAYER_ENVIRONMENT_MIN_FLAT.get())
+                .setDefaultValue(0.0)
+                .setMin(0.0)
+                .setTooltip(Component.translatable("config.battlecorrection.playerEnvironmentMinFlat.tooltip"))
+                .setSaveConsumer(ConfigBattle.PLAYER_ENVIRONMENT_MIN_FLAT::set)
+                .build());
+
         // ═══════════════════════════════════════════════════════════════
         // 实体属性
         // ═══════════════════════════════════════════════════════════════

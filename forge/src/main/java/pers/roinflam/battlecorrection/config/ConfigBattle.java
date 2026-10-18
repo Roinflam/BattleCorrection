@@ -35,6 +35,16 @@ public class ConfigBattle {
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_PROJECTILE;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_MAGIC;
 
+    // ===== 玩家承受环境伤害倍率 =====
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_ENVIRONMENT;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FALL;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FIRE;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_DROWNING;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FREEZING;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_EXPLOSION;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_PERCENT;
+    public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_FLAT;
+
     // ===== 实体属性 =====
     public static final ForgeConfigSpec.DoubleValue EXTRA_MAX_HEALTH;
 
@@ -242,6 +252,91 @@ public class ConfigBattle {
                         "[中文] 玩家魔法伤害抗性倍率"
                 )
                 .defineInRange("playerSuffersMagic", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        builder.pop();
+
+        // ═══════════════════════════════════════════════════════════════
+        // 玩家承受环境伤害倍率
+        // ═══════════════════════════════════════════════════════════════
+        builder.comment(
+                "═══════════════════════════════════════════════════════════════",
+                "Player Environmental Damage - 玩家承受环境伤害倍率",
+                "  Environmental damage = damage with no living attacker behind it (fall, fire, lava, drowning, freezing, cactus,",
+                "  suffocation, poison/wither effects, unowned explosions, falling blocks, lightning ...). Void and /kill are never touched.",
+                "  Applied after armor and every other reduction, so it still bites when late-game gear shrinks the hit to almost nothing.",
+                "  The general multiplier stacks with the matching category multiplier (fire + explosion hits take both).",
+                "  Then an optional floor applies: max(max health x percent, flat). A total multiplier of 0 means immune and skips the floor.",
+                "  环境伤害 = 背后没有活物攻击者的伤害（摔落、火焰、岩浆、溺水、冰冻、仙人掌、窒息、中毒/凋零效果、无主爆炸、坠落方块、闪电等）。",
+                "  虚空和 /kill 不受影响。",
+                "  在护甲和其他所有减伤之后结算，所以后期装备把伤害压到接近 0 时，倍率依然能起作用。",
+                "  总倍率和对应类别倍率相乘（既算火焰又算爆炸的伤害两项都吃）。",
+                "  之后可选再套一个下限：max(最大生命 × 比例, 固定值)。倍率乘出来是 0 表示免疫，不套下限。",
+                "═══════════════════════════════════════════════════════════════"
+        ).push("playerEnvironment");
+
+        PLAYER_SUFFERS_ENVIRONMENT = builder
+                .comment(
+                        "[EN] General environmental damage multiplier (applies to every environmental source)",
+                        "     1.0 = Normal (default), 3.0 = Take 300% environmental damage, 0.0 = Immune",
+                        "[中文] 环境伤害总倍率（所有环境来源都吃）",
+                        "     1.0 = 正常(默认), 3.0 = 承受300%环境伤害, 0.0 = 免疫"
+                )
+                .defineInRange("playerSuffersEnvironment", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_SUFFERS_FALL = builder
+                .comment(
+                        "[EN] Fall damage multiplier (stacks with the general multiplier; reducedFallDamage is subtracted first)",
+                        "[中文] 摔落伤害倍率（与总倍率相乘；reducedFallDamage 的固定减免先结算）"
+                )
+                .defineInRange("playerSuffersFall", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_SUFFERS_FIRE = builder
+                .comment(
+                        "[EN] Fire damage multiplier (burning, fire blocks, lava, hot floor)",
+                        "[中文] 火焰伤害倍率（着火、火焰方块、岩浆、烫脚的地面）"
+                )
+                .defineInRange("playerSuffersFire", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_SUFFERS_DROWNING = builder
+                .comment(
+                        "[EN] Drowning damage multiplier",
+                        "[中文] 溺水伤害倍率"
+                )
+                .defineInRange("playerSuffersDrowning", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_SUFFERS_FREEZING = builder
+                .comment(
+                        "[EN] Freezing damage multiplier (powder snow)",
+                        "[中文] 冰冻伤害倍率（细雪）"
+                )
+                .defineInRange("playerSuffersFreezing", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_SUFFERS_EXPLOSION = builder
+                .comment(
+                        "[EN] Explosion damage multiplier (only explosions with no living culprit: unowned TNT, beds, anchors, ...)",
+                        "[中文] 爆炸伤害倍率（只算没有活物肇事者的爆炸：无主 TNT、床、重生锚等）"
+                )
+                .defineInRange("playerSuffersExplosion", 1.0D, 0.0D, Double.MAX_VALUE);
+
+        PLAYER_ENVIRONMENT_MIN_PERCENT = builder
+                .comment(
+                        "[EN] Environmental damage floor, as a fraction of max health (applied after the multipliers above)",
+                        "     Every environmental hit deals at least max(maxHealth x this, environmentMinFlat).",
+                        "     0.0 = Off (default), 0.05 = at least 5% of max health per hit, 1.0 = lethal",
+                        "[中文] 环境伤害下限：最大生命值的比例（在上面各倍率之后结算）",
+                        "     每次环境伤害至少造成 max(最大生命 × 此值, playerEnvironmentMinFlat)。",
+                        "     0.0 = 关闭(默认), 0.05 = 每次至少 5% 最大生命, 1.0 = 一击致命"
+                )
+                .defineInRange("playerEnvironmentMinPercent", 0.0D, 0.0D, 1.0D);
+
+        PLAYER_ENVIRONMENT_MIN_FLAT = builder
+                .comment(
+                        "[EN] Environmental damage floor, flat amount (compared with the percentage floor, the larger one wins)",
+                        "     0.0 = Off (default), 2.0 = at least 2 damage per hit",
+                        "[中文] 环境伤害下限：固定值（与比例下限比较，取较大的那个）",
+                        "     0.0 = 关闭(默认), 2.0 = 每次至少 2 点伤害"
+                )
+                .defineInRange("playerEnvironmentMinFlat", 0.0D, 0.0D, Double.MAX_VALUE);
 
         builder.pop();
 
