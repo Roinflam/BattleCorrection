@@ -20,7 +20,7 @@ item.master_sword.name=Master Sword
 # ===================================
 item.enemy_staff.tooltip=Right-click two entities to make them attack each other
 item.rebel_staff.tooltip=Right-click an entity to make all nearby entities attack it
-item.riot_staff.tooltip=Right-click an entity to make it attack a random nearby entity
+item.riot_staff.tooltip=Right-click an entity to make it keep attacking random nearby entities
 item.brawl_staff.tooltip=Right-click to make all nearby entities attack each other
 item.elimination_staff.tooltip=Right-click to make different species attack each other
 item.sacrificial_staff.tooltip=Right-click an entity to kill it instantly
@@ -37,9 +37,9 @@ itemGroup.battlecorrection_tab=Battle Correction
 # ===================================
 # In-Game Messages
 # ===================================
-message.battlecorrection.select_first=First target selected
-message.battlecorrection.select_second=Second target selected, entities will now attack each other
-message.battlecorrection.select_cancel=First target is dead, operation cancelled
+message.battlecorrection.select_first=First target selected, right-click another entity
+message.battlecorrection.select_second=Both targets are now hostile to each other!
+message.battlecorrection.select_cancel=First target is no longer valid (dead, unloaded or in another dimension), selection cancelled
 
 # ===================================
 # Config Categories
@@ -116,3 +116,71 @@ attribute.name.battlecorrection.jumpLift=Jump Boost
 attribute.name.battlecorrection.vanillaCriticalHitDamage=Vanilla Critical Damage
 attribute.name.battlecorrection.customCriticalChance=Critical Chance
 attribute.name.battlecorrection.customCriticalDamage=Critical Damage
+
+# ===================================
+# New Config Entries
+# ===================================
+config.battlecorrection.battle.playerSuffersEnvironment=Player Environmental Damage (General)
+config.battlecorrection.battle.playerSuffersFall=Player Fall Damage
+config.battlecorrection.battle.playerSuffersFire=Player Fire Damage
+config.battlecorrection.battle.playerSuffersDrowning=Player Drowning Damage
+config.battlecorrection.battle.playerSuffersExplosion=Player Explosion Damage
+config.battlecorrection.battle.playerEnvironmentMinPercent=Environmental Damage Floor (% Max Health)
+config.battlecorrection.battle.playerEnvironmentMinFlat=Environmental Damage Floor (Flat)
+config.battlecorrection.battle.enableThirdPartyMagicRecognition=Third-party Magic Recognition
+config.battlecorrection.battle.magicDamageTypePrefixes=Magic Damage Type Prefixes
+config.battlecorrection.battle.magicDamageTypeWhitelist=Magic Damage Types (Whitelist)
+config.battlecorrection.battle.magicDamageTypeBlacklist=Non-magic Damage Types (Blacklist)
+config.battlecorrection.battle.configVersion=Config Format Version (do not edit)
+config.battlecorrection.attribute.lifestealAffectedByHealBonus=Lifesteal Uses Healing Bonus
+
+# ===================================
+# Bauble Marks
+# ===================================
+config.battlecorrection.baubles=Bauble Mark
+config.battlecorrection.baubles.baubleMarkEnabled=Enable Bauble Mark
+config.battlecorrection.baubles.baubleNbtAttributes=Vanilla Attributes on Unmarked Baubles
+command.battlecorrection.bauble.usage=/battlecorrection bauble add <slot> | remove <slot> | clear | list | attr add <attribute> <amount> [operation] [slot] | attr remove <attribute> [slot] | attr clear
+command.battlecorrection.bauble.not_loaded=Baubles is not installed on the server, bauble marks are unavailable
+command.battlecorrection.bauble.any=Any bauble slot
+command.battlecorrection.bauble.separator=,
+command.battlecorrection.bauble.slot.amulet=Amulet
+command.battlecorrection.bauble.slot.ring=Ring
+command.battlecorrection.bauble.slot.belt=Belt
+command.battlecorrection.bauble.slot.head=Head
+command.battlecorrection.bauble.slot.body=Body
+command.battlecorrection.bauble.slot.charm=Charm
+command.battlecorrection.bauble.disabled=The bauble mark feature is disabled in the config
+command.battlecorrection.bauble.empty_hand=Hold the item in your main hand first
+command.battlecorrection.bauble.unknown_slot=There is no bauble slot called %s; use any, amulet, ring, belt, head, body or charm (Tab completes)
+command.battlecorrection.bauble.added=%s can now go into bauble slot: %s
+command.battlecorrection.bauble.already=%s can already go into bauble slot: %s
+command.battlecorrection.bauble.removed=Removed bauble slot mark from %s: %s
+command.battlecorrection.bauble.not_marked_slot=%s does not have this bauble slot mark: %s
+command.battlecorrection.bauble.cleared=Cleared all bauble slot marks from %s
+command.battlecorrection.bauble.list=%s can go into bauble slots: %s
+command.battlecorrection.bauble.list_none=%s has no bauble slot marks or extra attributes
+command.battlecorrection.bauble.attr_line=  Extra attribute: %s %s (%s) in %s
+command.battlecorrection.bauble.attr_added=Added attribute %s %s (%s), applies in %s
+command.battlecorrection.bauble.attr_removed=Removed attribute %s, %s entries
+command.battlecorrection.bauble.attr_cleared=Cleared all extra attributes from %s
+command.battlecorrection.bauble.attr_none=%s has no extra attributes
+command.battlecorrection.bauble.attr_not_found=This item has no attribute %s
+command.battlecorrection.bauble.attr_not_marked=Note: this item cannot be equipped yet - use /battlecorrection bauble add <slot> to mark it
+command.battlecorrection.bauble.unknown_attribute=You have no attribute called %s, press Tab to see all attributes
+command.battlecorrection.bauble.bad_operation=Operation must be one of: %s
+command.battlecorrection.bauble.zero_amount=Amount cannot be 0
+command.battlecorrection.bauble.native_warning=Note: this item is already a bauble; it decides which slots it fits, so slot marks have no effect on it. Extra attributes and "bauble only" still apply.
+tooltip.battlecorrection.bauble.slots=Bauble (%s)
+tooltip.battlecorrection.bauble.modifiers.any=When worn as a bauble:
+tooltip.battlecorrection.bauble.modifiers.amulet=When worn as an amulet:
+tooltip.battlecorrection.bauble.modifiers.ring=When worn as a ring:
+tooltip.battlecorrection.bauble.modifiers.belt=When worn as a belt:
+tooltip.battlecorrection.bauble.modifiers.head=When worn in the head bauble slot:
+tooltip.battlecorrection.bauble.modifiers.body=When worn in the body bauble slot:
+tooltip.battlecorrection.bauble.modifiers.charm=When worn as a charm:
+tooltip.battlecorrection.bauble.modifiers.other=When worn in bauble slot %s:
+message.battlecorrection.bauble.armor_blocked=%s is marked as a bauble and cannot be worn as armor
+
+# Root command
+command.battlecorrection.usage=/battlecorrection bauble ... (bauble marks, requires Baubles)

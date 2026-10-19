@@ -18,9 +18,9 @@ item.master_sword.name=大师之剑
 # ===================================
 # 物品工具提示 - Item Tooltips
 # ===================================
-item.enemy_staff.tooltip=右键点击两个生物使它们互相攻击
+item.enemy_staff.tooltip=右键点击两个生物，使它们互相攻击
 item.rebel_staff.tooltip=右键点击一个生物，使周围所有生物攻击它
-item.riot_staff.tooltip=右键点击一个生物，使它攻击附近的随机生物
+item.riot_staff.tooltip=右键点击一个生物，使它持续攻击附近随机生物
 item.brawl_staff.tooltip=右键使用，让附近所有生物互相攻击
 item.elimination_staff.tooltip=右键使用，让附近不同种类的生物互相攻击
 item.sacrificial_staff.tooltip=右键点击生物使其立即死亡
@@ -37,9 +37,9 @@ itemGroup.battlecorrection_tab=战斗修正
 # ===================================
 # 游戏内消息 - In-Game Messages
 # ===================================
-message.battlecorrection.select_first=已选择第一个目标
-message.battlecorrection.select_second=已选择第二个目标，开始互相攻击
-message.battlecorrection.select_cancel=第一个目标已死亡，操作取消
+message.battlecorrection.select_first=已选择第一个目标，请右键另一个生物
+message.battlecorrection.select_second=两个目标现在互相敌对！
+message.battlecorrection.select_cancel=第一个目标已失效（死亡、离开或不在同一维度），选择已取消
 
 # ===================================
 # 配置分类 - Config Categories
@@ -117,3 +117,71 @@ attribute.name.battlecorrection.jumpLift=跳跃提升
 attribute.name.battlecorrection.vanillaCriticalHitDamage=原版暴击伤害
 attribute.name.battlecorrection.customCriticalChance=暴击几率
 attribute.name.battlecorrection.customCriticalDamage=暴击伤害
+
+# ===================================
+# 新增配置项 - New Config Entries
+# ===================================
+config.battlecorrection.battle.playerSuffersEnvironment=玩家承受环境伤害倍率（总）
+config.battlecorrection.battle.playerSuffersFall=玩家承受摔落伤害倍率
+config.battlecorrection.battle.playerSuffersFire=玩家承受火焰伤害倍率
+config.battlecorrection.battle.playerSuffersDrowning=玩家承受溺水伤害倍率
+config.battlecorrection.battle.playerSuffersExplosion=玩家承受爆炸伤害倍率
+config.battlecorrection.battle.playerEnvironmentMinPercent=环境伤害下限（最大生命比例）
+config.battlecorrection.battle.playerEnvironmentMinFlat=环境伤害下限（固定值）
+config.battlecorrection.battle.enableThirdPartyMagicRecognition=启用第三方魔法识别
+config.battlecorrection.battle.magicDamageTypePrefixes=整组算魔法的伤害类型前缀
+config.battlecorrection.battle.magicDamageTypeWhitelist=算魔法的伤害类型（白名单）
+config.battlecorrection.battle.magicDamageTypeBlacklist=不算魔法的伤害类型（黑名单）
+config.battlecorrection.battle.configVersion=配置格式版本（请勿修改）
+config.battlecorrection.attribute.lifestealAffectedByHealBonus=吸血吃治疗加成
+
+# ===================================
+# 饰品栏标记 - Bauble Marks
+# ===================================
+config.battlecorrection.baubles=饰品栏标记
+config.battlecorrection.baubles.baubleMarkEnabled=启用饰品栏标记
+config.battlecorrection.baubles.baubleNbtAttributes=未标记饰品的原版属性生效范围
+command.battlecorrection.bauble.usage=/battlecorrection bauble add <饰品栏> | remove <饰品栏> | clear | list | attr add <属性> <数值> [运算] [饰品栏] | attr remove <属性> [饰品栏] | attr clear
+command.battlecorrection.bauble.not_loaded=服务端没有安装 Baubles，饰品栏标记不可用
+command.battlecorrection.bauble.any=任意饰品栏
+command.battlecorrection.bauble.separator=、
+command.battlecorrection.bauble.slot.amulet=护身符
+command.battlecorrection.bauble.slot.ring=指环
+command.battlecorrection.bauble.slot.belt=腰带
+command.battlecorrection.bauble.slot.head=头部
+command.battlecorrection.bauble.slot.body=身体
+command.battlecorrection.bauble.slot.charm=坠饰
+command.battlecorrection.bauble.disabled=饰品栏标记功能已在配置文件中关闭
+command.battlecorrection.bauble.empty_hand=请先把要操作的物品拿在主手上
+command.battlecorrection.bauble.unknown_slot=没有叫 %s 的饰品栏，可选：any、amulet、ring、belt、head、body、charm（按 Tab 补全）
+command.battlecorrection.bauble.added=%s 现在可以放进饰品栏：%s
+command.battlecorrection.bauble.already=%s 已经可以放进饰品栏：%s
+command.battlecorrection.bauble.removed=已移除 %s 的饰品栏标记：%s
+command.battlecorrection.bauble.not_marked_slot=%s 没有这个饰品栏标记：%s
+command.battlecorrection.bauble.cleared=已清除 %s 的全部饰品栏标记
+command.battlecorrection.bauble.list=%s 可以放进的饰品栏：%s
+command.battlecorrection.bauble.list_none=%s 没有任何饰品栏标记或附加属性
+command.battlecorrection.bauble.attr_line=  附加属性：%s %s (%s) 生效于 %s
+command.battlecorrection.bauble.attr_added=已追加属性 %s %s (%s)，生效于 %s
+command.battlecorrection.bauble.attr_removed=已移除属性 %s，共 %s 条
+command.battlecorrection.bauble.attr_cleared=已清除 %s 的全部附加属性
+command.battlecorrection.bauble.attr_none=%s 没有任何附加属性
+command.battlecorrection.bauble.attr_not_found=该物品上没有属性 %s
+command.battlecorrection.bauble.attr_not_marked=提示：该物品还不能放进饰品栏，请用 /battlecorrection bauble add <饰品栏> 打上标记
+command.battlecorrection.bauble.unknown_attribute=你身上没有叫 %s 的属性，按 Tab 可以查看全部属性
+command.battlecorrection.bauble.bad_operation=运算方式只能填：%s
+command.battlecorrection.bauble.zero_amount=数值不能为 0
+command.battlecorrection.bauble.native_warning=注意：该物品本身就是饰品，能放进哪个饰品栏由它自己决定，饰品栏标记对它不起作用；附加属性和"只当饰品用"照常生效。
+tooltip.battlecorrection.bauble.slots=饰品 (%s)
+tooltip.battlecorrection.bauble.modifiers.any=佩戴饰品时：
+tooltip.battlecorrection.bauble.modifiers.amulet=佩戴护身符时：
+tooltip.battlecorrection.bauble.modifiers.ring=佩戴指环时：
+tooltip.battlecorrection.bauble.modifiers.belt=佩戴腰带时：
+tooltip.battlecorrection.bauble.modifiers.head=佩戴在头部饰品栏时：
+tooltip.battlecorrection.bauble.modifiers.body=佩戴在身体饰品栏时：
+tooltip.battlecorrection.bauble.modifiers.charm=佩戴坠饰时：
+tooltip.battlecorrection.bauble.modifiers.other=佩戴在饰品栏 %s 时：
+message.battlecorrection.bauble.armor_blocked=%s 已被标记为饰品，不能穿在盔甲栏
+
+# 根命令
+command.battlecorrection.usage=/battlecorrection bauble ...（饰品栏标记，需安装 Baubles）

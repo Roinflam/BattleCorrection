@@ -158,62 +158,40 @@ public final class ConfigAttribute {
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Bow Draw Speed Multiplier",
-            "     Increases how fast bows can be drawn to full charge",
-            "     Formula: Final Speed = Equipment Bonus + Config Value",
-            "     IMPORTANT: You need equipment with bow speed bonus OR config > 0 to use bows!",
-            "     • 0.0 = Cannot draw bow (default when no equipment bonus)",
-            "     • 1.0 = Normal draw speed (1× speed)",
-            "     • 2.0 = Twice as fast (2× speed)",
-            "     • 3.0 = Three times as fast (3× speed)",
+            "     Formula: Final Speed = (Equipment Bow Speed - 1) + This Value",
+            "     • 1.0 = Normal speed (default)  • 2.0 = Twice as fast  • 0.5 = Half speed  • 0.0 = Cannot draw",
+            "     At most 64 extra draw ticks are added per game tick.",
             "     Does NOT affect arrow damage, only draw speed",
-            "     Useful for rapid-fire bow builds",
             "",
             "[中文] 拉弓速度倍率",
-            "     提高弓拉满的速度",
-            "     公式: 最终速度 = 装备加成 + 配置值",
-            "     重要: 需要有拉弓速度加成的装备或配置 > 0 才能使用弓!",
-            "     • 0.0 = 无法拉弓(默认，无装备加成时)",
-            "     • 1.0 = 正常速度(1倍速)",
-            "     • 2.0 = 快一倍(2倍速)",
-            "     • 3.0 = 快两倍(3倍速)",
+            "     公式: 最终速度 = (装备拉弓速度 - 1) + 此值",
+            "     • 1.0 = 正常速度(默认)  • 2.0 = 快一倍  • 0.5 = 减半速度  • 0.0 = 无法拉弓",
+            "     每个游戏刻最多额外推进 64 次。",
             "     不影响箭矢伤害，仅影响拉弓速度",
-            "     适用于快速射击弓构建",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.bowSpeed")
     @Config.RangeDouble(min = 0)
-    public static float bowSpeed = 0;
+    public static float bowSpeed = 1;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Item Use Speed Multiplier (Food, Potions, Shields)",
-            "     Increases how fast items can be consumed or used",
             "     Affects: Eating food, drinking potions, using shields, etc.",
             "     Does NOT affect: Bows (use bowSpeed for that)",
-            "     Formula: Final Speed = Equipment Bonus + Config Value",
-            "     IMPORTANT: You need equipment with use speed bonus OR config > 0 to use items!",
-            "     • 0.0 = Cannot use items (default when no equipment bonus)",
-            "     • 1.0 = Normal use speed (1× speed)",
-            "     • 2.0 = Twice as fast (2× speed)",
-            "     • 3.0 = Three times as fast (3× speed)",
-            "     Useful for combat builds that rely on quick potion use",
+            "     Formula: Final Speed = (Equipment Use Speed - 1) + This Value",
+            "     • 1.0 = Normal speed (default)  • 2.0 = Twice as fast  • 0.5 = Half speed  • 0.0 = Cannot use",
             "",
             "[中文] 物品使用速度倍率(食物、药水、盾牌)",
-            "     提高物品消耗或使用的速度",
             "     影响: 吃食物、喝药水、使用盾牌等",
             "     不影响: 弓(使用bowSpeed调整)",
-            "     公式: 最终速度 = 装备加成 + 配置值",
-            "     重要: 需要有使用速度加成的装备或配置 > 0 才能使用物品!",
-            "     • 0.0 = 无法使用物品(默认，无装备加成时)",
-            "     • 1.0 = 正常速度(1倍速)",
-            "     • 2.0 = 快一倍(2倍速)",
-            "     • 3.0 = 快两倍(3倍速)",
-            "     适用于依赖快速使用药水的战斗构建",
+            "     公式: 最终速度 = (装备使用速度 - 1) + 此值",
+            "     • 1.0 = 正常速度(默认)  • 2.0 = 快一倍  • 0.5 = 减半速度  • 0.0 = 无法使用",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.preparationSpeed")
     @Config.RangeDouble(min = 0)
-    public static float preparationSpeed = 0;
+    public static float preparationSpeed = 1;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
@@ -272,6 +250,16 @@ public final class ConfigAttribute {
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.almightyBloodthirsty")
     @Config.RangeDouble(min = 0)
     public static float almightyBloodthirsty = 0;
+    @Config.Comment({
+            "[EN] Whether lifesteal (melee and universal) is boosted by healing bonus",
+            "     • true = Lifesteal heals are multiplied by restoreHeal and the Restore Heal attribute (default)",
+            "     • false = Lifesteal always heals exactly damage x ratio, healing bonus is ignored",
+            "[中文] 吸血（近战吸血和全能吸血）是否吃治疗加成",
+            "     • true = 吸血回的血也乘 restoreHeal 和「治疗恢复」属性(默认)",
+            "     • false = 吸血固定回 伤害 × 比例，不吃治疗加成"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".attribute.lifestealAffectedByHealBonus")
+    public static boolean lifestealAffectedByHealBonus = true;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
@@ -311,31 +299,25 @@ public final class ConfigAttribute {
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
             "[EN] Vanilla Critical Hit Damage Bonus (Fall Attack Only)",
-            "     Extra damage bonus for vanilla fall-attack critical hits",
-            "     This ONLY affects the vanilla falling critical hit mechanic!",
-            "     Vanilla default: 0.5 (deals 150% total damage = 100% base + 50% bonus)",
-            "     • 0.0 = 100% damage (no critical bonus, just normal damage)",
-            "     • 0.5 = 150% damage (vanilla default)",
-            "     • 1.0 = 200% damage (double damage)",
-            "     • 2.0 = 300% damage (triple damage)",
+            "     Formula: Damage × (1.5 + (Equipment Critical Damage - 1) + This Value)",
+            "     Added on top of the multiplier other mods have already set, never multiplied with it.",
+            "     • 0.0 = 150% damage (vanilla default, 1.5×)",
+            "     • 0.5 = 200% damage (2.0×)",
+            "     • 1.0 = 250% damage (2.5×)",
             "     This is independent from the custom critical hit system",
-            "     Both can trigger at the same time for massive damage!",
             "",
             "[中文] 原版暴击伤害加成(仅下坠攻击)",
-            "     原版下坠暴击的额外伤害加成",
-            "     这仅影响原版的下坠暴击机制!",
-            "     原版默认: 0.5 (造成150%总伤害 = 100%基础 + 50%加成)",
-            "     • 0.0 = 100%伤害(无暴击加成，仅正常伤害)",
-            "     • 0.5 = 150%伤害(原版默认)",
-            "     • 1.0 = 200%伤害(双倍伤害)",
-            "     • 2.0 = 300%伤害(三倍伤害)",
+            "     公式: 伤害 × (1.5 + (装备暴击伤害 - 1) + 此值)",
+            "     加在其他模组已经设好的倍率上，不与它相乘。",
+            "     • 0.0 = 150%伤害(原版默认, 1.5倍)",
+            "     • 0.5 = 200%伤害(2.0倍)",
+            "     • 1.0 = 250%伤害(2.5倍)",
             "     这独立于自定义暴击系统",
-            "     两者可以同时触发造成巨额伤害!",
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.vanillaCriticalHitDamage")
     @Config.RangeDouble(min = 0)
-    public static float vanillaCriticalHitDamage = 0.5f;
+    public static float vanillaCriticalHitDamage = 0;
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",

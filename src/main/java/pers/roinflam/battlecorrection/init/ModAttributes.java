@@ -6,8 +6,6 @@ import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.ai.attributes.RangedAttribute;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,44 +125,14 @@ public class ModAttributes {
 
     /**
      * 初始化所有自定义属性
-     * 必须在preInit阶段调用
+     * <p>
+     * 1.12.2 没有全局属性注册表：物品 NBT 里的 AttributeModifiers 按属性名字符串保存，
+     * 生效时按名字去实体自己的属性表里找。所以这里只需要让静态字段完成初始化，
+     * 真正的注册在实体加入世界时做（BattleCorrection#onEntityJoinWorld）。
+     * 以前这里反射 SharedMonsterAttributes.REGISTRY，1.12.2 没有这个字段，每次启动都报一条错误。
      */
     public static void init() {
-        LogUtil.info("开始注册自定义属性到全局属性系统...");
-
-        try {
-            // 通过反射访问SharedMonsterAttributes的私有字段
-            Field field = net.minecraft.entity.SharedMonsterAttributes.class.getDeclaredField("REGISTRY");
-            field.setAccessible(true);
-
-            // 移除final修饰符（如果需要）
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
-
-            // 获取属性注册表
-            @SuppressWarnings("unchecked")
-            net.minecraft.util.registry.RegistryNamespaced<net.minecraft.util.ResourceLocation, IAttribute> registry =
-                    (net.minecraft.util.registry.RegistryNamespaced<net.minecraft.util.ResourceLocation, IAttribute>) field.get(null);
-
-            // 注册所有自定义属性
-            for (IAttribute attribute : CUSTOM_ATTRIBUTES) {
-                net.minecraft.util.ResourceLocation location = new net.minecraft.util.ResourceLocation(attribute.getName());
-
-                if (!registry.containsKey(location)) {
-                    registry.register(registry.getKeys().size(), location, attribute);
-                    LogUtil.info("  ✓ 已注册全局属性: " + attribute.getName());
-                } else {
-                    LogUtil.warn("  ⚠ 属性已存在，跳过: " + attribute.getName());
-                }
-            }
-
-            LogUtil.info("成功注册 " + CUSTOM_ATTRIBUTES.size() + " 个自定义属性到全局系统");
-
-        } catch (Exception e) {
-            LogUtil.error("注册全局属性时发生错误！", e);
-            LogUtil.error("这可能导致物品NBT中的属性无法正确读取");
-        }
+        LogUtil.info("已加载 " + CUSTOM_ATTRIBUTES.size() + " 个自定义属性，实体进入世界时注册");
     }
 
     /**

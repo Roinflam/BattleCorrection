@@ -47,6 +47,11 @@ public class AttributeImmuneDamage {
                 float configChance = ConfigAttribute.immuneDamage; // 配置值已经是百分比
                 float totalChance = equipmentChance + configChance; // 总几率
 
+                // 没有闪避几率就不用掷骰子（绝大多数生物都走这里）
+                if (totalChance <= 0) {
+                    return;
+                }
+
                 boolean isImmune = RandomUtil.percentageChance(totalChance);
 
                 LogUtil.debugAttribute("伤害免疫", hurter.getName(),

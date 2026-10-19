@@ -8,13 +8,15 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.common.Mod;
-import pers.roinflam.battlecorrection.base.potion.HiddenPotionBase;
-import pers.roinflam.battlecorrection.utils.random.RandomUtil;
-import pers.roinflam.battlecorrection.utils.util.EntityUtil;
+import pers.roinflam.battlecorrection.init.ModPotions;
+import pers.roinflam.battlecorrection.utils.util.MobTargetUtil;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
+/**
+ * 暴动权杖
+ * 右键点击一个生物，使它攻击附近的随机生物（持续效果）
+ */
 @Mod.EventBusSubscriber
 public class RiotStaff extends ItemStaff {
 
@@ -22,55 +24,31 @@ public class RiotStaff extends ItemStaff {
         super(name, creativeTabs);
     }
 
+    /**
+     * 右键生物：给它挂上暴动效果，并立即挑一个随机目标
+     */
     @Override
     public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, @Nonnull EnumHand hand) {
-        if (hand.equals(EnumHand.MAIN_HAND) && !playerIn.world.isRemote) {
-            if (target instanceof EntityLiving) {
-                EntityLiving targetEntityLiving = (EntityLiving) target;
-                if (target.isEntityAlive()) {
-                    targetEntityLiving.removeActivePotionEffect(RiotStaff.MobEffectRiot.RIOT);
-                    targetEntityLiving.removeActivePotionEffect(BrawlStaff.MobEffectRiot.RIOT);
-                    targetEntityLiving.removeActivePotionEffect(EliminationStaff.MobEffectRiot.RIOT);
-                    targetEntityLiving.addPotionEffect(new PotionEffect(MobEffectRiot.RIOT, 12000, 0));
+        if (hand == EnumHand.MAIN_HAND && target instanceof EntityLiving && target.isEntityAlive()) {
+            if (!playerIn.world.isRemote) {
+                EntityLiving targetMob = (EntityLiving) target;
 
-                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, targetEntityLiving, 64, entityLiving -> !entityLiving.equals(targetEntityLiving));
-                    if (entities.size() > 0) {
-                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
-                        if (entityLiving.isEntityAlive()) {
-                            targetEntityLiving.setAttackTarget(entityLiving);
-                            entityLiving.setAttackTarget(targetEntityLiving);
-                        }
-                    }
-                    playerIn.getCooldownTracker().setCooldown(this, 20);
-                    return true;
-                }
+                // 移除其他暴动类效果
+                targetMob.removeActivePotionEffect(ModPotions.RIOT);
+                targetMob.removeActivePotionEffect(ModPotions.BRAWL);
+                targetMob.removeActivePotionEffect(ModPotions.ELIMINATION);
+
+                // 添加暴动效果（10 分钟，不显示粒子）
+                targetMob.addPotionEffect(new PotionEffect(ModPotions.RIOT, 12000, 0, false, false));
+
+                // 立即设置一次随机目标
+                MobTargetUtil.retargetNearby(targetMob, false);
+
+                // 设置冷却
+                playerIn.getCooldownTracker().setCooldown(this, 20);
             }
+            return true;
         }
         return false;
-    }
-
-    static class MobEffectRiot extends HiddenPotionBase {
-        public static final MobEffectRiot RIOT = new MobEffectRiot(true, 0, "riot_staff_MobEffectRiot");
-
-        protected MobEffectRiot(boolean isBadEffectIn, int liquidColorIn, @Nonnull String name) {
-            super(isBadEffectIn, liquidColorIn, name);
-        }
-
-        @Override
-        public void performEffect(@Nonnull EntityLivingBase entityLivingBaseIn, int amplifier) {
-            if (entityLivingBaseIn instanceof EntityLiving) {
-                EntityLiving attacker = (EntityLiving) entityLivingBaseIn;
-                if (attacker.world.getTotalWorldTime() % 100 == 0 || (attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive())) {
-                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(EntityLiving.class, attacker, 64, entityLiving -> !entityLiving.equals(attacker));
-                    if (entities.size() > 0) {
-                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
-                        if (entityLiving.isEntityAlive()) {
-                            attacker.setAttackTarget(entityLiving);
-                            entityLiving.setAttackTarget(attacker);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

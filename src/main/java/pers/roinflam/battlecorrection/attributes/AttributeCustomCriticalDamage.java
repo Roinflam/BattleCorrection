@@ -46,7 +46,8 @@ public class AttributeCustomCriticalDamage {
         Entity immediateSource = damageSource.getImmediateSource();
         Entity trueSource = damageSource.getTrueSource();
 
-        if (trueSource == null || !(trueSource instanceof EntityLivingBase)) {
+        // 只有近战和弹射物会判定暴击；没有直接来源的伤害不读取暴击标记
+        if (immediateSource == null || !(trueSource instanceof EntityLivingBase)) {
             return;
         }
 
@@ -73,15 +74,16 @@ public class AttributeCustomCriticalDamage {
 
         evt.setAmount(newDamage);
 
-        LogUtil.debugAttribute("暴击伤害倍率", attacker.getName(), attributeValue, configValue, baseCritDamage);
-        LogUtil.debugCritical(attacker.getName(), victim.getName(),
-                AttributesUtil.getAttributeValue(attacker, AttributeCustomCriticalChance.CUSTOM_CRITICAL_CHANCE) + ConfigAttribute.customCriticalChance,
-                1, finalCritDamage, originalDamage, newDamage);
-
-        if (overflow > 0) {
-            LogUtil.debugEvent("暴击溢出转化", attacker.getName(),
-                    String.format("溢出值: %.2f, 转化比例: %.2f, 溢出加成: %.2f, 最终暴击倍率: %.2fx",
-                            overflow, conversionRatio, overflowBonus, finalCritDamage));
+        if (LogUtil.isDetailed()) {
+            LogUtil.debugAttribute("暴击伤害倍率", attacker.getName(), attributeValue, configValue, baseCritDamage);
+            LogUtil.debugCritical(attacker.getName(), victim.getName(),
+                    AttributesUtil.getAttributeValue(attacker, AttributeCustomCriticalChance.CUSTOM_CRITICAL_CHANCE) + ConfigAttribute.customCriticalChance,
+                    1, finalCritDamage, originalDamage, newDamage);
+            if (overflow > 0) {
+                LogUtil.debugEvent("暴击溢出转化", attacker.getName(),
+                        String.format("溢出值: %.2f, 转化比例: %.2f, 溢出加成: %.2f, 最终暴击倍率: %.2fx",
+                                overflow, conversionRatio, overflowBonus, finalCritDamage));
+            }
         }
     }
 }

@@ -29,33 +29,35 @@ public class AttributeCriticalHitDamage {
 
     /**
      * 处理原版暴击事件
-     * 原版暴击是指玩家从高处落下时的攻击
+     * <p>
+     * 在当前倍率（原版 1.5，可能已被其他模组改过）上直接加：1.5 + (装备 - 1) + 配置。
+     * 旧版本直接把倍率覆盖成 (装备 - 1) + 配置：默认配置 0.5 时跳劈只有 0.5 倍，
+     * 装备 +50% 跳劈伤害时跳劈只剩普通攻击的一半。
      */
     @SubscribeEvent
     public static void onCriticalHit(@Nonnull CriticalHitEvent evt) {
-        if (!evt.getEntity().world.isRemote) {
-            @Nullable EntityLivingBase attacker = evt.getEntityLiving();
+        if (evt.getEntity().world.isRemote) {
+            return;
+        }
+        EntityLivingBase attacker = evt.getEntityLiving();
 
-            // 获取装备属性值（默认1.0）
-            float attributeValue = AttributesUtil.getAttributeValue(attacker, VANILLA_CRITICAL_HIT_DAMAGE);
-            // 获取配置值（默认0.5）
-            float configValue = ConfigAttribute.vanillaCriticalHitDamage;
-            // 计算最终加成：(装备倍率 - 1.0) + 配置加成
-            // 例：装备1.0 + 配置0.5 = (1.0 - 1.0) + 0.5 = 0.5（150%伤害）
-            double criticalDamageBonus = (attributeValue - 1.0f) + configValue;
+        // 获取当前的暴击倍率(可能已被其他模组修改)
+        float currentModifier = evt.getDamageModifier();
+        float attributeValue = AttributesUtil.getAttributeValue(attacker, VANILLA_CRITICAL_HIT_DAMAGE);
+        float configValue = ConfigAttribute.vanillaCriticalHitDamage;
+        double criticalDamageBonus = (attributeValue - 1.0f) + configValue;
 
-            evt.setDamageModifier((float) criticalDamageBonus);
+        // 直接加法叠加：原版1.5x + 额外0.5 = 2.0x，而不是乘法 1.5x * 1.5 = 2.25x
+        float finalModifier = currentModifier + (float) criticalDamageBonus;
+        evt.setDamageModifier(finalModifier);
 
+        if (LogUtil.isDetailed()) {
             LogUtil.debugAttribute("原版暴击伤害", attacker.getName(),
                     attributeValue - 1.0f, configValue, criticalDamageBonus);
-
             if (evt.getTarget() != null) {
-                LogUtil.debugEvent("原版暴击触发", attacker.getName(),
-                        String.format("对 %s 造成暴击，伤害倍率: %.2fx (100%% + %.2f%% = %.2f%%)",
-                                evt.getTarget().getName(),
-                                (1 + criticalDamageBonus),
-                                criticalDamageBonus * 100,
-                                (1 + criticalDamageBonus) * 100));
+                LogUtil.debugEvent("原版暴击倍率", attacker.getName(),
+                        String.format("目标 %s，原始倍率: %.2fx, 额外加成: +%.2f, 最终倍率: %.2fx",
+                                evt.getTarget().getName(), currentModifier, criticalDamageBonus, finalModifier));
             }
         }
     }

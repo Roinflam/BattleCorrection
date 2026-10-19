@@ -8,6 +8,7 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.util.DamageSource;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
@@ -31,27 +32,37 @@ public class AttributeArrowDamage {
 
     /**
      * 处理箭矢伤害事件
-     * 当实体被箭矢击中时触发
+     * 优先级 HIGH：固定加成统一在暴击倍率（NORMAL）之前结算，保证"先加后乘"
      */
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
-        if (!evt.getEntity().world.isRemote) {
-            DamageSource damageSource = evt.getSource();
-            if (damageSource.getImmediateSource() instanceof EntityArrow && damageSource.getTrueSource() instanceof EntityLivingBase) {
-                @Nullable EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
-                @Nullable EntityLivingBase victim = evt.getEntityLiving();
+        if (evt.getEntity().world.isRemote) {
+            return;
+        }
+        DamageSource damageSource = evt.getSource();
+        if (!(damageSource.getImmediateSource() instanceof EntityArrow)
+                || !(damageSource.getTrueSource() instanceof EntityLivingBase)) {
+            return;
+        }
+        float originalAmount = evt.getAmount();
+        // 本来就不造成伤害的命中不加成
+        if (originalAmount <= 0) {
+            return;
+        }
+        EntityLivingBase attacker = (EntityLivingBase) damageSource.getTrueSource();
 
-                float originalAmount = evt.getAmount();
-                float attributeValue = AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE);
-                float configDamage = ConfigAttribute.arrowDamage;
-                float newAmount = AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE, originalAmount + configDamage);
+        float configDamage = ConfigAttribute.arrowDamage;
+        float newAmount = AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE, originalAmount + configDamage);
+        if (newAmount == originalAmount) {
+            return;
+        }
+        evt.setAmount(newAmount);
 
-                LogUtil.debugAttribute("箭矢伤害", attacker.getName(), attributeValue, configDamage, newAmount - originalAmount);
-                LogUtil.debugDamage("箭矢攻击", attacker.getName(), victim.getName(), originalAmount, newAmount,
-                        String.format("属性加成: %.2f, 配置加成: %.2f", attributeValue, configDamage));
-
-                evt.setAmount(newAmount);
-            }
+        if (LogUtil.isDetailed()) {
+            float attributeValue = AttributesUtil.getAttributeValue(attacker, ARROW_DAMAGE);
+            LogUtil.debugAttribute("箭矢伤害", attacker.getName(), attributeValue, configDamage, newAmount - originalAmount);
+            LogUtil.debugDamage("箭矢攻击", attacker.getName(), evt.getEntityLiving().getName(), originalAmount, newAmount,
+                    String.format("属性加成: %.2f, 配置加成: %.2f", attributeValue, configDamage));
         }
     }
 }

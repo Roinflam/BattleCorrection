@@ -10,6 +10,7 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import pers.roinflam.battlecorrection.compat.BaubleMark;
 import pers.roinflam.battlecorrection.compat.BaublesIntegration;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 
@@ -58,8 +59,7 @@ public class AttributesUtil {
         float finalValue = (float) calculateFinalValue(base, modifiers[0], modifiers[1], modifiers[2]);
 
         // 调试日志
-        int totalModifiers = modifiers[0].size() + modifiers[1].size() + modifiers[2].size();
-        if (totalModifiers > 0) {
+        if (LogUtil.isDetailed() && modifiers[0].size() + modifiers[1].size() + modifiers[2].size() > 0) {
             LogUtil.debug(String.format("属性计算 [%s] 实体=%s: 基础=%.2f, 加法=%d个, 乘法1=%d个, 乘法2=%d个, 最终=%.2f",
                     attribute.getName(), entityLivingBase.getName(), base,
                     modifiers[0].size(), modifiers[1].size(), modifiers[2].size(), finalValue));
@@ -101,23 +101,11 @@ public class AttributesUtil {
             }
         }
 
-        // 饰品栏（如果Baubles已加载）
-        if (BaublesIntegration.isBaublesLoaded()) {
-            List<Double>[] baublesModifiers = BaublesIntegration.collectModifiersFromBaubles(
-                    entity, attribute.getName()
-            );
-
-            // 合并饰品栏的修改器
-            result[0].addAll(baublesModifiers[0]);
-            result[1].addAll(baublesModifiers[1]);
-            result[2].addAll(baublesModifiers[2]);
-
-            int baublesTotal = baublesModifiers[0].size() + baublesModifiers[1].size() + baublesModifiers[2].size();
-            if (baublesTotal > 0) {
-                LogUtil.debug(String.format("  从饰品栏获取到 %d 个属性修改器: %s",
-                        baublesTotal, attribute.getName()));
-            }
-        }
+        // 饰品栏（没装 Baubles 或不是玩家时返回空列表）
+        List<Double>[] baublesModifiers = BaublesIntegration.collectModifiers(entity, attribute);
+        result[0].addAll(baublesModifiers[0]);
+        result[1].addAll(baublesModifiers[1]);
+        result[2].addAll(baublesModifiers[2]);
 
         return result;
     }
@@ -129,14 +117,17 @@ public class AttributesUtil {
                                         @Nonnull EntityEquipmentSlot slot,
                                         @Nonnull IAttribute attribute,
                                         @Nonnull List<Double>[] result) {
-        if (!itemStack.isEmpty()) {
+        // 标记成"只当饰品用"的物品拿在手上、穿在身上都不生效，只在饰品栏里算
+        if (!itemStack.isEmpty() && !BaubleMark.isBaubleOnly(itemStack)) {
             Multimap<String, AttributeModifier> modifiers = itemStack.getAttributeModifiers(slot);
             for (@Nonnull AttributeModifier modifier : modifiers.get(attribute.getName())) {
                 int operation = modifier.getOperation();
                 if (operation >= 0 && operation <= 2) {
                     result[operation].add(modifier.getAmount());
-                    LogUtil.debug(String.format("  从装备槽 %s 获取属性: %s = %.2f (运算:%d)",
-                            slot.getName(), attribute.getName(), modifier.getAmount(), operation));
+                    if (LogUtil.isDetailed()) {
+                        LogUtil.debug(String.format("  从装备槽 %s 获取属性: %s = %.2f (运算:%d)",
+                                slot.getName(), attribute.getName(), modifier.getAmount(), operation));
+                    }
                 }
             }
         }

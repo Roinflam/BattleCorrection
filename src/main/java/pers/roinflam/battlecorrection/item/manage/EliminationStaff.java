@@ -2,22 +2,26 @@ package pers.roinflam.battlecorrection.item.manage;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Mod;
-import pers.roinflam.battlecorrection.base.potion.HiddenPotionBase;
-import pers.roinflam.battlecorrection.utils.random.RandomUtil;
-import pers.roinflam.battlecorrection.utils.util.EntityUtil;
+import pers.roinflam.battlecorrection.init.ModPotions;
+import pers.roinflam.battlecorrection.utils.util.MobTargetUtil;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
+/**
+ * 消灭权杖
+ * 右键使用，让附近不同种类的生物互相攻击
+ */
 @Mod.EventBusSubscriber
 public class EliminationStaff extends ItemStaff {
 
@@ -25,68 +29,37 @@ public class EliminationStaff extends ItemStaff {
         super(name, creativeTabs);
     }
 
+    /**
+     * 对空气右键：给周围 64 格内的所有生物挂上消灭效果，并随机设为不同种类生物的目标
+     */
     @Nonnull
     @Override
     public ActionResult<ItemStack> onItemRightClick(@Nonnull World worldIn, @Nonnull EntityPlayer playerIn, @Nonnull EnumHand handIn) {
         if (handIn.equals(EnumHand.MAIN_HAND) && !playerIn.world.isRemote) {
-            @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
-                    EntityLiving.class,
-                    playerIn,
-                    64
-            );
-            for (@Nonnull EntityLiving entityLiving : entities) {
-                entityLiving.removeActivePotionEffect(RiotStaff.MobEffectRiot.RIOT);
-                entityLiving.removeActivePotionEffect(BrawlStaff.MobEffectRiot.RIOT);
-                entityLiving.removeActivePotionEffect(EliminationStaff.MobEffectRiot.RIOT);
-                entityLiving.addPotionEffect(new PotionEffect(MobEffectRiot.RIOT, 12000, 0));
+            // 获取周围 64 格内所有活着的 EntityLiving
+            AxisAlignedBB searchBox = playerIn.getEntityBoundingBox().grow(MobTargetUtil.SEARCH_RADIUS);
+            List<EntityLiving> nearbyMobs = playerIn.world.getEntitiesWithinAABB(EntityLiving.class, searchBox, EntitySelectors.IS_ALIVE);
 
-                @Nonnull List<EntityLiving> nearbyEntities = EntityUtil.getNearbyEntities(
-                        EntityLiving.class,
-                        entityLiving,
-                        64,
-                        otherEntityLiving -> !otherEntityLiving.equals(entityLiving) && otherEntityLiving.getClass() != entityLiving.getClass()
-                );
-                if (nearbyEntities.size() > 0) {
-                    EntityLiving otherEntityLiving = nearbyEntities.get(RandomUtil.getInt(0, nearbyEntities.size() - 1));
-                    if (otherEntityLiving.isEntityAlive()) {
-                        entityLiving.setAttackTarget(otherEntityLiving);
-                        otherEntityLiving.setAttackTarget(entityLiving);
-                    }
-                    playerIn.getCooldownTracker().setCooldown(this, 20);
+            for (@Nonnull EntityLiving mob : nearbyMobs) {
+                // 移除其他暴动类效果
+                mob.removeActivePotionEffect(ModPotions.RIOT);
+                mob.removeActivePotionEffect(ModPotions.BRAWL);
+                mob.removeActivePotionEffect(ModPotions.ELIMINATION);
+
+                // 添加消灭效果（10 分钟，不显示粒子）
+                mob.addPotionEffect(new PotionEffect(ModPotions.ELIMINATION, 12000, 0, false, false));
+
+                // 只挑不同种类的生物作为目标
+                EntityLiving randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, true);
+                if (randomTarget != null) {
+                    MobTargetUtil.setMutualTarget(mob, randomTarget);
                 }
             }
+
+            // 设置冷却（以前只有搜到目标时才设）
+            playerIn.getCooldownTracker().setCooldown(this, 20);
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
         }
         return new ActionResult<ItemStack>(EnumActionResult.PASS, playerIn.getHeldItem(handIn));
-    }
-
-    static class MobEffectRiot extends HiddenPotionBase {
-        public static final MobEffectRiot RIOT = new MobEffectRiot(true, 0, "elimination_staff_MobEffectRiot");
-
-        protected MobEffectRiot(boolean isBadEffectIn, int liquidColorIn, @Nonnull String name) {
-            super(isBadEffectIn, liquidColorIn, name);
-        }
-
-        @Override
-        public void performEffect(@Nonnull EntityLivingBase entityLivingBaseIn, int amplifier) {
-            if (entityLivingBaseIn instanceof EntityLiving) {
-                EntityLiving attacker = (EntityLiving) entityLivingBaseIn;
-                if (attacker.world.getTotalWorldTime() % 100 == 0 || (attacker.getAttackTarget() == null || !attacker.getAttackTarget().isEntityAlive())) {
-                    @Nonnull List<EntityLiving> entities = EntityUtil.getNearbyEntities(
-                            EntityLiving.class,
-                            attacker,
-                            64,
-                            entityLiving -> !entityLiving.equals(attacker) && entityLiving.getClass() != attacker.getClass()
-                    );
-                    if (entities.size() > 0) {
-                        EntityLiving entityLiving = entities.get(RandomUtil.getInt(0, entities.size() - 1));
-                        if (entityLiving.isEntityAlive()) {
-                            attacker.setAttackTarget(entityLiving);
-                            entityLiving.setAttackTarget(attacker);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

@@ -9,6 +9,13 @@ import pers.roinflam.battlecorrection.init.ModItems;
 import pers.roinflam.battlecorrection.utils.IHasModel;
 import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
+/**
+ * 大师之剑
+ * 面板攻击伤害: 1000（玩家基础1 + 剑3 + 材质996）
+ * 耐久: 100000
+ * <p>
+ * 材质没有修复材料，不能在铁砧里用材料修复。
+ */
 public class MasterSword extends ItemSword implements IHasModel {
     public static final ToolMaterial MASTER = EnumHelper.addToolMaterial("battlecorrection_master", 3, 100000, 300.0f, 996f, 150);
 

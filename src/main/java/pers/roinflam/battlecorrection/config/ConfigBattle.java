@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import pers.roinflam.battlecorrection.utils.Reference;
+import pers.roinflam.battlecorrection.utils.util.MagicDamageClassifier;
 
 import javax.annotation.Nonnull;
 
@@ -92,7 +93,7 @@ public final class ConfigBattle {
             "═══════════════════════════════════════════════════════════════",
             "[EN] Entity Invulnerability Time Multiplier",
             "     Controls how long non-player entities are invulnerable after being hit",
-            "     Formula: New Time = Original Time × (1 + This Value)",
+            "     Formula: Effective Time = 10 ticks (vanilla) × (1 + This Value)",
             "     • -0.5 = Half the normal invulnerability time (faster damage)",
             "     • 0.0 = Normal vanilla invulnerability time (default)",
             "     • 1.0 = Double the invulnerability time (slower damage)",
@@ -101,7 +102,7 @@ public final class ConfigBattle {
             "",
             "[中文] 实体无敌时间倍率",
             "     控制非玩家实体受击后的无敌时间长度",
-            "     公式: 新时间 = 原始时间 × (1 + 此值)",
+            "     公式: 有效无敌时间 = 10 tick(原版) × (1 + 此值)",
             "     • -0.5 = 正常无敌时间的一半(更快造成伤害)",
             "     • 0.0 = 正常原版无敌时间(默认)",
             "     • 1.0 = 双倍无敌时间(更慢造成伤害)",
@@ -117,7 +118,7 @@ public final class ConfigBattle {
             "═══════════════════════════════════════════════════════════════",
             "[EN] Player Invulnerability Time Multiplier",
             "     Controls how long players are invulnerable after being hit",
-            "     Formula: New Time = Original Time × (1 + This Value)",
+            "     Formula: Effective Time = 10 ticks (vanilla) × (1 + This Value)",
             "     • -0.5 = Half the normal invulnerability time",
             "     • 0.0 = Normal vanilla invulnerability time (default)",
             "     • 1.0 = Double the invulnerability time",
@@ -126,7 +127,7 @@ public final class ConfigBattle {
             "",
             "[中文] 玩家无敌时间倍率",
             "     控制玩家受击后的无敌时间长度",
-            "     公式: 新时间 = 原始时间 × (1 + 此值)",
+            "     公式: 有效无敌时间 = 10 tick(原版) × (1 + 此值)",
             "     • -0.5 = 正常无敌时间的一半",
             "     • 0.0 = 正常原版无敌时间(默认)",
             "     • 1.0 = 双倍无敌时间",
@@ -340,6 +341,84 @@ public final class ConfigBattle {
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
+            "[EN] Player Environmental Damage Multiplier (general)",
+            "     Environmental damage = damage with no living attacker behind it (fall, fire, lava, drowning, cactus,",
+            "     suffocation, poison/wither effects, unowned explosions, falling blocks, lightning ...).",
+            "     Void and /kill are never touched.",
+            "     Applied after armor and every other reduction, so it still bites when late-game gear shrinks the hit.",
+            "     Stacks with the matching category multiplier below (fire + explosion hits take both).",
+            "     • 1.0 = Normal (default)  • 3.0 = Take 300% environmental damage  • 0.0 = Immune",
+            "",
+            "[中文] 玩家承受环境伤害总倍率",
+            "     环境伤害 = 背后没有活物攻击者的伤害（摔落、火焰、岩浆、溺水、仙人掌、窒息、中毒/凋零效果、无主爆炸、坠落方块、闪电等）。",
+            "     虚空和 /kill 不受影响。",
+            "     在护甲和其他所有减伤之后结算，所以后期装备把伤害压到接近 0 时，倍率依然能起作用。",
+            "     与下面对应类别的倍率相乘（既算火焰又算爆炸的伤害两项都吃）。",
+            "     • 1.0 = 正常(默认)  • 3.0 = 承受300%环境伤害  • 0.0 = 免疫",
+            "═══════════════════════════════════════════════════════════════"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersEnvironment")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersEnvironment = 1;
+
+    @Config.Comment({
+            "[EN] Fall damage multiplier (stacks with the general multiplier; reducedFallDamage is subtracted first)",
+            "[中文] 摔落伤害倍率（与总倍率相乘；reducedFallDamage 的固定减免先结算）"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersFall")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersFall = 1;
+
+    @Config.Comment({
+            "[EN] Fire damage multiplier (burning, fire blocks, lava, magma blocks)",
+            "[中文] 火焰伤害倍率（着火、火焰方块、岩浆、岩浆块）"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersFire")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersFire = 1;
+
+    @Config.Comment({
+            "[EN] Drowning damage multiplier",
+            "[中文] 溺水伤害倍率"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersDrowning")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersDrowning = 1;
+
+    @Config.Comment({
+            "[EN] Explosion damage multiplier (only explosions with no living culprit: unowned TNT, beds in the Nether, ...)",
+            "[中文] 爆炸伤害倍率（只算没有活物肇事者的爆炸：无主 TNT、在下界睡床等）"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersExplosion")
+    @Config.RangeDouble(min = 0)
+    public static float playerSuffersExplosion = 1;
+
+    @Config.Comment({
+            "[EN] Environmental damage floor, as a fraction of max health (applied after the multipliers above)",
+            "     Every environmental hit deals at least max(maxHealth x this, playerEnvironmentMinFlat).",
+            "     A total multiplier of 0 means immune and skips the floor.",
+            "     • 0.0 = Off (default)  • 0.05 = at least 5% of max health per hit  • 1.0 = lethal",
+            "[中文] 环境伤害下限：最大生命值的比例（在上面各倍率之后结算）",
+            "     每次环境伤害至少造成 max(最大生命 × 此值, playerEnvironmentMinFlat)。",
+            "     倍率乘出来是 0 表示免疫，不套下限。",
+            "     • 0.0 = 关闭(默认)  • 0.05 = 每次至少 5% 最大生命  • 1.0 = 一击致命"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerEnvironmentMinPercent")
+    @Config.RangeDouble(min = 0, max = 1)
+    public static float playerEnvironmentMinPercent = 0;
+
+    @Config.Comment({
+            "[EN] Environmental damage floor, flat amount (compared with the percentage floor, the larger one wins)",
+            "     • 0.0 = Off (default)  • 2.0 = at least 2 damage per hit",
+            "[中文] 环境伤害下限：固定值（与比例下限比较，取较大的那个）",
+            "     • 0.0 = 关闭(默认)  • 2.0 = 每次至少 2 点伤害"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerEnvironmentMinFlat")
+    @Config.RangeDouble(min = 0)
+    public static float playerEnvironmentMinFlat = 0;
+
+    @Config.Comment({
+            "═══════════════════════════════════════════════════════════════",
             "[EN] Entity Maximum Health Multiplier (Non-Player Only)",
             "     Adjusts the maximum health of all non-player entities",
             "     This is a MULTIPLIER, not addition:",
@@ -499,7 +578,7 @@ public final class ConfigBattle {
             "[EN] Maximum Hunger Damage Decay (Maximum Damage Reduction Cap)",
             "     Maximum percentage of damage that can be reduced by hunger",
             "     Prevents damage from becoming too low:",
-            "     • 0.00 = No maximum reduction (disabled, default)",
+            "     • 0.00 = No limit, damage can drop to 0 (default)",
             "     • 0.50 = Maximum 50% damage reduction",
             "     • 0.70 = Maximum 70% damage reduction",
             "     Example: With 0.70 limit and 0.05 decay per point:",
@@ -510,7 +589,7 @@ public final class ConfigBattle {
             "[中文] 最大饥饿伤害衰减(最大伤害减少上限)",
             "     饥饿可以减少的最大伤害百分比",
             "     防止伤害降得过低:",
-            "     • 0.00 = 无上限(已禁用，默认)",
+            "     • 0.00 = 不设上限，伤害最多可减到 0(默认)",
             "     • 0.50 = 最多减少50%伤害",
             "     • 0.70 = 最多减少70%伤害",
             "     例: 上限0.70，每点衰减0.05:",
@@ -520,8 +599,52 @@ public final class ConfigBattle {
             "═══════════════════════════════════════════════════════════════"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hungerDamageDecayLimit")
-    @Config.RangeDouble(min = 0)
+    @Config.RangeDouble(min = 0, max = 1)
     public static float hungerDamageDecayLimit = 0f;
+
+    @Config.Comment({
+            "═══════════════════════════════════════════════════════════════",
+            "[EN] Third-party Magic Recognition",
+            "     Decides which damage counts as 'magic' for the magicDamage attribute and the player magic attack / resistance",
+            "     multipliers. Magic is an independent layer on top of the melee/arrow/projectile layer: the base bonuses and",
+            "     multipliers always apply, magic stacks on top.",
+            "     Vanilla rule always applies: isMagicDamage(), or the damage type contains 'magic'.",
+            "     Summon/pet melee hits (direct entity is someone else's living minion) are never counted as magic.",
+            "     • true = Use the prefix / whitelist / blacklist below (default)  • false = vanilla rule only",
+            "",
+            "[中文] 第三方魔法识别",
+            "     决定哪些伤害算「魔法伤害」（用于 magicDamage 属性、玩家魔法攻击/承受倍率）。",
+            "     魔法是叠在近战/箭矢/弹射物基础层之上的独立层：基础加成和倍率始终生效，魔法在其上叠加。",
+            "     原版规则始终生效：isMagicDamage()，或伤害类型名含 magic。",
+            "     召唤物/宠物替主人挥砍的命中一律不算魔法。",
+            "     • true = 启用下面的前缀/白名单/黑名单(默认)  • false = 只保留原版规则",
+            "═══════════════════════════════════════════════════════════════"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.enableThirdPartyMagicRecognition")
+    public static boolean enableThirdPartyMagicRecognition = true;
+
+    @Config.Comment({
+            "[EN] Damage type prefixes treated as magic as a whole (1.12.2 damage types have no namespace,",
+            "     so a mod is matched by the start of its damage type names), e.g. 'somemod_' covers 'somemod_fire', 'somemod_ice' ...",
+            "[中文] 整组算魔法的伤害类型前缀（1.12.2 的伤害类型没有命名空间，按名字开头匹配一个模组的全部类型），",
+            "     例如 somemod_ 覆盖 somemod_fire、somemod_ice 等"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.magicDamageTypePrefixes")
+    public static String[] magicDamageTypePrefixes = new String[0];
+
+    @Config.Comment({
+            "[EN] Exact damage types always treated as magic, e.g. 'arcane_bolt'",
+            "[中文] 精确算魔法的伤害类型，例如 arcane_bolt"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.magicDamageTypeWhitelist")
+    public static String[] magicDamageTypeWhitelist = new String[0];
+
+    @Config.Comment({
+            "[EN] Exact damage types never treated as magic (highest priority, overrides every other rule)",
+            "[中文] 精确不算魔法的伤害类型（优先级最高，压过其他所有规则）"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.magicDamageTypeBlacklist")
+    public static String[] magicDamageTypeBlacklist = new String[0];
 
     @Config.Comment({
             "═══════════════════════════════════════════════════════════════",
@@ -553,11 +676,19 @@ public final class ConfigBattle {
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.enableDetailedLogging")
     public static boolean enableDetailedLogging = false;
 
+    @Config.Comment({
+            "[EN] Config file format version, used to convert values written by older versions. Do not edit.",
+            "[中文] 配置文件格式版本，用来转换旧版本写下的数值，请勿修改。"
+    })
+    @Config.LangKey("config." + Reference.MOD_ID + ".battle.configVersion")
+    public static int configVersion = ConfigMigration.CURRENT_VERSION;
+
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public static void onConfigChanged(@Nonnull ConfigChangedEvent.OnConfigChangedEvent evt) {
         if (evt.getModID().equals(Reference.MOD_ID)) {
             ConfigManager.sync(Reference.MOD_ID, Config.Type.INSTANCE);
+            MagicDamageClassifier.invalidateCache();
         }
     }
 }

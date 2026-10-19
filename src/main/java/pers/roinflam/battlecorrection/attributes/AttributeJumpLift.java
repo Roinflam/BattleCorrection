@@ -4,7 +4,6 @@ package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.IAttribute;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -12,6 +11,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -37,14 +37,9 @@ public class AttributeJumpLift {
         if (!evt.getEntity().world.isRemote) {
             EntityLivingBase entityLivingBase = evt.getEntityLiving();
 
-            IAttributeInstance attributeInstance = entityLivingBase.getAttributeMap().getAttributeInstance(JUMP_LIFT);
-            double jumpBoost = 0;
-
-            if (attributeInstance != null) {
-                jumpBoost = attributeInstance.getAttributeValue();
-            } else {
-                jumpBoost = pers.roinflam.battlecorrection.utils.util.AttributesUtil.getAttributeValue(entityLivingBase, JUMP_LIFT, 0.0);
-            }
+            // 属性值统一通过 AttributesUtil 读取，包含饰品栏物品上的加成
+            // （旧版本优先读属性实例，饰品栏那部分加成算不进来）
+            double jumpBoost = AttributesUtil.getAttributeValue(entityLivingBase, JUMP_LIFT);
 
             double configBoost = ConfigAttribute.jumpLift;
             jumpBoost += configBoost;

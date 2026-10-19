@@ -2,14 +2,16 @@
 // 路径：src/main/java/pers/roinflam/battlecorrection/compat/BaublesIntegration.java
 package pers.roinflam.battlecorrection.compat;
 
-import baubles.api.BaublesApi;
-import baubles.api.cap.IBaublesItemHandler;
-import com.google.common.collect.Multimap;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.IAttribute;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.items.IItemHandler;
+import pers.roinflam.battlecorrection.config.ConfigBattle;
+import pers.roinflam.battlecorrection.handlers.BaubleMarkTooltipHandler;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 
 import javax.annotation.Nonnull;
@@ -18,7 +20,15 @@ import java.util.List;
 
 /**
  * Baubles模组集成类
- * 提供从饰品栏获取物品和属性的功能
+ * <p>
+ * 只做三件事：检测 Baubles 是否存在；存在时注册 {@link BaubleMarkEvents}（两端事件）和
+ * {@link BaubleMarkTooltipHandler}（客户端）；给 AttributesUtil 提供饰品栏里的属性。
+ * 引用 Baubles 的类都在 {@link BaublesAccess}、{@link BaubleMarkCapability} 里，这个类本身不碰，
+ * 所以没装 Baubles 时照样能加载，只是什么都不做。
+ * <p>
+ * 饰品上的属性怎么生效，见 {@link BaubleWornModifiers}：
+ * 本模组的附加属性和物品自身的原版格式属性，戴上时作为真正的修饰符加到玩家身上，摘下时撤掉；
+ * AttributesUtil 算本模组属性时读同一份缓存。
  * <p>
  * 注意：Baubles饰品栏仅支持玩家（EntityPlayer）
  */
@@ -28,21 +38,32 @@ public class BaublesIntegration {
 
     /**
      * 检查Baubles是否已加载
+     *
+     * @return true = 已加载且能力可用
      */
     public static boolean isBaublesLoaded() {
         return baublesLoaded;
     }
 
     /**
-     * 初始化Baubles集成
+     * 初始化Baubles集成（主类预初始化时调用，必须在 Baubles 自己的预初始化之后）
+     * <p>
+     * 事件要在物品注册之前挂上：物品能力是物品创建时挂的，预初始化之后才开始注册物品、建配方，
+     * 这时注册能保证游戏里的物品都带着标记饰品的能力。
      */
     public static void init() {
-        try {
-            Class.forName("baubles.api.BaublesApi");
-            baublesLoaded = true;
-            LogUtil.info("成功检测到Baubles模组，已启用饰品栏属性支持");
-        } catch (ClassNotFoundException e) {
-            baublesLoaded = false;
+        // 用模组列表判断，而不是 Class.forName：有的模组把 Baubles API 打进了自己的 jar，类有、模组没有
+        baublesLoaded = Loader.isModLoaded("baubles") && BaublesAccess.capabilitiesReady();
+        if (baublesLoaded) {
+            // 只有装了 Baubles 才注册，这几个类会用到 Baubles 的类
+            MinecraftForge.EVENT_BUS.register(BaubleMarkEvents.class);
+            if (FMLCommonHandler.instance().getSide().isClient()) {
+                MinecraftForge.EVENT_BUS.register(BaubleMarkTooltipHandler.class);
+            }
+            LogUtil.info("成功检测到Baubles模组，已启用饰品栏属性支持和饰品栏标记功能");
+        } else if (Loader.isModLoaded("baubles")) {
+            LogUtil.warn("检测到Baubles模组，但它的能力没有注册（加载顺序不对？），饰品栏功能将被禁用");
+        } else {
             LogUtil.info("未检测到Baubles模组，饰品栏功能将被禁用");
         }
     }
@@ -51,201 +72,86 @@ public class BaublesIntegration {
      * 获取实体的所有饰品栏物品
      *
      * @param entity 实体（必须是玩家）
-     * @return 饰品栏物品列表，如果不是玩家则返回空列表
+     * @return 饰品栏物品列表（不含空格子），如果不是玩家则返回空列表
      */
     @Nonnull
     public static List<ItemStack> getBaubles(@Nonnull EntityLivingBase entity) {
         List<ItemStack> baubles = new ArrayList<>();
-
-        if (!baublesLoaded) {
+        if (!baublesLoaded || !(entity instanceof EntityPlayer)) {
             return baubles;
         }
 
-        // Baubles仅支持玩家
-        if (!(entity instanceof EntityPlayer)) {
+        IItemHandler handler = BaublesAccess.getHandler((EntityPlayer) entity);
+        if (handler == null) {
             return baubles;
         }
-
-        try {
-            EntityPlayer player = (EntityPlayer) entity;
-            IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
-
-            if (baublesHandler != null) {
-                int slots = baublesHandler.getSlots();
-                for (int i = 0; i < slots; i++) {
-                    ItemStack stack = baublesHandler.getStackInSlot(i);
-                    if (!stack.isEmpty()) {
-                        baubles.add(stack);
-                    }
-                }
-
-                if (!baubles.isEmpty()) {
-                    LogUtil.debug(String.format("玩家 %s 的饰品栏中有 %d 个物品",
-                            player.getName(), baubles.size()));
-                }
+        for (int i = 0; i < handler.getSlots(); i++) {
+            ItemStack stack = handler.getStackInSlot(i);
+            if (!stack.isEmpty()) {
+                baubles.add(stack);
             }
-        } catch (Exception e) {
-            LogUtil.error("获取饰品栏物品时出错", e);
         }
-
         return baubles;
     }
 
     /**
-     * 从饰品栏物品中收集指定属性的修改器
+     * 从饰品栏收集指定属性的修改器（给 AttributesUtil 算本模组的属性）
+     * <p>
+     * 包括：每件饰品自身的属性（6 个装备槽都问一遍，同一件物品里按"属性 + UUID"去重），
+     * 以及本模组的附加属性里在它所在那一格生效的条目。不同格子里的物品各算各的，
+     * 两件一样的戒指戴在两个指环格就算两份（以前按数值去重，第二件会被吞掉）。
+     * 未标记饰品自身的属性按配置 baubleNbtAttributes 筛选。
      *
-     * @param entity        实体（必须是玩家）
-     * @param attributeName 属性名称
-     * @return 属性修改器列表数组 [加法, 乘法1, 乘法2]
+     * @param entity    实体（只有玩家有饰品栏）
+     * @param attribute 属性
+     * @return 属性修改器列表数组 [加法, 乘法1, 乘法2]，每次都是新建的列表
      */
     @Nonnull
-    public static List<Double>[] collectModifiersFromBaubles(@Nonnull EntityLivingBase entity,
-                                                             @Nonnull String attributeName) {
-        @SuppressWarnings("unchecked")
-        List<Double>[] result = new List[3];
-        result[0] = new ArrayList<>(); // 加法修改器（operation 0）
-        result[1] = new ArrayList<>(); // 乘法修改器1（operation 1）
-        result[2] = new ArrayList<>(); // 乘法修改器2（operation 2）
+    public static List<Double>[] collectModifiers(@Nonnull EntityLivingBase entity, @Nonnull IAttribute attribute) {
+        return collectModifiers(entity, attribute.getName());
+    }
 
-        if (!baublesLoaded) {
-            return result;
+    /**
+     * 按属性名收集，见 {@link #collectModifiers(EntityLivingBase, IAttribute)}
+     *
+     * @param entity        实体
+     * @param attributeName 属性名
+     * @return [加法, 乘法1, 乘法2]
+     */
+    @Nonnull
+    public static List<Double>[] collectModifiers(@Nonnull EntityLivingBase entity, @Nonnull String attributeName) {
+        if (!baublesLoaded || !(entity instanceof EntityPlayer)) {
+            return BaubleWornModifiers.emptyResult();
+        }
+        EntityPlayer player = (EntityPlayer) entity;
+        IItemHandler handler = BaublesAccess.getHandler(player);
+        if (handler == null) {
+            return BaubleWornModifiers.emptyResult();
         }
 
-        // Baubles仅支持玩家
-        if (!(entity instanceof EntityPlayer)) {
-            return result;
-        }
-
-        try {
-            List<ItemStack> baubles = getBaubles(entity);
-
-            for (ItemStack bauble : baubles) {
-                // 尝试所有可能的槽位来获取属性修改器
-                // 因为饰品可能没有明确的槽位类型
-                collectModifiersFromBauble(bauble, attributeName, result);
-            }
-
-            // 记录调试信息
-            int totalModifiers = result[0].size() + result[1].size() + result[2].size();
-            if (totalModifiers > 0) {
+        List<Double>[] result = BaubleWornModifiers.collect(player, handler, attributeName);
+        if (ConfigBattle.enableDetailedLogging) {
+            int total = result[0].size() + result[1].size() + result[2].size();
+            if (total > 0) {
                 LogUtil.debug(String.format("玩家 %s 从饰品栏收集到属性 %s: 加法=%d个, 乘法1=%d个, 乘法2=%d个",
-                        entity.getName(), attributeName,
-                        result[0].size(), result[1].size(), result[2].size()));
+                        player.getName(), attributeName, result[0].size(), result[1].size(), result[2].size()));
             }
-        } catch (Exception e) {
-            LogUtil.error("从饰品栏收集属性修改器时出错", e);
         }
-
         return result;
     }
 
     /**
-     * 从单个饰品物品中收集属性修改器
-     * 尝试所有装备槽位以确保获取所有属性
+     * 旧名字，保留给还没改过来的调用方
      *
-     * @param bauble        饰品物品
-     * @param attributeName 属性名称
-     * @param result        结果数组 [加法, 乘法1, 乘法2]
+     * @param entity        实体
+     * @param attributeName 属性名
+     * @return [加法, 乘法1, 乘法2]
+     * @deprecated 改用 {@link #collectModifiers(EntityLivingBase, IAttribute)}
      */
-    private static void collectModifiersFromBauble(@Nonnull ItemStack bauble,
-                                                   @Nonnull String attributeName,
-                                                   @Nonnull List<Double>[] result) {
-        // 尝试所有可能的槽位
-        EntityEquipmentSlot[] allSlots = {
-                EntityEquipmentSlot.MAINHAND,
-                EntityEquipmentSlot.OFFHAND,
-                EntityEquipmentSlot.HEAD,
-                EntityEquipmentSlot.CHEST,
-                EntityEquipmentSlot.LEGS,
-                EntityEquipmentSlot.FEET
-        };
-
-        for (EntityEquipmentSlot slot : allSlots) {
-            Multimap<String, AttributeModifier> modifiers = bauble.getAttributeModifiers(slot);
-
-            for (@Nonnull AttributeModifier modifier : modifiers.get(attributeName)) {
-                int operation = modifier.getOperation();
-                if (operation >= 0 && operation <= 2) {
-                    // 检查是否已经添加过这个修改器（避免重复）
-                    if (!isModifierAlreadyAdded(modifier, result[operation])) {
-                        result[operation].add(modifier.getAmount());
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 检查修改器是否已经被添加过
-     *
-     * @param modifier       要检查的修改器
-     * @param existingValues 已有的值列表
-     * @return 是否已存在
-     */
-    private static boolean isModifierAlreadyAdded(@Nonnull AttributeModifier modifier,
-                                                  @Nonnull List<Double> existingValues) {
-        double amount = modifier.getAmount();
-        // 使用小误差比较浮点数
-        for (double existing : existingValues) {
-            if (Math.abs(existing - amount) < 0.0001) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 检查玩家是否装备了特定物品（包括饰品栏）
-     *
-     * @param entity   实体（必须是玩家）
-     * @param itemName 物品注册名
-     * @return 是否装备
-     */
-    public static boolean hasBaubleEquipped(@Nonnull EntityLivingBase entity, @Nonnull String itemName) {
-        if (!baublesLoaded) {
-            return false;
-        }
-
-        // Baubles仅支持玩家
-        if (!(entity instanceof EntityPlayer)) {
-            return false;
-        }
-
-        try {
-            List<ItemStack> baubles = getBaubles(entity);
-            for (ItemStack bauble : baubles) {
-                if (bauble.getItem().getRegistryName() != null &&
-                        bauble.getItem().getRegistryName().toString().equals(itemName)) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            LogUtil.error("检查饰品装备时出错", e);
-        }
-
-        return false;
-    }
-
-    /**
-     * 获取玩家饰品栏的槽位数量
-     *
-     * @param player 玩家
-     * @return 饰品栏槽位数量，如果不可用则返回0
-     */
-    public static int getBaubleSlots(@Nonnull EntityPlayer player) {
-        if (!baublesLoaded) {
-            return 0;
-        }
-
-        try {
-            IBaublesItemHandler baublesHandler = BaublesApi.getBaublesHandler(player);
-            if (baublesHandler != null) {
-                return baublesHandler.getSlots();
-            }
-        } catch (Exception e) {
-            LogUtil.error("获取饰品槽位数量时出错", e);
-        }
-
-        return 0;
+    @Deprecated
+    @Nonnull
+    public static List<Double>[] collectModifiersFromBaubles(@Nonnull EntityLivingBase entity,
+                                                             @Nonnull String attributeName) {
+        return collectModifiers(entity, attributeName);
     }
 }

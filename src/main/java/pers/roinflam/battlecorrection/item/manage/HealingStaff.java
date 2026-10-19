@@ -9,6 +9,10 @@ import net.minecraftforge.fml.common.Mod;
 
 import javax.annotation.Nonnull;
 
+/**
+ * 治疗权杖
+ * 右键点击生物使其完全恢复生命
+ */
 @Mod.EventBusSubscriber
 public class HealingStaff extends ItemStaff {
 
@@ -18,8 +22,15 @@ public class HealingStaff extends ItemStaff {
 
     @Override
     public boolean itemInteractionForEntity(ItemStack stack, EntityPlayer playerIn, EntityLivingBase target, @Nonnull EnumHand hand) {
-        if (hand.equals(EnumHand.MAIN_HAND) && !playerIn.world.isRemote) {
+        // 副手不处理，交还给原版（以前副手拿着权杖也会吞掉右键）
+        if (hand != EnumHand.MAIN_HAND) {
+            return false;
+        }
+        if (!playerIn.world.isRemote) {
+            // 完全恢复目标生命值
             target.setHealth(target.getMaxHealth());
+
+            // 设置冷却
             playerIn.getCooldownTracker().setCooldown(this, 20);
         }
         return true;

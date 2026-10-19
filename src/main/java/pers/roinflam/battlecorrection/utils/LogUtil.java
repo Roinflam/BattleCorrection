@@ -12,6 +12,17 @@ public class LogUtil {
     private static final Logger LOGGER = LogManager.getLogger("BattleCorrection");
 
     /**
+     * 是否开启了详细日志
+     * <p>
+     * 调用方在拼日志文本之前先判断它，关闭时不产生任何临时字符串（伤害事件每秒触发很多次）。
+     *
+     * @return true = 开启
+     */
+    public static boolean isDetailed() {
+        return ConfigBattle.enableDetailedLogging;
+    }
+
+    /**
      * 输出信息级别的常规日志
      *
      * @param message 日志消息

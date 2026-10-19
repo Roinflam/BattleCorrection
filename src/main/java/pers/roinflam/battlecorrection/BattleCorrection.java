@@ -6,15 +6,19 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.attributes.AbstractAttributeMap;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import pers.roinflam.battlecorrection.command.ModCommands;
 import pers.roinflam.battlecorrection.compat.BaublesIntegration;
+import pers.roinflam.battlecorrection.config.ConfigMigration;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.proxy.CommonProxy;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -72,6 +76,16 @@ public class BattleCorrection {
     public static CommonProxy proxy;
 
     /**
+     * 模组构造器
+     * <p>
+     * 配置迁移必须赶在 Forge 读取 @Config 配置文件之前：FML 先 new 出模组实例，
+     * 之后才由 ConfigManager 读文件并写进各配置类的字段。
+     */
+    public BattleCorrection() {
+        ConfigMigration.migrateBeforeLoad(Loader.instance().getConfigDir());
+    }
+
+    /**
      * 预初始化阶段
      * 执行模组的早期设置，包括按键绑定和Baubles集成初始化
      *
@@ -124,6 +138,16 @@ public class BattleCorrection {
     }
 
     /**
+     * 服务器启动：注册 /battlecorrection
+     *
+     * @param evt 服务器启动事件
+     */
+    @Mod.EventHandler
+    public static void serverStarting(@Nonnull FMLServerStartingEvent evt) {
+        evt.registerServerCommand(new ModCommands());
+    }
+
+    /**
      * 实体加入世界事件处理
      * 当实体进入世界时，为其注册所有自定义属性
      * 适用于所有EntityLivingBase（包括玩家和生物）
@@ -136,7 +160,7 @@ public class BattleCorrection {
             EntityLivingBase entity = (EntityLivingBase) event.getEntity();
             registerCustomAttributes(entity.getAttributeMap());
 
-            if (!event.getWorld().isRemote) {
+            if (!event.getWorld().isRemote && LogUtil.isDetailed()) {
                 LogUtil.debug(String.format("为实体注册自定义属性: %s [%s]",
                         entity.getName(),
                         entity.getClass().getSimpleName()));
@@ -198,9 +222,11 @@ public class BattleCorrection {
 
         if (attributeMap.getAttributeInstance(attribute) == null) {
             attributeMap.registerAttribute(attribute);
-            LogUtil.debug(String.format("  ✓ 注册属性: %s (默认值: %.2f)",
-                    attribute.getName(),
-                    attribute.getDefaultValue()));
+            if (LogUtil.isDetailed()) {
+                LogUtil.debug(String.format("  ✓ 注册属性: %s (默认值: %.2f)",
+                        attribute.getName(),
+                        attribute.getDefaultValue()));
+            }
         }
     }
 }

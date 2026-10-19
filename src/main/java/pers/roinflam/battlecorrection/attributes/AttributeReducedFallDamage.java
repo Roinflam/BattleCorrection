@@ -13,6 +13,7 @@ import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
+import pers.roinflam.battlecorrection.utils.util.DamageSourceUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -37,7 +38,7 @@ public class AttributeReducedFallDamage {
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {
         if (!evt.getEntity().world.isRemote) {
             DamageSource damageSource = evt.getSource();
-            if (damageSource.equals(DamageSource.FALL)) {
+            if (DamageSourceUtil.isFall(damageSource)) {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
 
                 float originalDamage = evt.getAmount();

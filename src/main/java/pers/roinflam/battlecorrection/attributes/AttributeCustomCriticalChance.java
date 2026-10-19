@@ -17,6 +17,7 @@ import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.random.RandomUtil;
 import pers.roinflam.battlecorrection.utils.util.AttributesUtil;
+import pers.roinflam.battlecorrection.utils.util.DamageSourceUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,7 +60,8 @@ public class AttributeCustomCriticalChance {
         @Nullable EntityLivingBase attacker = (EntityLivingBase) trueSource;
 
         boolean isMeleeAttack = immediateSource != null && immediateSource.equals(trueSource);
-        boolean isRangedAttack = immediateSource != null && !immediateSource.equals(trueSource) && immediateSource instanceof IProjectile;
+        boolean isRangedAttack = immediateSource != null && !immediateSource.equals(trueSource)
+                && DamageSourceUtil.isProjectile(immediateSource);
 
         if (!isMeleeAttack && !isRangedAttack) {
             return;
@@ -71,12 +73,20 @@ public class AttributeCustomCriticalChance {
                 return;
             }
             nbt.setBoolean(NBT_CRITICAL_CHECKED, true);
+        } else {
+            // 近战：先清掉上一次可能残留的结果（上一下暴击了但伤害被取消时，标记会留到下一刀）
+            clearCritical(attacker.getEntityData());
         }
 
         double attributeValue = AttributesUtil.getAttributeValue(attacker, CUSTOM_CRITICAL_CHANCE);
         double configValue = ConfigAttribute.customCriticalChance;
         double criticalChance = attributeValue + configValue;
         criticalChance = Math.max(0, criticalChance);
+
+        // 没有暴击率就不用掷骰子
+        if (criticalChance <= 0) {
+            return;
+        }
 
         boolean isCritical;
         double overflow = 0;
@@ -89,7 +99,10 @@ public class AttributeCustomCriticalChance {
             overflow = 0;
         }
 
-        LogUtil.debugAttribute("暴击率", attacker.getName(), attributeValue, configValue, criticalChance);
+        boolean detailed = LogUtil.isDetailed();
+        if (detailed) {
+            LogUtil.debugAttribute("暴击率", attacker.getName(), attributeValue, configValue, criticalChance);
+        }
 
         if (isCritical) {
             if (isRangedAttack && immediateSource != null) {
@@ -102,11 +115,12 @@ public class AttributeCustomCriticalChance {
                 nbt.setDouble(NBT_CRITICAL_OVERFLOW, overflow);
             }
 
-            String attackType = isMeleeAttack ? "近战" : "远程";
-            LogUtil.debugEvent("暴击判定成功", attacker.getName(),
-                    String.format("攻击类型: %s, 暴击率: %.2f (%.2f%%), 溢出值: %.2f",
-                            attackType, criticalChance, criticalChance * 100, overflow));
-        } else {
+            if (detailed) {
+                LogUtil.debugEvent("暴击判定成功", attacker.getName(),
+                        String.format("攻击类型: %s, 暴击率: %.2f (%.2f%%), 溢出值: %.2f",
+                                isMeleeAttack ? "近战" : "远程", criticalChance, criticalChance * 100, overflow));
+            }
+        } else if (detailed) {
             LogUtil.debug(String.format("暴击判定失败 - 攻击者: %s, 暴击率: %.2f (%.2f%%)",
                     attacker.getName(), criticalChance, criticalChance * 100));
         }
@@ -136,10 +150,19 @@ public class AttributeCustomCriticalChance {
         } else if (attacker != null) {
             NBTTagCompound nbt = attacker.getEntityData();
             double overflow = nbt.getDouble(NBT_CRITICAL_OVERFLOW);
-            nbt.removeTag(NBT_IS_CRITICAL);
-            nbt.removeTag(NBT_CRITICAL_OVERFLOW);
+            clearCritical(nbt);
             return overflow;
         }
         return 0;
+    }
+
+    /**
+     * 清除暴击标记
+     *
+     * @param nbt 攻击者的实体数据
+     */
+    private static void clearCritical(@Nonnull NBTTagCompound nbt) {
+        nbt.removeTag(NBT_IS_CRITICAL);
+        nbt.removeTag(NBT_CRITICAL_OVERFLOW);
     }
 }
