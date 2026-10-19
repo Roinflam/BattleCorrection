@@ -7,6 +7,7 @@ import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import org.lwjgl.input.Keyboard;
 import pers.roinflam.battlecorrection.BattleCorrection;
+import pers.roinflam.battlecorrection.client.editor.ItemEditorClient;
 
 import javax.annotation.Nonnull;
 
@@ -21,6 +22,7 @@ public class ClientProxy extends CommonProxy {
     public void bindKey() {
         BattleCorrection.keyOpenModList = new KeyBinding("key.battlecorrection.openModList", Keyboard.KEY_K, "key.categories.misc");
         ClientRegistry.registerKeyBinding(BattleCorrection.keyOpenModList);
+        ItemEditorClient.registerKeyBindings();
     }
 
 }

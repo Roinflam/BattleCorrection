@@ -20,6 +20,7 @@ import pers.roinflam.battlecorrection.command.ModCommands;
 import pers.roinflam.battlecorrection.compat.BaublesIntegration;
 import pers.roinflam.battlecorrection.config.ConfigMigration;
 import pers.roinflam.battlecorrection.init.ModAttributes;
+import pers.roinflam.battlecorrection.network.ModNetwork;
 import pers.roinflam.battlecorrection.proxy.CommonProxy;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -109,6 +110,9 @@ public class BattleCorrection {
 
         // 初始化Baubles集成（可选依赖）
         BaublesIntegration.init();
+
+        // 物品编辑器的网络通道
+        ModNetwork.register();
 
         LogUtil.info("战斗修正模组 - 预初始化完成");
     }

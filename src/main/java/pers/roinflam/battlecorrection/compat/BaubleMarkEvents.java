@@ -6,6 +6,7 @@ import net.minecraft.entity.ai.attributes.AbstractAttributeMap;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
@@ -24,6 +25,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.config.ConfigBaubles;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -252,13 +254,14 @@ public final class BaubleMarkEvents {
         } else {
             target = -1;
             giveBack(player, moving);
+            // 名字从原物品取：moving 放回背包后数量被清零，再取就成了空气
             player.sendStatusMessage(new TextComponentTranslation("message.battlecorrection.bauble.armor_blocked",
-                    moving.getTextComponent()), true);
+                    ItemUtil.chatName(stack)), true);
         }
 
         if (ConfigBattle.enableDetailedLogging) {
             LogUtil.debug(String.format("标记物品不能穿在盔甲栏 - 玩家: %s, 物品: %s, 槽位: %s, 去向: %s",
-                    player.getName(), moving.getDisplayName(), slot.getName(),
+                    player.getName(), stack.getDisplayName(), slot.getName(),
                     target >= 0 ? "饰品栏#" + target : "背包"));
         }
     }
@@ -308,8 +311,8 @@ public final class BaubleMarkEvents {
 
             if (ConfigBattle.enableDetailedLogging) {
                 LogUtil.debug(String.format("饰品栏纠正 - 玩家: %s, 物品: %s, 原格子: %d（%s），去向: %s，标记为 %s",
-                        player.getName(), moving.getDisplayName(), i, slotType,
-                        target >= 0 ? "饰品栏#" + target : "背包", BaubleMark.getSlots(moving)));
+                        player.getName(), stack.getDisplayName(), i, slotType,
+                        target >= 0 ? "饰品栏#" + target : "背包", BaubleMark.getSlots(stack)));
             }
         }
     }
@@ -375,12 +378,23 @@ public final class BaubleMarkEvents {
 
     /**
      * 物品退回背包，背包满了就丢在脚下
+     * <p>
+     * 创造模式下原版 addItemStackToInventory 放不下的部分会被直接抹掉（数量清零、照样返回 true），
+     * 背包满着的管理员身上被挪出来的物品就凭空没了。所以创造模式只在有空格、一格放得下整组时才往背包放，
+     * 否则直接丢在脚下。
      *
      * @param player 玩家
      * @param stack  物品
      */
     private static void giveBack(@Nonnull EntityPlayer player, @Nonnull ItemStack stack) {
-        if (!player.inventory.addItemStackToInventory(stack) || !stack.isEmpty()) {
+        InventoryPlayer inventory = player.inventory;
+        boolean safe = !player.capabilities.isCreativeMode
+                || (inventory.getFirstEmptyStack() >= 0
+                && stack.getCount() <= Math.min(stack.getMaxStackSize(), inventory.getInventoryStackLimit()));
+        if (safe) {
+            inventory.addItemStackToInventory(stack);
+        }
+        if (!stack.isEmpty()) {
             player.dropItem(stack, false);
         }
     }

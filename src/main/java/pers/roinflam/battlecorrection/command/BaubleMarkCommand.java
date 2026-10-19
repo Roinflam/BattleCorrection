@@ -18,6 +18,7 @@ import pers.roinflam.battlecorrection.compat.BaubleMark;
 import pers.roinflam.battlecorrection.compat.BaublesIntegration;
 import pers.roinflam.battlecorrection.config.ConfigBaubles;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -196,11 +197,11 @@ public final class BaubleMarkCommand {
 
         if (!BaubleMark.addSlot(stack, slotId)) {
             throw new CommandException("command.battlecorrection.bauble.already",
-                    stack.getTextComponent(), BaubleMark.slotName(slotId));
+                    ItemUtil.chatName(stack), BaubleMark.slotName(slotId));
         }
 
         notifySuccess(server, sender, "command.battlecorrection.bauble.added",
-                stack.getTextComponent(), BaubleMark.slotName(slotId));
+                ItemUtil.chatName(stack), BaubleMark.slotName(slotId));
         warnNativeBauble(sender, stack);
         LogUtil.info(String.format("%s 给物品 %s 添加了饰品栏标记: %s",
                 player.getName(), stack.getDisplayName(), slotId));
@@ -221,11 +222,11 @@ public final class BaubleMarkCommand {
 
         if (!BaubleMark.removeSlot(stack, slotId)) {
             throw new CommandException("command.battlecorrection.bauble.not_marked_slot",
-                    stack.getTextComponent(), BaubleMark.slotName(slotId));
+                    ItemUtil.chatName(stack), BaubleMark.slotName(slotId));
         }
 
         notifySuccess(server, sender, "command.battlecorrection.bauble.removed",
-                stack.getTextComponent(), BaubleMark.slotName(slotId));
+                ItemUtil.chatName(stack), BaubleMark.slotName(slotId));
         LogUtil.info(String.format("%s 移除了物品 %s 的饰品栏标记: %s",
                 player.getName(), stack.getDisplayName(), slotId));
     }
@@ -242,10 +243,10 @@ public final class BaubleMarkCommand {
         ItemStack stack = getHeldItem(player);
 
         if (!BaubleMark.clearSlots(stack)) {
-            throw new CommandException("command.battlecorrection.bauble.list_none", stack.getTextComponent());
+            throw new CommandException("command.battlecorrection.bauble.list_none", ItemUtil.chatName(stack));
         }
 
-        notifySuccess(server, sender, "command.battlecorrection.bauble.cleared", stack.getTextComponent());
+        notifySuccess(server, sender, "command.battlecorrection.bauble.cleared", ItemUtil.chatName(stack));
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品栏标记",
                 player.getName(), stack.getDisplayName()));
     }
@@ -265,18 +266,18 @@ public final class BaubleMarkCommand {
 
         if (slots.isEmpty() && modifiers.isEmpty()) {
             sender.sendMessage(new TextComponentTranslation("command.battlecorrection.bauble.list_none",
-                    stack.getTextComponent()));
+                    ItemUtil.chatName(stack)));
             warnNativeBauble(sender, stack);
             return;
         }
 
         if (!slots.isEmpty()) {
             sender.sendMessage(new TextComponentTranslation("command.battlecorrection.bauble.list",
-                    stack.getTextComponent(), BaubleMark.joinSlotNames(slots)));
+                    ItemUtil.chatName(stack), BaubleMark.joinSlotNames(slots)));
         }
         for (BaubleMark.ModifierEntry entry : modifiers) {
             sender.sendMessage(new TextComponentTranslation("command.battlecorrection.bauble.attr_line",
-                    entry.attributeName(),
+                    attributeText(entry.attributeName()),
                     ItemStack.DECIMALFORMAT.format(entry.modifier().getAmount()),
                     OPERATION_NAMES[entry.modifier().getOperation()],
                     BaubleMark.slotName(entry.slotId())));
@@ -388,10 +389,10 @@ public final class BaubleMarkCommand {
         ItemStack stack = getHeldItem(player);
 
         if (!BaubleMark.clearModifiers(stack)) {
-            throw new CommandException("command.battlecorrection.bauble.attr_none", stack.getTextComponent());
+            throw new CommandException("command.battlecorrection.bauble.attr_none", ItemUtil.chatName(stack));
         }
 
-        notifySuccess(server, sender, "command.battlecorrection.bauble.attr_cleared", stack.getTextComponent());
+        notifySuccess(server, sender, "command.battlecorrection.bauble.attr_cleared", ItemUtil.chatName(stack));
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品属性",
                 player.getName(), stack.getDisplayName()));
     }
