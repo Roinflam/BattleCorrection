@@ -16,6 +16,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import pers.roinflam.battlecorrection.editor.ItemEditTarget;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -164,7 +165,7 @@ public class ApplyItemEditC2SPacket {
         player.inventoryMenu.broadcastChanges();
 
         player.sendSystemMessage(Component.translatable("message.battlecorrection.editor.saved",
-                edited.getDisplayName()).withStyle(ChatFormatting.GREEN));
+                ItemUtil.chatName(edited)).withStyle(ChatFormatting.GREEN));
         LogUtil.info(changeItem
                 ? String.format("%s 用物品编辑器把 %s 换成了 %s（%s），数量 %d",
                 player.getName().getString(), itemId, newItemId, edited.getHoverName().getString(), edited.getCount())

@@ -83,8 +83,12 @@ public final class NbtEditAccess {
      */
     public static void write(@Nonnull Entity entity, @Nonnull CompoundTag tag) {
         UUID uuid = entity.getUUID();
-        entity.load(tag);
-        entity.setUUID(uuid);
+        try {
+            entity.load(tag);
+        } finally {
+            // load 先读 UUID、后读子类数据，子类读到坏数据抛异常时 UUID 已经换成了 NBT 里的，出异常也要换回来
+            entity.setUUID(uuid);
+        }
     }
 
     /**

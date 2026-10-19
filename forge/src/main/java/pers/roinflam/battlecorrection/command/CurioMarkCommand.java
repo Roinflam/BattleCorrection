@@ -24,6 +24,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import pers.roinflam.battlecorrection.compat.CurioMark;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.LogUtil;
+import pers.roinflam.battlecorrection.utils.util.ItemUtil;
 import top.theillusivec4.curios.api.CuriosApi;
 
 import javax.annotation.Nonnull;
@@ -150,12 +151,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.addSlot(stack, slotId)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.already",
-                    stack.getDisplayName(), CurioMark.slotName(slotId)));
+                    ItemUtil.chatName(stack), CurioMark.slotName(slotId)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.added",
-                stack.getDisplayName(), CurioMark.slotName(slotId)), true);
+                ItemUtil.chatName(stack), CurioMark.slotName(slotId)), true);
         warnNativeModifiers(source, stack);
         LogUtil.info(String.format("%s 给物品 %s 添加了饰品栏标记: %s",
                 player.getName().getString(), stack.getHoverName().getString(), slotId));
@@ -183,12 +184,12 @@ public final class CurioMarkCommand {
         String slotId = readSlot(context);
         if (!CurioMark.removeSlot(stack, slotId)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.not_marked_slot",
-                    stack.getDisplayName(), CurioMark.slotName(slotId)));
+                    ItemUtil.chatName(stack), CurioMark.slotName(slotId)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.removed",
-                stack.getDisplayName(), CurioMark.slotName(slotId)), true);
+                ItemUtil.chatName(stack), CurioMark.slotName(slotId)), true);
         LogUtil.info(String.format("%s 移除了物品 %s 的饰品栏标记: %s",
                 player.getName().getString(), stack.getHoverName().getString(), slotId));
         return 1;
@@ -214,12 +215,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.clearSlots(stack)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.list_none",
-                    stack.getDisplayName()));
+                    ItemUtil.chatName(stack)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.cleared",
-                stack.getDisplayName()), true);
+                ItemUtil.chatName(stack)), true);
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品栏标记",
                 player.getName().getString(), stack.getHoverName().getString()));
         return 1;
@@ -245,13 +246,13 @@ public final class CurioMarkCommand {
 
         if (slots.isEmpty() && modifiers.isEmpty()) {
             source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.list_none",
-                    stack.getDisplayName()), false);
+                    ItemUtil.chatName(stack)), false);
             return 0;
         }
 
         if (!slots.isEmpty()) {
             source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.list",
-                    stack.getDisplayName(), CurioMark.joinSlotNames(slots)), false);
+                    ItemUtil.chatName(stack), CurioMark.joinSlotNames(slots)), false);
         }
         for (CurioMark.ModifierEntry entry : modifiers) {
             ResourceLocation attributeId = ForgeRegistries.ATTRIBUTES.getKey(entry.attribute());
@@ -396,12 +397,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.clearModifiers(stack)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.attr_none",
-                    stack.getDisplayName()));
+                    ItemUtil.chatName(stack)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.attr_cleared",
-                stack.getDisplayName()), true);
+                ItemUtil.chatName(stack)), true);
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品属性",
                 player.getName().getString(), stack.getHoverName().getString()));
         return 1;

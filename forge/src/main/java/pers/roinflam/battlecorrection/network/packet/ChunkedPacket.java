@@ -111,7 +111,21 @@ public abstract class ChunkedPacket {
      */
     private static final long STALE_MS = 60_000L;
 
+    /**
+     * 同一来源两条警告之间至少隔多久（毫秒）
+     */
+    private static final long WARN_INTERVAL_MS = 10_000L;
+
     private static final AtomicInteger NEXT_TRANSFER_ID = new AtomicInteger();
+
+    /**
+     * 各来源上次记警告的时间、之后压下去的条数（{时间, 条数}）
+     * <p>
+     * 块头里的数字全是对面填的，没有权限的玩家也能发：每个几十字节的小包都能装成一次新传输或一个非法块。
+     * 这几条警告要是每包都记，每秒几万个小包就是几万行日志，而且是在主线程上写控制台和日志文件，
+     * 整个服务器都会跟着卡，日志文件也会被撑大。所以同一来源在间隔内只记第一条，后面的只计数。
+     */
+    private static final Map<String, long[]> WARNINGS = new ConcurrentHashMap<>();
 
     /**
      * 进行中的传输，按来源记（服务端按玩家，客户端只有服务端一个来源）。
@@ -246,11 +260,11 @@ public abstract class ChunkedPacket {
 
         dropStale();
         if (kind.toServer() != onServer) {
-            LogUtil.warn("收到方向不对的分片包，已丢弃: " + key + " kind=" + kind);
+            warnThrottled(key, "收到方向不对的分片包，已丢弃: " + key + " kind=" + kind);
             return;
         }
         if (total < 1 || total > MAX_CHUNKS || index < 0 || index >= total || data.length > CHUNK_SIZE) {
-            LogUtil.warn("收到非法的分片包: " + key + " index=" + index + " total=" + total + " size=" + data.length);
+            warnThrottled(key, "收到非法的分片包: " + key + " index=" + index + " total=" + total + " size=" + data.length);
             ASSEMBLIES.remove(key);
             return;
         }
@@ -261,7 +275,7 @@ public abstract class ChunkedPacket {
             assembly = open(sender, key);
             ASSEMBLIES.put(key, assembly);
         } else if (assembly.kind != kind || (assembly.parts != null && assembly.parts.length != total)) {
-            LogUtil.warn("分片包和之前的不匹配，丢弃: " + key);
+            warnThrottled(key, "分片包和之前的不匹配，丢弃: " + key);
             ASSEMBLIES.remove(key);
             return;
         }
@@ -322,7 +336,7 @@ public abstract class ChunkedPacket {
             }
             if (!ItemEditorAccess.canUse(sender)) {
                 sender.sendSystemMessage(ItemEditorAccess.noPermissionMessage());
-                LogUtil.warn(String.format("玩家 %s 没有权限却发来了编辑器的分片传输，已忽略", sender.getName().getString()));
+                warnThrottled(key, String.format("玩家 %s 没有权限却发来了编辑器的分片传输，已忽略", sender.getName().getString()));
                 return new Assembly(transferId, kind, null);
             }
         }
@@ -369,5 +383,35 @@ public abstract class ChunkedPacket {
                 iterator.remove();
             }
         }
+        // 过了间隔的警告计数清掉；间隔里压下去过的补记一行总数，刷屏的那段在日志里还看得出来
+        Iterator<Map.Entry<String, long[]>> warnings = WARNINGS.entrySet().iterator();
+        while (warnings.hasNext()) {
+            Map.Entry<String, long[]> entry = warnings.next();
+            long[] state = entry.getValue();
+            if (now - state[0] >= WARN_INTERVAL_MS) {
+                warnings.remove();
+                if (state[1] > 0) {
+                    LogUtil.warn(String.format("%s 在 %d 秒内另有 %d 条分片包警告没有记录",
+                            entry.getKey(), WARN_INTERVAL_MS / 1000, state[1]));
+                }
+            }
+        }
+    }
+
+    /**
+     * 记一条警告，同一来源 {@link #WARN_INTERVAL_MS} 内只记第一条，之后的只计数（见 {@link #WARNINGS}）
+     *
+     * @param key     来源
+     * @param message 警告内容
+     */
+    private static void warnThrottled(@Nonnull String key, @Nonnull String message) {
+        long now = System.currentTimeMillis();
+        long[] state = WARNINGS.get(key);
+        if (state != null && now - state[0] < WARN_INTERVAL_MS) {
+            state[1]++;
+            return;
+        }
+        WARNINGS.put(key, new long[]{now, 0L});
+        LogUtil.warn(message);
     }
 }
