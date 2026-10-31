@@ -12,14 +12,14 @@ import pers.roinflam.battlecorrection.compat.CurioMark;
 /**
  * 修补 {@link LivingEntity#getEquipmentSlotForItem(ItemStack)}：带饰品栏标记的防具不再被当成防具
  * <p>
- * 修补了什么：这个静态方法是原版判断"一件物品该穿在哪个装备槽"的唯一入口（1.20 起放在 LivingEntity 上，
+ * 这个静态方法是原版判断"一件物品该穿在哪个装备槽"的唯一入口（1.20 起放在 LivingEntity 上，
  * 1.19 及之前在 Mob 上；Forge 的 IForgeItem#canEquip 默认实现也是调它），
  * 背包里往盔甲格拖拽（ArmorSlot.mayPlace → canEquip）、Shift 快捷穿戴（InventoryMenu.quickMoveStack）、
  * 手持右键穿戴（Equipable.swapWithEquipmentSlot）、发射器给实体穿装备、怪物捡装备（canTakeItem）
  * 全都从它取结果。这里在它返回之后检查：返回的是盔甲类槽位（头/胸/腿/脚），
  * 并且物品带着本模组的饰品栏标记，就把结果改成主手，等于告诉原版"这东西不是防具"。
  * <p>
- * 为什么这样做：需求是"标记过的防具只能当饰品，不能再穿到盔甲栏"。
+ * 为什么这样做：标记过的防具只能当饰品，不能再穿到盔甲栏。
  * Forge 提供的 IForgeItem#canEquip / #getEquipmentSlot 只能在物品类里重写，
  * 对原版 ArmorItem 和其他模组的防具实例改不了；而 Forge 事件里没有能拦截"放进盔甲格"的事件，
  * 所以只能在这个总入口上动手。改返回值而不是重写整个方法，原版和 Forge 的其余逻辑照常。

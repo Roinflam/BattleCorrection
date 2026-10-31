@@ -230,7 +230,6 @@
   "gui.battlecorrection.editor.tab.curios": "Curios",
   "gui.battlecorrection.editor.tab.tree": "NBT Tree",
   "gui.battlecorrection.editor.tab.raw": "SNBT",
-  "gui.battlecorrection.editor.tab.coming_soon": "Not implemented yet, coming in the next batch",
   "gui.battlecorrection.editor.color.black": "Black &0",
   "gui.battlecorrection.editor.color.dark_blue": "Dark Blue &1",
   "gui.battlecorrection.editor.color.dark_green": "Dark Green &2",
@@ -759,15 +758,13 @@
   "gui.battlecorrection.editor.tree.status.expand_truncated": "Too many nodes; expanded about %s rows",
   "gui.battlecorrection.editor.tree.status.search_capped": "Too many matches, limit reached: only the first %s are listed",
 
-  "_comment": "========== Item editor: item swap / SNBT page / NBT tree / colour codes / shortcuts ==========",
   "message.battlecorrection.editor.save_failed.undecodable": "Save failed: the NBT is too large or malformed (the vanilla client cannot decode data above about 2 MB of accounting), nothing was written",
   "gui.battlecorrection.editor.save.too_big": "NBT too large, not saved (over the limit, it would kick the holder)",
   "gui.battlecorrection.editor.lore.load_failed": "Couldn't read this lore: the data is malformed (for example nested too deeply) and failed to parse, so this page can't edit it. Inspect or fix it on the SNBT or NBT Tree page; it is read again once the item's lore changes.",
 
-  "_comment": "========== Item editor: item swap / SNBT page / NBT tree / colour codes / shortcuts ==========",
   "gui.battlecorrection.editor.help.close_scroll": "Scroll with the wheel or Up/Down; press Esc / F1 or click to go back",
 
-  "_comment": "========== Item editor: item swap / SNBT page / NBT tree / colour codes / shortcuts ==========",
+  "_comment": "========== Item editor: palette ==========",
   "gui.battlecorrection.editor.palette.title": "Colour palette",
   "gui.battlecorrection.editor.palette.open": "Palette",
   "gui.battlecorrection.editor.palette.open.tooltip": "Open the palette: pick colours by dragging, build multi-stop gradients, use presets and recent colours",

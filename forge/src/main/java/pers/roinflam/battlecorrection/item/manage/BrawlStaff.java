@@ -57,7 +57,7 @@ public class BrawlStaff extends ItemStaff {
                 // 添加群殴效果
                 mob.addEffect(new MobEffectInstance(ModMobEffects.BRAWL_EFFECT.get(), 12000, 0, false, false));
 
-                // 从同一批生物里挑一个随机目标（不再为每只生物新建一份候选列表）
+                // 从同一批生物里挑一个随机目标
                 Mob randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, false);
                 if (randomTarget != null) {
                     MobTargetUtil.setMutualTarget(mob, randomTarget);

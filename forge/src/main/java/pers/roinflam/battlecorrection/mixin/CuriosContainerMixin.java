@@ -18,18 +18,18 @@ import javax.annotation.Nullable;
 /**
  * 修补 Curios 饰品栏界面的 Shift 快速移动：让打了饰品栏标记的物品也能一键放进饰品栏
  * <p>
- * 修补了什么：Curios 的 {@code CuriosContainer#quickMoveStack}（Shift 点击）判断一件物品能不能进饰品栏时，
+ * Curios 的 {@code CuriosContainer#quickMoveStack}（Shift 点击）判断一件物品能不能进饰品栏时，
  * 用的是 {@code CuriosApi.getItemStackSlots}——只认物品标签（curios:ring 这种）和实现了 ICurio 的物品，
  * 不走 CurioEquipEvent。我们的标记是写在物品 NBT 上的、靠 CurioEquipEvent 放行，所以手动拖能放，Shift 不行。
  * <p>
- * 怎么修：在方法开头拦一下，来源格子里的物品如果带标记，就直接调原版的 moveItemStackTo 往饰品栏区域塞。
+ * 做法：在方法开头拦一下，来源格子里的物品如果带标记，就直接调原版的 moveItemStackTo 往饰品栏区域塞。
  * moveItemStackTo 逐格调 Slot#mayPlace，而 mayPlace 最终走的是 CurioEquipEvent，标记自然生效。
  * 没塞进去（没有匹配的饰品栏、都满了）就不拦，交还给 Curios 原逻辑。
  * <p>
  * 格子布局（Curios 5.14）：0 合成产物，1-4 合成，5-8 盔甲，9-35 背包，36-44 快捷栏，45 副手，46 起饰品栏。
  * 只处理从背包/快捷栏/副手往饰品栏放，饰品栏往外拿走原逻辑。
  * <p>
- * @Pseudo：没装 Curios 时找不到目标类，Mixin 会静默跳过而不是崩。
+ * {@code @Pseudo}：没装 Curios 时找不到目标类，Mixin 会静默跳过而不是崩。
  * 继承 AbstractContainerMenu 是为了能调它 protected 的 moveItemStackTo；构造器只是语法需要，Mixin 不会用它。
  */
 @Pseudo

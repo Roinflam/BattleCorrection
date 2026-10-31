@@ -28,7 +28,7 @@ import javax.annotation.Nonnull;
  * - speed < 1.0：减速（通过增加duration跳过更新）
  * - speed = 0.0：完全无法使用
  * <p>
- * 重要：客户端和服务端都会执行，因为useItemRemaining字段不会自动同步
+ * 客户端和服务端都会执行，因为useItemRemaining字段不会自动同步
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributePreparationSpeed {
@@ -41,7 +41,7 @@ public class AttributePreparationSpeed {
     private static final int MAX_EXTRA_UPDATES_PER_TICK = 64;
 
     /**
-     * 处理实体更新事件以加快使用速度速度
+     * 处理实体更新事件以加快使用速度
      * 完全模拟1.12的实现：客户端和服务端都执行
      * <p>
      * 为什么两端都执行：
@@ -96,7 +96,7 @@ public class AttributePreparationSpeed {
     }
 
     /**
-     * 处理使用物品事件以减慢使用速度速度（当速度小于1时）
+     * 处理使用物品事件以减慢使用速度（当速度小于1时）
      * 客户端和服务端都执行
      *
      * @param evt 物品使用 tick 事件

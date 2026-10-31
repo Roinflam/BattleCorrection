@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * 暴动效果
  * 使生物持续攻击附近的随机目标
  * <p>
- * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找（旧版本找不到目标时每 tick 都扫一遍 64 格）。
+ * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找。
  */
 public class RiotEffect extends MobEffect {
 

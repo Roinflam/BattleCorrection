@@ -1,58 +1,38 @@
 plugins {
-    // Architectury Loom：基于 Fabric Loom 的多平台 Minecraft 构建工具
-    // apply false 表示声明但不立即应用，由子项目自行决定
     id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
-
-    // Architectury 插件：提供 common/forge/fabric 多平台项目结构支持
     id 'architectury-plugin' version '3.4-SNAPSHOT'
-
-    // Shadow 插件：将多个 jar 合并为一个，用于把 common 代码打包进平台 jar
     id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
 }
 
-// 设置 Architectury 的目标 Minecraft 版本
 architectury {
     minecraft = project.minecraft_version
 }
 
-// allprojects：对根项目和所有子项目都生效的配置
 allprojects {
-    group = rootProject.maven_group      // Maven 坐标中的 groupId
-    version = rootProject.mod_version    // 项目版本号，会用于 jar 文件名和 mods.toml
+    group = rootProject.maven_group
+    version = rootProject.mod_version
 }
 
-// subprojects：只对子项目（common、forge、fabric）生效，根项目不受影响
 subprojects {
-    // 应用必要的插件
-    apply plugin: 'dev.architectury.loom'    // Loom 构建工具，处理 Minecraft 相关构建
-    apply plugin: 'architectury-plugin'       // Architectury 跨平台支持
-    apply plugin: 'maven-publish'             // Maven 发布功能（可选）
+    apply plugin: 'dev.architectury.loom'
+    apply plugin: 'architectury-plugin'
+    apply plugin: 'maven-publish'
 
     base {
-        // 设置构建输出的 jar 文件名格式
-        // 最终格式：archives_name-平台名-mc版本.jar
-        // 示例：examplemod-forge-1.20.1.jar
         archivesName = "$rootProject.mod_name-$project.name-$rootProject.minecraft_version"
     }
 
-    // Maven 仓库配置：Gradle 从这些地址下载依赖
     repositories {
         maven { url "https://maven.theillusivec4.top/" }   // Curios 饰品 API
         maven { url "https://maven.shedaniel.me/" }        // Cloth Config 配置界面 API
     }
 
-    // 所有子项目共有的依赖
     dependencies {
-        // Minecraft 游戏本体
         minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-
-        // 混淆映射表：使用 Mojang 官方映射，让代码能用正常的类名和方法名
         mappings loom.officialMojangMappings()
     }
 
-    // Loom 构建工具的配置
     loom {
-        // 配置运行任务（runClient、runServer 等）
         runConfigs.configureEach {
             // 添加 JVM 参数解决控制台中文乱码问题
             vmArgs "-Dfile.encoding=UTF-8",
@@ -62,23 +42,17 @@ subprojects {
         }
     }
 
-    // Java 编译相关配置
     java {
-        // 生成源码 jar，方便其他开发者查看你的代码
         withSourcesJar()
-
-        // Java 版本设置：Minecraft 1.20.1 需要 Java 17
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // 配置所有 Java 编译任务
     tasks.withType(JavaCompile).configureEach {
-        it.options.release = 17           // 生成的字节码兼容 Java 17
-        it.options.encoding = "UTF-8"     // 源代码文件使用 UTF-8 编码
+        it.options.release = 17
+        it.options.encoding = "UTF-8"
     }
 
-    // Maven 发布配置（如果需要发布到 Maven 仓库）
     publishing {
         publications {
             mavenJava(MavenPublication) {

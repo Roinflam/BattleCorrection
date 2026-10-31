@@ -25,7 +25,7 @@ import java.util.UUID;
  * 这里改为在 AttackEntityEvent（attack() 第一行触发，此时还没清零）里记下蓄力值和当时的游戏刻，
  * 同一刻内的伤害事件读取这份记录。
  * <p>
- * 只在服务端记录：旧版本在 PlayerTickEvent 里两端都写同一张静态表，
+ * 只在服务端记录：两端都写同一张静态表的话，
  * 单人游戏时客户端线程和内置服务端线程会同时修改 HashMap。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
@@ -109,7 +109,7 @@ public class EntityLivingUtil {
     /**
      * 判断玩家这次近战是否满蓄力（吸血类属性用）
      * <p>
-     * 本刻有挥砍记录时用挥砍那一刻的蓄力；没有（荆棘、模组技能等）时退回用当前蓄力，与旧逻辑一致。
+     * 本刻有挥砍记录时用挥砍那一刻的蓄力；没有（荆棘、模组技能等）时退回用当前蓄力。
      *
      * @param player 玩家（服务端实体）
      * @return true = 满蓄力

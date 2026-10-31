@@ -34,7 +34,7 @@ import java.util.Set;
  * +2 盔甲韧性
  * +30% 暴击几率
  * </pre>
- * 用 {@link EventPriority#LOWEST}：有些饰品（例如石英戒指）会在自己的提示处理里清掉属性行，
+ * 用 {@link EventPriority#LOWEST}：有些饰品会在自己的提示处理里清掉属性行，
  * 排在最后能保证本模组这几行不被顺手清掉。
  * <p>
  * 这个类引用了 Curios 的类，只能在装了 Curios 时手动注册到事件总线，
@@ -99,7 +99,7 @@ public final class CurioMarkTooltipHandler {
      * 输出"栏位: xxx"一行
      * <p>
      * Curios 自己也会显示这一行，但它只认物品标签。所以这里只补 Curios 认不出来的那几个饰品栏，
-     * 避免本来就是饰品的物品（例如加过标记的石英戒指）出现两行。
+     * 避免本来就是饰品的物品出现两行。
      *
      * @param tooltip 提示框行列表
      * @param stack   物品

@@ -19,7 +19,7 @@ public class ModAttributes {
     public static final DeferredRegister<Attribute> ATTRIBUTES =
             DeferredRegister.create(ForgeRegistries.ATTRIBUTES, Reference.MOD_ID);
 
-    // ===== 伤害增强属性 =====
+    // 伤害增强属性
 
     /**
      * 魔法伤害加成
@@ -48,7 +48,7 @@ public class ModAttributes {
                     .setSyncable(true)
     );
 
-    // ===== 防御与减伤属性 =====
+    // 防御与减伤属性
 
     /**
      * 伤害免疫几率（默认1.0代表0%，每+0.1 = +10%闪避）
@@ -77,7 +77,7 @@ public class ModAttributes {
                     .setSyncable(true)
     );
 
-    // ===== 生命恢复属性 =====
+    // 生命恢复属性
 
     /**
      * 治疗恢复倍率（默认1.0 = 100%）
@@ -106,7 +106,7 @@ public class ModAttributes {
                     .setSyncable(true)
     );
 
-    // ===== 速度与机动性属性 =====
+    // 速度与机动性属性
 
     /**
      * 拉弓速度倍率（默认1.0 = 正常速度）
@@ -135,7 +135,7 @@ public class ModAttributes {
                     .setSyncable(true)
     );
 
-    // ===== 暴击系统属性 =====
+    // 暴击系统属性
 
     /**
      * 原版暴击伤害加成（默认1.0表示无额外加成）

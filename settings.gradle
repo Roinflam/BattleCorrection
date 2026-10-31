@@ -11,6 +11,4 @@ pluginManagement {
 rootProject.name = providers.gradleProperty('mod_id').get()
 
 // 包含的子项目
-include 'common'
 include 'forge'
-include 'fabric'

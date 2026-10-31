@@ -82,9 +82,7 @@ public class GradientBar extends PickerWidget {
         return this;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 画横向渐变（调色盘里几个控件共用）
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 横向渐变：左边 left 色、右边 right 色（ARGB）
@@ -145,9 +143,7 @@ public class GradientBar extends PickerWidget {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 位置
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 第 index 个色标的中心 X（count 个色标等距分布在渐变条上）
@@ -228,9 +224,7 @@ public class GradientBar extends PickerWidget {
         return true;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {

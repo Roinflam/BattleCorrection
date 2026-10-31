@@ -17,9 +17,6 @@ import pers.roinflam.battlecorrection.utils.LogUtil;
  * 饰品上的属性怎么生效，全在 {@link CurioMarkEvents#onCurioAttributeModifiers} 里：
  * 不论是 Curios 自己的属性、命令追加的附加属性、还是物品上原版格式的 AttributeModifiers，
  * 都在饰品戴上时作为真正的实体属性修饰符加到身上，摘下时由 Curios 移除。
- * 之前这里还有一套"每隔几 tick 扫一遍饰品栏，把原版格式的属性现算出来"的逻辑，
- * 饰品一多，拉弓、吃东西、举盾时每半秒就要解析几百次 NBT 加发几百次事件，客户端和服务端都会周期性卡一下，
- * 已经整个删掉。
  */
 public class CuriosIntegration {
 

@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * 魔法伤害分类器（不依赖任何第三方模组）
  *
- * <p>回答一个问题：这次 {@link DamageSource} 算不算"魔法伤害"。
+ * <p>判断这次 {@link DamageSource} 算不算"魔法伤害"。
  * {@code AttributeMagicDamage} 用它决定要不要加魔法伤害；
  * {@code DamageEventListener} 用它决定要不要叠玩家魔法攻击/承受倍率。
  * 魔法是独立于近战/箭矢/弹射物基础层的叠加层：基础层按投递方式照常结算，魔法只在其上追加，两者互不排斥。</p>
@@ -40,7 +40,7 @@ import java.util.Set;
  *       这本质上是一次近战命中，不按魔法算。</li>
  *   <li><b>黑名单</b>（配置 {@code magicDamageTypeBlacklist}）：伤害类型 id 在黑名单里 → 一律不算魔法，
  *       优先级高于下面所有规则，方便服主一票否决。</li>
- *   <li><b>原版规则</b>（保留原有行为）：message_id 含 "magic"，或伤害类型在
+ *   <li><b>原版规则</b>：message_id 含 "magic"，或伤害类型在
  *       {@code minecraft:witch_resistant_to} 里。</li>
  *   <li><b>第三方规则</b>（总开关 {@code enableThirdPartyMagicRecognition}）：
  *       <ul>
@@ -104,7 +104,7 @@ public final class MagicDamageClassifier {
     private MagicDamageClassifier() {
     }
 
-    // ========== 对外判定入口 / Public API ==========
+    // 对外判定入口
 
     /**
      * 判断一次伤害是否算魔法伤害（原版规则 + 第三方规则）
@@ -130,7 +130,7 @@ public final class MagicDamageClassifier {
             return false;
         }
 
-        // 3. 原版规则：保持原有行为不变
+        // 3. 原版规则
         if (isVanillaMagic(source)) {
             return true;
         }
@@ -203,7 +203,7 @@ public final class MagicDamageClassifier {
         return key.map(ResourceKey::location).orElse(null);
     }
 
-    // ========== 配置缓存 / Config Cache ==========
+    // 配置缓存
 
     /**
      * 配置加载/重载事件：让解析缓存失效，下一次判定按新配置重建

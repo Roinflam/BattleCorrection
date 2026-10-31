@@ -67,7 +67,7 @@ public final class TreeNode {
     @Nullable
     NbtType type;
 
-    // ── 懒建的子节点（模型维护） ──
+    // 懒建的子节点（模型维护）
     @Nullable
     List<TreeNode> children;
     /**
@@ -86,14 +86,14 @@ public final class TreeNode {
      */
     int remaining;
 
-    // ── 拍平时写的状态 ──
+    // 拍平时写的状态
     boolean expanded;
     /**
      * 搜索标记：0 无，1 命中，2 折叠着但里面有命中
      */
     byte hit;
 
-    // ── 视图缓存 ──
+    // 视图缓存
     @Nullable
     String nameText;
     @Nullable

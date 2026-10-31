@@ -16,8 +16,6 @@ import javax.annotation.Nullable;
  * 饰品栏的属性（Curios 自己的、命令追加的、物品上原版格式的 AttributeModifiers）都已经由
  * {@code CurioMarkEvents} 在戴上时作为真正的修饰符加到实体身上，读出来的值天然包含它们。
  * 本模组的 15 个属性都是 setSyncable(true)，客户端读到的是服务端同步过来的值，两端一致。
- * 之前这里会额外扫一遍饰品栏把原版格式的属性现算进来（带 10 tick 缓存），饰品多了拉弓吃东西会周期性掉帧，
- * 已经删掉。
  */
 public class AttributesUtil {
 

@@ -6,35 +6,35 @@ import net.minecraftforge.fml.event.config.ModConfigEvent;
 import javax.annotation.Nonnull;
 
 /**
- * 属性配置类 - Attribute Configuration Class (1.20.1)
+ * 属性配置类
  * 包含所有RPG属性相关的配置选项
  */
 public class ConfigAttribute {
 
     public static final ForgeConfigSpec SPEC;
 
-    // ===== 伤害加成 =====
+    // 伤害加成
     public static final ForgeConfigSpec.DoubleValue MAGIC_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue ARROW_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue PROJECTILE_DAMAGE;
 
-    // ===== 治疗与吸血 =====
+    // 治疗与吸血
     public static final ForgeConfigSpec.DoubleValue RESTORE_HEAL;
     public static final ForgeConfigSpec.DoubleValue BLOODTHIRSTY;
     public static final ForgeConfigSpec.DoubleValue ALMIGHTY_BLOODTHIRSTY;
     public static final ForgeConfigSpec.BooleanValue LIFESTEAL_HEAL_BONUS;
 
-    // ===== 防御属性 =====
+    // 防御属性
     public static final ForgeConfigSpec.DoubleValue IMMUNE_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue IGNORE_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue REDUCED_FALL_DAMAGE;
 
-    // ===== 速度属性 =====
+    // 速度属性
     public static final ForgeConfigSpec.DoubleValue BOW_SPEED;
     public static final ForgeConfigSpec.DoubleValue PREPARATION_SPEED;
     public static final ForgeConfigSpec.DoubleValue JUMP_LIFT;
 
-    // ===== 暴击系统 =====
+    // 暴击系统
     public static final ForgeConfigSpec.DoubleValue VANILLA_CRITICAL_HIT_DAMAGE;
     public static final ForgeConfigSpec.DoubleValue CUSTOM_CRITICAL_CHANCE;
     public static final ForgeConfigSpec.DoubleValue CUSTOM_CRITICAL_DAMAGE;
@@ -74,15 +74,13 @@ public class ConfigAttribute {
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        // ═══════════════════════════════════════════════════════════════
         // 伤害加成
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Damage Bonuses - 伤害加成",
                 "Values in this file are GLOBAL bonuses for ALL living entities, including mobs",
                 "本文件中的数值是对所有生物（包括怪物）生效的全局加成",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("damage");
 
         MAGIC_DAMAGE = builder
@@ -114,13 +112,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 治疗与吸血
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Healing & Lifesteal - 治疗与吸血",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("healing");
 
         RESTORE_HEAL = builder
@@ -163,13 +159,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 防御属性
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Defense Attributes - 防御属性",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("defense");
 
         IMMUNE_DAMAGE = builder
@@ -201,13 +195,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 速度属性
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Speed Attributes - 速度属性",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("speed");
 
         BOW_SPEED = builder
@@ -239,13 +231,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 暴击系统
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Critical Hit System - 暴击系统",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("critical");
 
         VANILLA_CRITICAL_HIT_DAMAGE = builder
@@ -288,13 +278,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 饰品栏标记
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Curio Mark - 饰品栏标记（需要 Curios）",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("curios");
 
         CURIO_MARK_ENABLED = builder
@@ -337,13 +325,11 @@ public class ConfigAttribute {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 物品编辑器
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Item Editor - 物品编辑器（OP + 创造模式）",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("itemEditor");
 
         ITEM_EDITOR_ENABLED = builder

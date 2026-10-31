@@ -124,9 +124,7 @@ public class ItemPickerScreen extends Screen {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 条目表与过滤
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 建（或复用）条目表
@@ -218,9 +216,7 @@ public class ItemPickerScreen extends Screen {
         scrollRows = 0;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     private int visibleRows() {
         return Math.max(1, listHeight / ROW_HEIGHT);
@@ -308,9 +304,7 @@ public class ItemPickerScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 输入
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -418,7 +412,7 @@ public class ItemPickerScreen extends Screen {
     }
 
     /**
-     * 搜索框（供测试聚焦）
+     * 搜索框
      */
     @Nullable
     public EditBox searchBox() {

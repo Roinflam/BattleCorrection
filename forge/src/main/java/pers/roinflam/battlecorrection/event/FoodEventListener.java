@@ -16,7 +16,6 @@ import javax.annotation.Nonnull;
  * 处理额外的饱和度和饥饿值恢复
  * <p>
  * 注意：这里每个玩家每 tick 都会执行（每秒 20 次），配置里的回血量也是"每 tick"的量。
- * 旧版本不管开没开详细日志都会用 String.format 拼一遍日志文本，现在只在开启时才拼。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class FoodEventListener {

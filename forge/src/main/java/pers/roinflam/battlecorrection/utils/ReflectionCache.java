@@ -10,18 +10,16 @@ import java.lang.reflect.Method;
  * 反射缓存工具类
  * 缓存反射对象以提高性能
  * <p>
- * 目前只剩 updatingUsingItem 一个反射目标（弓速、使用速度的加速效果用）。
- * 1.12 移植时留下的 noJumpDelay、useItemRemaining 两个字段已经没有任何地方使用，已删除。
+ * 只有 updatingUsingItem 一个反射目标（弓速、使用速度的加速效果用）。
  * <p>
- * 注意：ObfuscationReflectionHelper 要求传入 SRG 名（如 m_21329_），它会在开发环境里自动映射成可读名，
- * 这是该 API 的正确用法（和 Mixin 必须写可读名的规则正好相反）。
+ * 注意：ObfuscationReflectionHelper 要求传入 SRG 名（如 m_21329_），它会在开发环境里自动映射成可读名。
  */
 public class ReflectionCache {
 
-    // ===== 方法缓存 =====
+    // 方法缓存
     private static Method updatingUsingItemMethod = null;
 
-    // ===== 可用状态 =====
+    // 可用状态
     private static boolean updatingUsingItemAvailable = false;
 
     static {

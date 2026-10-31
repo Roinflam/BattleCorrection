@@ -39,7 +39,7 @@ import java.util.TreeSet;
  * 现加的类型里放的物品会先退回背包，恢复出来的是空格子。
  * <p>
  * 前提：玩家得先"有饰品栏能力"。Curios 只给至少被分配了一种饰品栏的实体装能力，一种都没有的玩家这页什么都改不了，
- * 会显示提示让你打开配置 devCurioSlots（模组自带的分配文件，给 10 种默认饰品栏）再 /reload。
+ * 会提示打开配置 devCurioSlots（模组自带的分配文件，给 10 种默认饰品栏）再 /reload。
  */
 public class PlayerSlotsPage extends EditorPageBase {
 

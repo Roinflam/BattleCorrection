@@ -33,9 +33,7 @@ public class ClothConfigScreen {
 
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        // ═══════════════════════════════════════════════════════════════
         // PVP设置
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory pvpCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.pvp"));
 
@@ -57,9 +55,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.PVP_HURT_ITSELF::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 战斗机制
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory combatCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.combat"));
 
@@ -97,9 +93,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.HURT_TIME_PLAYER::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 玩家攻击
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory attackCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.attack"));
 
@@ -139,9 +133,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.PLAYER_MAGIC_ATTACK::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 玩家防御
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory defenseCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.defense"));
 
@@ -254,9 +246,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.PLAYER_ENVIRONMENT_MIN_FLAT::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 实体属性
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory entityCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.entity"));
 
@@ -269,9 +259,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.EXTRA_MAX_HEALTH::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 饥饿系统
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory hungerCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.hunger"));
 
@@ -330,9 +318,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigBattle.HUNGER_DAMAGE_DECAY_LIMIT::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 伤害
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory damageCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.damage"));
 
@@ -363,9 +349,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.PROJECTILE_DAMAGE::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 治疗
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory healingCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.healing"));
 
@@ -404,9 +388,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.LIFESTEAL_HEAL_BONUS::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 防御
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory rpgDefenseCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.rpgDefense"));
 
@@ -438,9 +420,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.REDUCED_FALL_DAMAGE::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 速度
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory speedCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.speed"));
 
@@ -471,9 +451,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.JUMP_LIFT::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // RPG属性 - 暴击
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory criticalCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.critical"));
 
@@ -513,9 +491,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.CRITICAL_OVERFLOW_CONVERSION::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 饰品栏标记
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory curiosCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.curios"));
 
@@ -527,9 +503,7 @@ public class ClothConfigScreen {
                 .setSaveConsumer(ConfigAttribute.CURIO_MARK_ENABLED::set)
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 第三方魔法识别
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory magicRecognitionCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.magicRecognition"));
 
@@ -577,9 +551,7 @@ public class ClothConfigScreen {
                 })
                 .build());
 
-        // ═══════════════════════════════════════════════════════════════
         // 调试设置
-        // ═══════════════════════════════════════════════════════════════
         ConfigCategory debugCategory = builder.getOrCreateCategory(
                 Component.translatable("config.battlecorrection.category.debug"));
 

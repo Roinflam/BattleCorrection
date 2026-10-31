@@ -23,7 +23,7 @@ import javax.annotation.Nonnull;
  * <p>
  * 弹射物是"远程"基础层的一部分，魔法是独立于基础层的叠加层，两者互不排斥：
  * 法术弹射物（火球、喷溅药水等）在这里照常吃弹射物加成，再由 AttributeMagicDamage 叠魔法加成。
- * 旧版本在这里排掉了 WITCH_RESISTANT_TO 标签（喷溅药水不吃弹射物加成），现已按上述原则去掉。
+ * 所以这里不排除 WITCH_RESISTANT_TO 标签，喷溅药水同样吃弹射物加成。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeProjectileDamage {

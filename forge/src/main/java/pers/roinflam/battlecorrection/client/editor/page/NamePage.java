@@ -381,7 +381,7 @@ public class NamePage extends EditorPageBase {
     }
 
     /**
-     * 名字输入框（供测试或其他页面聚焦）
+     * 名字输入框
      *
      * @return 输入框，未初始化时为 null
      */

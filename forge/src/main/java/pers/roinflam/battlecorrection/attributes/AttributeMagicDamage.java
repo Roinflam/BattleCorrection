@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * 召唤物替主人挥砍的命中一律不算魔法。
  * <p>
  * 只对"有攻击者"的魔法攻击加成：中毒这类没有来源的伤害在原版里也是 magic 类型，
- * 旧版本会给它们加上全局加成，全局值设成 5 时中毒每跳会从 1 变成 6。
+ * 否则全局加成也会加到它们身上，全局值设成 5 时中毒每跳会从 1 变成 6。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeMagicDamage {

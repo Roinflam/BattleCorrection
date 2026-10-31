@@ -23,7 +23,7 @@ public class ModItems {
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, Reference.MOD_ID);
 
-    // ===== 管理权杖 =====
+    // 管理权杖
 
     /**
      * 敌对权杖 - 右键两个生物使它们互相攻击
@@ -55,7 +55,7 @@ public class ModItems {
     public static final RegistryObject<Item> ELIMINATION_STAFF = ITEMS.register("elimination_staff",
             () -> new EliminationStaff(new Item.Properties().stacksTo(1)));
 
-    // ===== 治疗权杖 =====
+    // 治疗权杖
 
     /**
      * 治疗权杖 - 右键生物使其完全恢复生命
@@ -87,7 +87,7 @@ public class ModItems {
     public static final RegistryObject<Item> RESTORATION_STAFF = ITEMS.register("restoration_staff",
             () -> new RestorationStaff(new Item.Properties().stacksTo(1)));
 
-    // ===== 剑类武器 =====
+    // 剑类武器
 
     /**
      * 基础之剑

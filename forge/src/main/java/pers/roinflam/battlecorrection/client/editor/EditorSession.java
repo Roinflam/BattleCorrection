@@ -91,7 +91,7 @@ public final class EditorSession {
 
     private final Mode mode;
 
-    // ── 物品模式 ──
+    // 物品模式
     @Nullable
     private final ItemEditTarget target;
     @Nullable
@@ -104,7 +104,7 @@ public final class EditorSession {
     private final ResourceLocation originalItemId;
     private boolean hasForgeCaps;
 
-    // ── NBT 模式 ──
+    // NBT 模式
     @Nullable
     private final NbtEditTarget nbtTarget;
     @Nullable
@@ -114,7 +114,7 @@ public final class EditorSession {
     @Nonnull
     private final Component subjectName;
 
-    // ── 撤销 ──
+    // 撤销
     private final Deque<Snapshot> undoStack = new ArrayDeque<>();
     private final Deque<Snapshot> redoStack = new ArrayDeque<>();
     private Snapshot lastKnown;
@@ -197,9 +197,7 @@ public final class EditorSession {
         return cachedName;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 物品模式
-    // ═══════════════════════════════════════════════════════════════
 
     @Nonnull
     public ItemEditTarget target() {
@@ -273,7 +271,7 @@ public final class EditorSession {
      * 这件物品带不带 Forge 能力数据（ForgeCaps）
      * <p>
      * 有些模组会把关键数据放在能力里而不是 tag 里。编辑器只改 tag，服务端写回时是在原物品的副本上换 tag，
-     * 能力数据原样保留——这正是某些 NBT 编辑器"一保存特效就没了"的原因：它们把物品整个重建了一遍。
+     * 能力数据原样保留（把物品整个重建一遍会丢掉能力数据，表现就是"一保存特效就没了"）。
      */
     public boolean hasForgeCaps() {
         return hasForgeCaps;
@@ -312,9 +310,7 @@ public final class EditorSession {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // NBT 模式
-    // ═══════════════════════════════════════════════════════════════
 
     @Nonnull
     public NbtEditTarget nbtTarget() {
@@ -335,9 +331,7 @@ public final class EditorSession {
         return nbtWorking;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 树 / 原始 NBT 页用的统一入口
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 取一份可以随便改的"根"：物品是 {id, Count, tag}（去掉 ForgeCaps），实体/方块实体就是整份 NBT
@@ -412,9 +406,7 @@ public final class EditorSession {
         return nbtOriginal == null || !nbtOriginal.equals(nbtWorking);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 撤销 / 重做
-    // ═══════════════════════════════════════════════════════════════
 
     @Nonnull
     private Snapshot capture() {

@@ -40,14 +40,14 @@ import java.util.UUID;
  * </pre>
  * <p>
  * 为什么不直接用 Curios 原生的 CurioAttributeModifiers：Curios 1.20.1 一旦发现物品上有那个 NBT，
- * 就会**跳过**物品自己的 getAttributeModifiers()，饰品原本的护甲、幸运等属性会被整个替换掉。
+ * 就会跳过物品自己的 getAttributeModifiers()，饰品原本的护甲、幸运等属性会被整个替换掉。
  * 用自己的 NBT + CurioAttributeModifierEvent 追加（见 {@link CurioMarkEvents}），
  * 原饰品的动态属性、配置属性和特殊逻辑全部保留。
  * <p>
  * 标记过的物品"只当饰品用"（{@link #isCurioOnly(ItemStack)}）：
  * 它自身的属性（防具的护甲、武器的攻击力、AttributeModifiers NBT、其他模组加上去的属性）
  * 只在放进饰品栏时生效，拿在手上、穿在身上一律不给（{@link CurioMarkEvents} 在 Forge 的
- * ItemAttributeModifierEvent 里清空）；原本是防具的，标记后不能再穿到盔甲栏（见 {@code MobMixin}）。
+ * ItemAttributeModifierEvent 里清空）；原本是防具的，标记后不能再穿到盔甲栏（见 {@code LivingEntityMixin}）。
  * <p>
  * 这个类不引用任何 Curios 的类，没装 Curios 时加载也不会出错，服务端和客户端都能用。
  */
@@ -142,9 +142,7 @@ public final class CurioMark {
     private CurioMark() {
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 饰品栏标记
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 物品是否带有饰品栏标记
@@ -260,14 +258,12 @@ public final class CurioMark {
         return true;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 只当饰品用
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 这件物品原本是不是防具类（会穿到头/胸/腿/脚）
      * <p>
-     * 不走 Mob.getEquipmentSlotForItem（那个方法被 MobMixin 改过，标记物品会返回主手），
+     * 不走 LivingEntity.getEquipmentSlotForItem（那个方法被 LivingEntityMixin 改过，标记物品会返回主手），
      * 而是直接看物品自己申明的槽位：先看 Forge 的自定义槽位，再看原版的 Equipable（盔甲、鞘翅、头颅/南瓜都实现了它）。
      *
      * @param stack 物品
@@ -289,7 +285,7 @@ public final class CurioMark {
      * 顺序按开销从小到大排：Curios 是否加载只是读一个静态布尔值，读 NBT 次之，配置值最后。
      * 这个方法在背包点击、怪物 AI、每帧的提示框里都会被高频调用，不要在这里做任何遍历或分配。
      * <p>
-     * 调用方：MobMixin（装备槽判定）、CurioMarkEvents（清空原版路径的属性）、CurioMarkTooltipHandler。
+     * 调用方：LivingEntityMixin（装备槽判定）、CurioMarkEvents（清空原版路径的属性）、CurioMarkTooltipHandler。
      *
      * @param stack 物品
      * @return true = 只当饰品用
@@ -300,9 +296,7 @@ public final class CurioMark {
                 && ConfigAttribute.CURIO_MARK_ENABLED.get();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 物品自身属性
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 当前线程是否正在为饰品栏收集物品自身属性（供 CurioMarkEvents 的 ItemAttributeModifierEvent 处理判断）
@@ -360,9 +354,7 @@ public final class CurioMark {
         return result == null ? Collections.emptyList() : result;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 附加属性
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 物品是否带有本模组的附加属性
@@ -549,9 +541,7 @@ public final class CurioMark {
                 entry.getDouble("Amount"), AttributeModifier.Operation.fromValue(operationId));
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 显示
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 饰品栏的显示名称（客户端按语言翻译）

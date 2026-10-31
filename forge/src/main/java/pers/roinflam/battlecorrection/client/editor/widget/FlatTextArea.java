@@ -35,9 +35,9 @@ import java.util.Arrays;
 /**
  * SNBT 编辑框：行号栏 + 自动换行 + 语法高亮 + 括号配对 + 查找高亮 + 错误标记
  * <p>
- * 以前这里包的是原版 MultilineTextField，但它有几处绕不过去的问题：输入和粘贴都过一遍 SharedConstants.filterText，
+ * 不用原版 MultilineTextField，它有几处绕不过去的问题：输入和粘贴都过一遍 SharedConstants.filterText，
  * § 会被吞掉（粘贴带颜色码的 SNBT，§c 只剩一个 c）；每次改动都整篇重新折行；画的时候每帧遍历全部行。
- * 现在文本、光标、撤销都在 {@link TextDocument} 里，排版在 {@link WrapLayout} 里，这个控件只是它们的一个视图：
+ * 文本、光标、撤销都在 {@link TextDocument} 里，排版在 {@link WrapLayout} 里，这个控件只是它们的一个视图：
  * <ul>
  *   <li>每帧只画可视的那几行：二分找到首行，往下数到框底为止，全程不分配对象（行文本和行号都用复用的字符序列喂给字体）；</li>
  *   <li>改动只增量重排改动点附近，分词结果按行缓存、只给可视行分词，超过 {@link #HIGHLIGHT_LIMIT} 个字符就不做语法高亮和括号配对；</li>
@@ -81,7 +81,7 @@ public class FlatTextArea extends AbstractWidget {
     private static final long BLINK_MS = 530L;
     private static final int TOKEN_CACHE_LIMIT = 512;
 
-    // ── 颜色 ──
+    // 颜色
     private static final int GUTTER_BG = 0xFF05090C;
     private static final int GUTTER_LINE = 0xFF14232D;
     private static final int LINE_NUMBER = 0xFF3D5563;
@@ -99,7 +99,7 @@ public class FlatTextArea extends AbstractWidget {
     private static final int FLAG_LINE_START = 1;
     private static final int FLAG_NEWLINE = 2;
 
-    // ── 语法高亮配色（不带透明度） ──
+    // 语法高亮配色（不带透明度）
     private static final Style[] KIND_STYLES = new Style[SnbtLexer.KIND_COUNT];
     private static final Style[] TINT_STYLES = new Style[16];
     /**
@@ -175,7 +175,7 @@ public class FlatTextArea extends AbstractWidget {
     private TextSearch.Result search;
     private boolean revealPending;
 
-    // ── 几何 ──
+    // 几何
     private int gutterDigits;
     private int gutterWidth;
     private int textLeft;
@@ -183,7 +183,7 @@ public class FlatTextArea extends AbstractWidget {
     private int textTop;
     private int textBottom;
 
-    // ── 鼠标 ──
+    // 鼠标
     private Drag drag = Drag.NONE;
     private int dragLine;
     private double dragGrab;
@@ -193,14 +193,14 @@ public class FlatTextArea extends AbstractWidget {
     private long lastAutoScroll;
     private long caretEpoch;
 
-    // ── 括号配对缓存（按版本号 + 光标位置） ──
+    // 括号配对缓存（按版本号 + 光标位置）
     private long bracketVersion = -1;
     private int bracketCursor = -1;
     private int bracketAt = -1;
     private int bracketMatch = -1;
     private boolean bracketBad;
 
-    // ── 每帧的可视行（数组按框高预分配，帧内只填不分配） ──
+    // 每帧的可视行（数组按框高预分配，帧内只填不分配）
     private int[] visStart = new int[0];
     private int[] visEnd = new int[0];
     private int[] visLine = new int[0];
@@ -239,9 +239,7 @@ public class FlatTextArea extends AbstractWidget {
         caretEpoch = Util.getMillis();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 给页面用的接口
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 编辑的文档
@@ -344,9 +342,7 @@ public class FlatTextArea extends AbstractWidget {
         return Math.max(1, viewHeight() / ROW_HEIGHT);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 几何 / 滚动
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 按当前位置、大小和行数算各区域；返回折行宽度有没有变
@@ -426,9 +422,7 @@ public class FlatTextArea extends AbstractWidget {
         clampScroll();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
@@ -524,7 +518,7 @@ public class FlatTextArea extends AbstractWidget {
         int bandLeft = getX() + 2 + gutterWidth;
         int bandRight = getX() + width - 2 - SCROLLBAR_WIDTH;
 
-        // ── 第一趟：背景（当前行、错误行、查找命中、括号配对） ──
+        // 第一趟：背景（当前行、错误行、查找命中、括号配对）
         for (int k = 0; k < visCount; k++) {
             int rowY = rowY(visFirst + k);
             if (visLine[k] == cursorLine) {
@@ -543,7 +537,7 @@ public class FlatTextArea extends AbstractWidget {
             }
         }
 
-        // ── 第二趟：文字和行号 ──
+        // 第二趟：文字和行号
         boolean highlight = length <= HIGHLIGHT_LIMIT;
         int gutterRight = getX() + 1 + gutterWidth - GUTTER_PAD;
         for (int k = 0; k < visCount; k++) {
@@ -559,7 +553,7 @@ public class FlatTextArea extends AbstractWidget {
             }
         }
 
-        // ── 第三趟：选区、错误下划线、光标 ──
+        // 第三趟：选区、错误下划线、光标
         int selectionStart = doc.selectionStart();
         int selectionEnd = doc.selectionEnd();
         if (selectionStart != selectionEnd) {
@@ -718,9 +712,7 @@ public class FlatTextArea extends AbstractWidget {
         return getY() + 1 + (max <= 0 ? 0 : (int) ((long) travel * scrollPx / max));
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 分词缓存 / 括号配对
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 一个逻辑行的词（按版本号缓存，文本一改全部作废——作废后只有可视的那几行会被重新分词）
@@ -779,9 +771,7 @@ public class FlatTextArea extends AbstractWidget {
         bracketBad = bracketMatch < 0 || BracketMatcher.partner(doc.charAt(at)) != doc.charAt(bracketMatch);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 鼠标
-    // ═══════════════════════════════════════════════════════════════
 
     private boolean within(double mouseX, double mouseY) {
         return mouseX >= getX() && mouseX < getX() + width && mouseY >= getY() && mouseY < getY() + height;
@@ -955,9 +945,7 @@ public class FlatTextArea extends AbstractWidget {
         return layout.caretOffsetAt(doc.chars(), rowAt(mouseY), mouseX - textLeft);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 键盘
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
@@ -1216,9 +1204,7 @@ public class FlatTextArea extends AbstractWidget {
         output.add(NarratedElementType.TITLE, getMessage());
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 配色工具
-    // ═══════════════════════════════════════════════════════════════
 
     @Nonnull
     private static Style styleOf(int rgb) {
@@ -1244,9 +1230,7 @@ public class FlatTextArea extends AbstractWidget {
         return (r << 16) | (g << 8) | bl;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 复用的字符序列
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 一个显示行的文字，按词上色后逐字喂给字体；整个控件复用一个实例，画的时候不截子串、不分配

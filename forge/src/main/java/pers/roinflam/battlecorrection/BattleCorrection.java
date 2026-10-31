@@ -27,7 +27,7 @@ import pers.roinflam.battlecorrection.network.ModNetwork;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 /**
- * BattleCorrection 战斗修正模组 - 主类 (1.20.1)
+ * 战斗修正模组主类
  */
 @Mod(Reference.MOD_ID)
 public class BattleCorrection {
@@ -35,10 +35,10 @@ public class BattleCorrection {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public BattleCorrection() {
-        LOGGER.info("═══════════════════════════════════════");
+        LOGGER.info("=======================================");
         LOGGER.info("  战斗修正模组 (Battle Correction)");
         LOGGER.info("  作者: Roinflam");
-        LOGGER.info("═══════════════════════════════════════");
+        LOGGER.info("=======================================");
 
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -61,7 +61,6 @@ public class BattleCorrection {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ConfigAttribute.SPEC, "battlecorrection-attribute.toml");
 
         // 注册配置屏幕
-        // Register config screen
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory(

@@ -6,36 +6,36 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * 战斗配置类 - Battle Configuration Class (1.20.1)
+ * 战斗配置类
  * 包含所有战斗相关的配置选项
  */
 public class ConfigBattle {
 
     public static final ForgeConfigSpec SPEC;
 
-    // ===== PVP设置 =====
+    // PVP设置
     public static final ForgeConfigSpec.DoubleValue PVP;
     public static final ForgeConfigSpec.DoubleValue PVP_HURT_ITSELF;
 
-    // ===== 战斗机制 =====
+    // 战斗机制
     public static final ForgeConfigSpec.BooleanValue COMBO_CORRECTION;
     public static final ForgeConfigSpec.BooleanValue ATTACK_COOLDOWN;
     public static final ForgeConfigSpec.DoubleValue HURT_TIME_ENTITY;
     public static final ForgeConfigSpec.DoubleValue HURT_TIME_PLAYER;
 
-    // ===== 玩家攻击倍率 =====
+    // 玩家攻击倍率
     public static final ForgeConfigSpec.DoubleValue PLAYER_MELEE_ATTACK;
     public static final ForgeConfigSpec.DoubleValue PLAYER_ARROW_ATTACK;
     public static final ForgeConfigSpec.DoubleValue PLAYER_PROJECTILE_ATTACK;
     public static final ForgeConfigSpec.DoubleValue PLAYER_MAGIC_ATTACK;
 
-    // ===== 玩家承受伤害倍率 =====
+    // 玩家承受伤害倍率
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_MELEE;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_ARROW;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_PROJECTILE;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_MAGIC;
 
-    // ===== 玩家承受环境伤害倍率 =====
+    // 玩家承受环境伤害倍率
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_ENVIRONMENT;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FALL;
     public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FIRE;
@@ -45,20 +45,20 @@ public class ConfigBattle {
     public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_PERCENT;
     public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_FLAT;
 
-    // ===== 实体属性 =====
+    // 实体属性
     public static final ForgeConfigSpec.DoubleValue EXTRA_MAX_HEALTH;
 
-    // ===== 饥饿恢复 =====
+    // 饥饿恢复
     public static final ForgeConfigSpec.DoubleValue EXTRA_SATURATION_HEAL;
     public static final ForgeConfigSpec.DoubleValue EXTRA_SATURATION_PERCENTAGE_HEAL;
     public static final ForgeConfigSpec.DoubleValue EXTRA_HUNGER_HEAL;
     public static final ForgeConfigSpec.DoubleValue EXTRA_HUNGER_PERCENTAGE_HEAL;
 
-    // ===== 饥饿伤害衰减 =====
+    // 饥饿伤害衰减
     public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY;
     public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY_LIMIT;
 
-    // ===== 第三方魔法识别 =====
+    // 第三方魔法识别
     /** 是否把第三方魔法模组的法术伤害识别为魔法伤害（总开关） */
     public static final ForgeConfigSpec.BooleanValue ENABLE_THIRD_PARTY_MAGIC_RECOGNITION;
     /** 按命名空间整体算魔法的模组 id 列表 */
@@ -79,19 +79,17 @@ public class ConfigBattle {
     public static final List<String> DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST = Arrays.asList(
             "goety:summon", "goety:sword", "goety:loot_explode", "goety:loot_explode_owned", "goety:dismissed");
 
-    // ===== 调试 =====
+    // 调试
     public static final ForgeConfigSpec.BooleanValue ENABLE_DETAILED_LOGGING;
 
     static {
         ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
-        // ═══════════════════════════════════════════════════════════════
         // PVP设置
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "PVP Settings - PVP设置",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("pvp");
 
         PVP = builder
@@ -118,13 +116,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 战斗机制
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Combat Mechanics - 战斗机制",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("combat");
 
         COMBO_CORRECTION = builder
@@ -173,13 +169,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 玩家攻击倍率
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Player Attack Multipliers - 玩家攻击倍率",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("playerAttack");
 
         PLAYER_MELEE_ATTACK = builder
@@ -214,13 +208,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 玩家承受伤害倍率
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Player Damage Resistance - 玩家承受伤害倍率",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("playerDefense");
 
         PLAYER_SUFFERS_MELEE = builder
@@ -255,11 +247,9 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 玩家承受环境伤害倍率
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Player Environmental Damage - 玩家承受环境伤害倍率",
                 "  Environmental damage = damage with no living attacker behind it (fall, fire, lava, drowning, freezing, cactus,",
                 "  suffocation, poison/wither effects, unowned explosions, falling blocks, lightning ...). Void and /kill are never touched.",
@@ -271,7 +261,7 @@ public class ConfigBattle {
                 "  在护甲和其他所有减伤之后结算，所以后期装备把伤害压到接近 0 时，倍率依然能起作用。",
                 "  总倍率和对应类别倍率相乘（既算火焰又算爆炸的伤害两项都吃）。",
                 "  之后可选再套一个下限：max(最大生命 × 比例, 固定值)。倍率乘出来是 0 表示免疫，不套下限。",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("playerEnvironment");
 
         PLAYER_SUFFERS_ENVIRONMENT = builder
@@ -340,13 +330,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 实体属性
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Entity Attributes - 实体属性",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("entity");
 
         EXTRA_MAX_HEALTH = builder
@@ -360,13 +348,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 饥饿恢复
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Hunger Regeneration - 饥饿恢复",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("hunger");
 
         EXTRA_SATURATION_HEAL = builder
@@ -420,11 +406,9 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 第三方魔法识别
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Third-party Magic Recognition - 第三方魔法识别",
                 "  Decides which damage counts as 'magic' for the magicDamage attribute and the player magic attack / resistance multipliers.",
                 "  Magic is an independent layer on top of the base melee/arrow/projectile layer: base bonuses and multipliers always apply, magic stacks on top.",
@@ -434,7 +418,7 @@ public class ConfigBattle {
                 "  魔法是叠在近战/箭矢/弹射物基础层之上的独立层：基础加成和倍率始终生效，魔法在其上叠加。",
                 "  原版规则始终生效：message_id 含 magic，或伤害类型在 minecraft:witch_resistant_to 里。",
                 "  召唤物/宠物替主人挥砍的命中一律不算魔法。",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("magicRecognition");
 
         ENABLE_THIRD_PARTY_MAGIC_RECOGNITION = builder
@@ -471,13 +455,11 @@ public class ConfigBattle {
 
         builder.pop();
 
-        // ═══════════════════════════════════════════════════════════════
         // 调试
-        // ═══════════════════════════════════════════════════════════════
         builder.comment(
-                "═══════════════════════════════════════════════════════════════",
+                "===============================================================",
                 "Debug Settings - 调试设置",
-                "═══════════════════════════════════════════════════════════════"
+                "==============================================================="
         ).push("debug");
 
         ENABLE_DETAILED_LOGGING = builder

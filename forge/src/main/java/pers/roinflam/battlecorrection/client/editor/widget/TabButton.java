@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 /**
  * 左侧标签页按钮
  * <p>
- * 选中时底色提亮、左边一条强调色竖条；未实现的页面 active=false，灰字并带"下一批"提示。
+ * 选中时底色提亮、左边一条强调色竖条；未实现的页面 active=false，灰字并带提示。
  */
 public class TabButton extends AbstractWidget {
 

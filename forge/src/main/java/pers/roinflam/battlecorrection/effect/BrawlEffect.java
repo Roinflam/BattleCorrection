@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * 群殴效果
  * 使生物与附近的随机生物互相攻击
  * <p>
- * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找（旧版本找不到目标时每 tick 都扫一遍 64 格）。
+ * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找。
  */
 public class BrawlEffect extends MobEffect {
 
