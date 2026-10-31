@@ -13,9 +13,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Roinflam-181717?style=for-the-badge&logo=github)](https://github.com/Roinflam)
 [![Bilibili](https://img.shields.io/badge/Bilibili-@Roinflam-00A1D6?style=for-the-badge&logo=bilibili)](https://space.bilibili.com/285030707/)
 
-This is the **1.20.1** branch (BattleCorrection 3.0.0). The Minecraft 1.12.2 version (1.3.0) is on the [`1.12.2` branch](https://github.com/Roinflam/BattleCorrection/tree/1.12.2).
+This is the **1.20.1** branch. The Minecraft 1.12.2 version is on the [`1.12.2` branch](https://github.com/Roinflam/BattleCorrection/tree/1.12.2).
 
-本分支是 **1.20.1** 版（战斗修正 3.0.0），Minecraft 1.12.2 版（1.3.0）在 [`1.12.2` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.12.2)。
+本分支是 **1.20.1** 版，Minecraft 1.12.2 版在 [`1.12.2` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.12.2)。
 
 </div>
 
@@ -31,12 +31,10 @@ BattleCorrection (BC) is for people who build RPG maps, modpacks and servers and
 - Any single item can become a Curios accessory, with attributes that only count while it is worn.
 - An item editor for operators: coloured names and gradients, lore, enchantments, attributes, an NBT tree, an SNBT text editor and templates. It also edits entity and block entity NBT.
 
-The item editor, Curios marks, environmental damage settings and third-party magic recognition are new in 3.0.0.
-
 ### Installation
 
 1. Install [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html) 47.x for 1.20.1 (Java 17).
-2. Download BattleCorrection 3.0.0 from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
+2. Download the 1.20.1 version of BattleCorrection from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
 3. Put the jar into the `mods` folder of **both the client and the server**, same version on both sides.
 4. Optional: [Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 5.14.1 or newer for the accessory features.
 
@@ -164,7 +162,7 @@ Global settings. At their defaults they leave vanilla combat unchanged.
 - Invulnerability time after a hit, for players and for other entities: 0 keeps vanilla, -0.5 halves it, 1.0 doubles it.
 - Attack cooldown on or off (off gives 1.8-style combat), and combo correction, which scales uncharged swings by the attack charge, never below 50%.
 - Max health of every non-player mob: 1.0 doubles it.
-- Hunger: extra regeneration from saturation and from a hunger bar of 18 or more (flat or a share of max health), and less damage dealt by players per missing hunger point, with an optional cap.
+- Hunger: extra regeneration from saturation and from a hunger bar of 18 or more (flat or a share of max health), and less damage dealt by players per missing hunger point, with an optional cap (0 means no cap).
 - Spells from other mods count as magic damage. Iron's Spells 'n Spellbooks, Ars Nouveau, Goety, Sweet Magic and Geomancy Plus are recognised out of the box by mod namespace, together with the `forge:is_magic` damage type tag, a whitelist and a blacklist. Melee hits by summons and pets never count as magic.
 - Whether lifesteal is boosted by healing bonuses (`lifestealAffectedByHealBonus`, on by default).
 
@@ -245,7 +243,7 @@ Most changes apply as soon as they are saved. `attackCooldown` and `extraMaxHeal
 ### Compatibility
 
 - Combat changes run on Forge's damage and healing events, so they also apply to weapons and damage from other mods.
-- Curios API is optional; without it the curio features stay off.
+- Curios API is optional; without it the curio features stay off. If it is installed, it must be 5.14.1 or newer, otherwise the game will not start.
 - Cloth Config API is bundled with Jar-in-Jar.
 - The magic mods listed under Combat tuning are only defaults in `magicDamageNamespaces`; any mod namespace can be added.
 
@@ -287,17 +285,9 @@ Yes. Set `attackCooldown = false` for 1.8-style combat without a cooldown. It ap
 </details>
 
 <details>
-<summary><b>I'm updating from 2.0.2. Anything to know?</b></summary>
+<summary><b>Anything to know before updating?</b></summary>
 
-Your config is kept. Some old bugs are fixed in ways you may notice:
-
-- At the default setting, invulnerability frames are vanilla again; 2.0.2 removed them.
-- If you had changed the invulnerability multipliers in 2.0.2, subtract 1 from them (minimum -0.99) to keep the same timing.
-- Combo correction no longer halves every hit when it is turned on.
-- Magic multipliers now stack on top of the melee and projectile ones.
-- Hunger damage decay now works when its limit is left at 0 (0 means no cap).
-
-An installed Curios must now be 5.14.1 or newer, otherwise the game will not start.
+Back up your config folder before updating. The changelog of each version on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection/files) or [Modrinth](https://modrinth.com/mod/battlecorrection/changelog) lists what changed and anything you may want to adjust.
 
 </details>
 
@@ -315,7 +305,7 @@ Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4
 - ❌ No commercial use
 - ⚠️ Redistributed or modified versions must credit the original author (Roinflam), state what was changed, and use the same license
 
-The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-config) 11.1.136 through Jar-in-Jar. It is included unmodified and stays under its own license, LGPL-3.0, whose text ships with it inside the jar.
+The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-config) through Jar-in-Jar. It is included unmodified and stays under its own license, LGPL-3.0, whose text ships with it inside the jar.
 
 ### Credits
 
@@ -338,12 +328,10 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 - 任意一件物品都能变成 Curios 饰品，并带上只在佩戴时生效的属性。
 - 管理员用的物品编辑器：彩色名字和渐变、Lore、附魔、属性、NBT 树、SNBT 文本编辑和模板，还能编辑实体和方块实体的 NBT。
 
-物品编辑器、饰品栏标记、环境伤害设置和第三方魔法识别是 3.0.0 新增的。
-
 ### 安装方法
 
 1. 安装 1.20.1 的 [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html) 47.x（Java 17）。
-2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正 3.0.0。
+2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正的 1.20.1 版。
 3. 把 jar 放进**客户端和服务端**的 `mods` 文件夹，两端版本要一致。
 4. 可选：[Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 5.14.1 及以上，用于饰品栏功能。
 
@@ -408,7 +396,7 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 - 玩家和其他生物的无敌时间分别调整：0 为原版，-0.5 减半，1.0 翻倍。
 - 开关攻击冷却（关闭即 1.8 式战斗）；连击修正：未蓄满力的攻击按蓄力比例降低伤害，最低 50%。
 - 所有非玩家生物的最大生命值：1.0 即翻倍。
-- 饥饿：饱和度和饥饿值 18 以上时的额外生命恢复（固定值或最大生命值比例），以及玩家饥饿值每少 1 点造成的伤害降低多少，可设上限。
+- 饥饿：饱和度和饥饿值 18 以上时的额外生命恢复（固定值或最大生命值比例），以及玩家饥饿值每少 1 点造成的伤害降低多少，可设上限（0 为不设上限）。
 - 第三方魔法识别：其他模组的法术算作魔法伤害。默认按命名空间识别 Iron的法术与魔法书（Iron's Spells 'n Spellbooks）、新生魔艺（Ars Nouveau）、诡厄巫法（Goety）、甜蜜魔法（Sweet Magic）和 Geomancy Plus，同时认 `forge:is_magic` 伤害类型标签，另有白名单和黑名单。召唤物和宠物替主人的近战攻击不算魔法。
 - 吸血是否吃治疗加成（`lifestealAffectedByHealBonus`，默认是）。
 
@@ -481,7 +469,7 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 ### 兼容性
 
 - 战斗数值都通过 Forge 的伤害和治疗事件处理，其他模组的武器和伤害同样适用。
-- Curios API 是可选的，没装时只是没有饰品栏相关功能。
+- Curios API 是可选的，没装时只是没有饰品栏相关功能；装了的话版本要在 5.14.1 及以上，否则游戏无法启动。
 - Cloth Config API 以 Jar-in-Jar 方式内置。
 - 战斗数值调整里列出的魔法模组只是 `magicDamageNamespaces` 的默认值，任何模组的命名空间都可以加进去。
 
@@ -523,17 +511,9 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 </details>
 
 <details>
-<summary><b>从 2.0.2 升级要注意什么？</b></summary>
+<summary><b>更新模组前要注意什么？</b></summary>
 
-配置会保留。几个老问题修好后，手感会有变化：
-
-- 默认设置下无敌时间恢复为原版，2.0.2 会把它清掉。
-- 在 2.0.2 里改过两项无敌时间倍率的，要减 1（最低 -0.99）才和 2.0.2 一样。
-- 开启连击修正后不会再把每一击都砍掉一半。
-- 魔法倍率改为叠乘在近战和弹射物倍率之上。
-- 饥饿伤害衰减的上限保持 0（不设上限）时也能正常生效了。
-
-装了 Curios 的话，版本要在 5.14.1 及以上，否则游戏无法启动。
+更新前建议先备份 config 文件夹里的配置文件。每个版本改了什么、配置要不要调整，见 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection/files) 或 [Modrinth](https://modrinth.com/mod/battlecorrection/changelog) 上该版本的更新日志。
 
 </details>
 
@@ -551,7 +531,7 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 - ❌ 不得用于商业用途
 - ⚠️ 转载或发布修改版必须署原作者（Roinflam）、注明改动，并沿用同一协议
 
-1.20.1 的 jar 通过 Jar-in-Jar 内置了 [Cloth Config API](https://github.com/shedaniel/cloth-config) 11.1.136，未做任何修改，仍按它自己的 LGPL-3.0 协议授权，协议全文随它一起放在 jar 里。
+1.20.1 的 jar 通过 Jar-in-Jar 内置了 [Cloth Config API](https://github.com/shedaniel/cloth-config)，未做任何修改，仍按它自己的 LGPL-3.0 协议授权，协议全文随它一起放在 jar 里。
 
 ### 制作人员
 
