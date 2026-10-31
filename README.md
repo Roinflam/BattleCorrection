@@ -44,56 +44,81 @@ Cloth Config API, used for the config screen, is already inside the jar, so you 
 
 ### Item editor
 
-Operators (permission level 2) in creative mode press `I` or run `/battlecorrection edit`. The editor opens on the held item, on the item under the mouse in any open inventory or chest, or, with an empty hand, on the entity or block entity you are looking at (mobs, armor stands, chests, spawners; not players). `O` opens the SNBT page directly and `P` the NBT tree. The server checks permission, creative mode, the target and the NBT size again on every save.
+Operators (permission level 2) in creative mode press `I` or run `/battlecorrection edit`. The editor opens on the held item, on the item under the mouse in any open inventory or chest, or, with an empty hand, on the entity or block entity you are looking at. `O` opens the SNBT page directly and `P` the NBT tree. The server checks permission, creative mode, the target and the NBT size again on every save, and `itemEditorEnabled = false` turns the editor off completely.
+
+The editor is drawn by the mod itself: page tabs on the left, the current page in the middle, a live tooltip preview on the right, and Copy command, Import, the NBT size, Cancel and Save along the bottom. The screenshots are from 1.20.1; what differs on 1.12.2 is listed at the end of this section.
 
 #### Name and lore
 
-Type `&` colour codes and `&#RRGGBB` hex colours, or click the swatches and format buttons. A gradient can cover the whole name or only the selected text, and the tooltip preview on the right follows every keystroke.
+Type `&` colour codes and `&#RRGGBB` hex colours, or click the swatches and format buttons to insert them at the cursor. Clear strips colour and format codes from the selection, and pasted `§` signs become `&`. Insert writes one colour; Gradient blends two colours letter by letter across the selected text, or the whole line when nothing is selected.
 
-![Item editor, Name page](https://cdn.modrinth.com/data/yitVG9Jx/images/ff34f020fcd156bd9a35c4b1eb5deb85246d5291.png)
+![Item editor, Name page](https://cdn.modrinth.com/data/cached_images/0817d9b95e6f57babdc6107d83d2efc533bff3b0.png)
 
-*Name page: a gradient name, with the finished tooltip previewed on the right.*
+The Lore page has one row per line, with move up / down, delete and add. `Enter` splits a line at the cursor, `Backspace` at the start of a line joins it to the one above, and a multi-line paste fills several rows. Vanilla style switches between plain white text and vanilla's purple italic. Only the lines you change are rebuilt: lines holding things a text box cannot show (click events, hover text, custom fonts) are marked, and stay intact as long as you leave them alone.
 
-#### Attributes
+![Item editor, Lore page](https://cdn.modrinth.com/data/cached_images/0f3f02192abb4c79dc04c789aa53861b1226be0b.png)
 
-Every registered attribute, vanilla or from any mod, in one searchable list grouped by mod. Set the amount, operation and slot; typing `20%` switches to a percentage. A Curios slot can be picked as the slot as well.
+The palette button opens a colour picker with a saturation / brightness square, hue bar, RGB sliders, hex input and your 16 most recent colours. Gradients take 2 to 8 colour stops, with ten presets such as rainbow, fire and ocean, and a preview of the whole line.
 
-![Item editor, Attributes page](https://cdn.modrinth.com/data/yitVG9Jx/images/8c6c910f949dd3c3df7f6a192f9e65bc805aadf5.png)
+![Colour palette](https://cdn.modrinth.com/data/cached_images/867425900f5954e15e82fa8a568a2104cf928be2.png)
 
-*Attributes page: a sword with attack damage, critical chance, critical damage, lifesteal and magic damage.*
+#### Enchantments and attributes
+
+The item's enchantments are on the left, each next to its vanilla maximum level: left-click changes the level, right-click removes it. On the right, search every enchantment in the game, other mods' included, and click one to add it. Curses are shown in red, and hovering shows what an enchantment does. Levels go up to 255 (32767 on 1.12.2); levels above the vanilla maximum and enchantments vanilla would not allow on the item still apply.
+
+![Item editor, Enchantments page](https://cdn.modrinth.com/data/cached_images/eaa78f8d886fd72e26297794b4e0a9be82863718.png)
+
+Attributes work the same way: every registered attribute, vanilla or from any mod, in one searchable list, with a description on hover. Set the amount, operation and slot; typing `20%` switches to a percentage. Choosing a Curios slot as the slot also lets the item be worn there.
+
+![Item editor, Attributes page](https://cdn.modrinth.com/data/cached_images/aa5211549f92643a17dc6fa3be16576a024f5204.png)
+
+#### Tags and slots
+
+The Tags page sets Unbreakable, enchantment glint, hide flags, damage, anvil repair cost, count (1 to 127) and, on 1.20.1, CustomModelData. The Curios page is covered under Accessory marks below.
+
+My Slots (1.20.1) is for testing accessories and changes your own Curios slots. It lists every slot type you have with its count: change a count (0 removes that type), or type an id to add a slot, even one no mod has registered (it just has no icon). Curios only gives slots to players who already have at least one slot type, so with none this page cannot change anything. For testing, `devCurioSlots = true` gives every player one of each of Curios' ten built-in slots; keep it off in normal play.
+
+![Item editor, My Slots page](https://cdn.modrinth.com/data/cached_images/0b65dd55625334b182021811fca99da3ae33d410.png)
 
 #### NBT tree and SNBT
 
-The tree shows every tag with its type. Search keys and values, jump to a path such as `tag.display.Lore[0]`, and copy, paste, duplicate or move nodes. The SNBT page is a text editor with line numbers, highlighting, live error checking, find (`Ctrl+F`), go to line (`Ctrl+G`) and format / compact buttons. Text with errors is never applied.
+The tree shows every tag with its type. Search keys and values (`Ctrl+F`), jump to a path such as `tag.display.Lore[0]`, copy a node's path, edit keys and values in place, and add, delete, copy, paste, duplicate or move nodes.
 
-![Item editor, NBT tree page](https://cdn.modrinth.com/data/yitVG9Jx/images/659f70372c6bcdd5e6734c5203fcedcbedef5fdb.png)
+![Item editor, NBT tree page](https://cdn.modrinth.com/data/cached_images/650e1da79b7fb21c164d6b84732b5a1e5905645e.png)
 
-![Item editor, SNBT page](https://cdn.modrinth.com/data/yitVG9Jx/images/c90e78fb1cf97e6996e38e648e38c55e611fc9b8.png)
+The SNBT page edits the whole item as text, with line numbers, highlighting and live error marking; text that does not parse is never applied. It has find (`Ctrl+F`), go to line (`Ctrl+G`), indent, duplicate and move line, Format, Compact and `&` / `§` conversion.
 
-#### Colour palette
+![Item editor, SNBT page](https://cdn.modrinth.com/data/cached_images/c9da546b99fc3959324dafff60511f233d447e19.png)
 
-A saturation / brightness square, hue bar, RGB sliders and hex input. Gradients take 2 to 8 colour stops, with ten presets, and the palette remembers your 16 most recent colours.
+#### Templates, import and changing the item
 
-![Colour palette](https://cdn.modrinth.com/data/yitVG9Jx/images/980dd2e28c268b7a075620648adabe82fc32e304.png)
+A template stores an item's full NBT and count under a name, on your own computer. Apply it whole, or tick only the parts you want (name, lore, enchantments, attributes, curio marks and so on) and keep the rest, for example to give several weapons the same enchantments and attributes.
 
-<details>
-<summary><b>More editor pages and shortcuts</b></summary>
+![Item editor, Templates page](https://cdn.modrinth.com/data/cached_images/dbe44539407b5f8b4f430dcd9fd7b736fc646607.png)
 
-- Lore: one row per line with move up / down and delete, multi-line paste, optional vanilla purple italic style. Lines you did not touch are saved exactly as they were, click and hover events included.
-- Enchantments: search every enchantment, levels up to 255. Levels above the vanilla maximum and enchantments vanilla would not allow on the item are marked, but still applied.
-- Tags: Unbreakable, enchantment glint, hide flags, CustomModelData, damage, anvil repair cost and count (1 to 127).
-- Curios: tick the curio slot types the item may be worn in.
-- Templates: save an item under a name and apply it to other items, whole or in parts (name, lore, enchantments, attributes and so on). Templates are stored on your own computer.
-- My Slots: set your own Curios slot counts while testing.
-- Import reads a `/give` command or item SNBT from the clipboard; Copy command exports the item as a `/give` command.
-- `F4` or a click on the item icon changes the item type and keeps its NBT and count.
-- `Ctrl+S` saves, `Ctrl+Z` / `Ctrl+Y` undo and redo, `Ctrl+Tab` or `Ctrl+1` to `Ctrl+9` switch pages, `F1` lists all shortcuts. Closing with unsaved changes shows what was changed.
+Import reads a `/give` command, an item id with NBT, or item SNBT from the clipboard and replaces the current item. Copy command exports the item as a `/give` command; commands longer than 256 characters cannot be sent from chat, so run those from a command block or function. `F4` or a click on the item icon in the title bar changes the item type and keeps its NBT and count. Search by name or id, or type `@` and a mod id (such as `@battlecorrection`) to list one mod's items.
 
-![Item editor, Lore page](https://cdn.modrinth.com/data/yitVG9Jx/images/2415d97429ac0e76368c2fed4b227dfaec681a0d.png)
+![Change item window](https://cdn.modrinth.com/data/cached_images/ce451130b542d98026ec98f6cf0306550c22203b.png)
 
-![Item editor, Enchantments page](https://cdn.modrinth.com/data/yitVG9Jx/images/371f2ee695c55875cb31437fb9df6bc90e2094cd.png)
+#### Entities and block entities
 
-</details>
+With an empty hand, `I` edits the entity under the crosshair (players excluded) or a block with a block entity, such as a chest, furnace or spawner. The entity and block entity editors have the NBT tree and SNBT pages and work just like they do for items.
+
+![Entity NBT editor](https://cdn.modrinth.com/data/cached_images/7bb0041a62b5c1c7a6444775202f30e779e92846.png)
+
+#### Undo and saving
+
+`Ctrl+Z` / `Ctrl+Y` undo and redo, and typing within one second counts as one step. `Ctrl+Tab` moves to the next page and `Ctrl+1` to `Ctrl+9` jump straight to one. Closing with unsaved changes lists what changed and asks first.
+
+![Unsaved changes prompt](https://cdn.modrinth.com/data/cached_images/7695e03d256039d4dc3ded1e636d7eb33b8721eb.png)
+
+`Ctrl+S` or Save sends the item to the server. The NBT size of one item is capped by `itemEditorMaxNbtKb` (1 MB on 1.20.1 and 256 KB on 1.12.2 by default), and larger items are not saved. Past about 2 MB the vanilla client cannot read an item at all, and players holding one get disconnected. `F1` lists every shortcut.
+
+![Keyboard shortcuts](https://cdn.modrinth.com/data/cached_images/6c848970fc14c5476a48d39444c312d07a295167.png)
+
+#### On 1.12.2
+
+The editor is the same apart from what that game version allows. 1.12.2 has no hex colours, so the palette offers the 16 vanilla colours (no colour square or RGB sliders), gradients snap to the nearest of them and it remembers 8 recent colours. The attribute list holds vanilla, Forge and this mod's attributes plus any your player has, and other names can be typed in. The Tags page has no CustomModelData, the Curios page is a Baubles page, and there is no My Slots page.
 
 ### Attributes
 
@@ -127,6 +152,8 @@ A bow with +5 Arrow Damage (the editor's Copy command button writes commands lik
 /give @p bow{AttributeModifiers:[{AttributeName:"battlecorrection:arrow_damage",Name:"bonus",Amount:5.0d,Operation:0,UUID:[I;1,2,3,4],Slot:"mainhand"}]}
 ```
 
+![A bow with +5 Arrow Damage](https://cdn.modrinth.com/data/cached_images/c2134fa74a6ca5f465c6ebea3f2d7bca1a5340fd.png)
+
 ### Combat tuning
 
 Global settings. At their defaults they leave vanilla combat unchanged.
@@ -141,7 +168,7 @@ Global settings. At their defaults they leave vanilla combat unchanged.
 - Spells from other mods count as magic damage. Iron's Spells 'n Spellbooks, Ars Nouveau, Goety, Sweet Magic and Geomancy Plus are recognised out of the box by mod namespace, together with the `forge:is_magic` damage type tag, a whitelist and a blacklist. Melee hits by summons and pets never count as magic.
 - Whether lifesteal is boosted by healing bonuses (`lifestealAffectedByHealBonus`, on by default).
 
-![Config screen, Player Damage Resistance tab](https://cdn.modrinth.com/data/yitVG9Jx/images/d7d4eb503248507f9c65445b50311ab9e285f0bf.png)
+![Config screen, Player Damage Resistance tab](https://cdn.modrinth.com/data/cached_images/569eb49a50e19651112d41624b970e4f2d35ec8d.png)
 
 *The in-game config screen (Mods → BattleCorrection → Config).*
 
@@ -155,7 +182,7 @@ With Curios installed, an operator can mark one single item so it fits chosen cu
 - The tooltip lists the attributes in one section per slot, in the same style as Curios accessories.
 - For curios without a mark, `curioNbtAttributes` decides which vanilla-format attributes apply while worn: `ALL` (default), `MOD_ONLY` or `OFF`.
 
-![Item editor, Curios page](https://cdn.modrinth.com/data/yitVG9Jx/images/0374dbf757754a25136fcd2826393bd45d963efc.png)
+![Item editor, Curios page](https://cdn.modrinth.com/data/cached_images/1b131b3114fe7bf0fa1994bd70cb27f43b520c6e.png)
 
 *Curios page: this item can now be worn in the Body, Head and Necklace slots.*
 
@@ -324,18 +351,20 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 
 ### 物品编辑器
 
-拥有 2 级权限且处于创造模式的玩家按 `I` 或输入 `/battlecorrection edit` 打开。可以编辑手上的物品、打开的物品栏或箱子里鼠标指着的物品；空手时编辑准星对着的实体或方块实体（生物、盔甲架、箱子、刷怪笼等，玩家除外）。`O` 直接打开 SNBT 页，`P` 直接打开 NBT 树。每次保存时服务端都会重新检查权限、创造模式、目标和 NBT 大小。截图见英文部分。
+拥有 2 级权限且处于创造模式的玩家按 `I` 或输入 `/battlecorrection edit` 打开。可以编辑手上的物品、打开的物品栏或箱子里鼠标指着的物品；空手时编辑准星对着的实体或方块实体（生物、盔甲架、箱子、刷怪笼等，玩家除外），实体和方块实体只有 NBT 树和 SNBT 两页。`O` 直接打开 SNBT 页，`P` 直接打开 NBT 树。每次保存时服务端都会重新检查权限、创造模式、目标和 NBT 大小。
 
-- 名字和 Lore：`&` 颜色码和 `&#RRGGBB` 十六进制颜色，也可以点色块和格式按钮插入；渐变可以作用于整行或选中的文字，右边的提示框预览随输入实时更新。没改过的 Lore 行原样保留，点击和悬停事件也不会丢。
-- 调色盘：饱和度 / 明度方块、色相条、RGB 滑块和十六进制输入；渐变支持 2 到 8 个色标，有 10 个预设，记住最近用过的 16 个颜色。
-- 属性：原版和所有模组的属性都在一个可搜索的列表里，按模组分组；可设数值、运算方式和生效位置，输入 `20%` 自动切换成百分比，生效位置也可以选某个饰品栏。
-- 附魔：搜索全部附魔，等级最高 255；超过原版上限或原版不允许附在该物品上的会标出，但照样生效。
+界面由本模组自行绘制：左侧是标签页，中间是当前页面，右侧实时预览物品的提示框，底部有「复制为命令」「导入」、NBT 大小、取消和保存。截图见英文部分。
+
+- 名字和 Lore：`&` 颜色码和 `&#RRGGBB` 十六进制颜色，也可以点色块和格式按钮插入；渐变可以作用于整行或选中的文字，右边的提示框预览随输入实时更新。Lore 每行一个输入框，可以上下移动、删除和添加，多行粘贴自动拆成多行。没改过的 Lore 行原样保留，点击和悬停事件也不会丢。
+- 调色盘：饱和度 / 明度方块、色相条、RGB 滑块和十六进制输入；渐变支持 2 到 8 个色标，有彩虹、火焰、海洋等 10 个预设，记住最近用过的 16 个颜色。
+- 附魔：左侧是已有附魔，旁边标出原版上限，左键改等级、右键删除；右侧搜索全部附魔（含其他模组的），诅咒显示为红色，悬停查看说明。等级最高 255；超过原版上限或原版不允许附在该物品上的照样生效。
+- 属性：原版和所有模组的属性都在一个可搜索的列表里，悬停查看说明；可设数值、运算方式和生效位置，输入 `20%` 自动切换成百分比，生效位置选某个饰品栏时，物品同时可以戴进这个饰品栏。
 - 标签：不可破坏、附魔光效、隐藏提示信息、CustomModelData、耐久损耗、铁砧修复惩罚、数量（1 到 127）。
-- NBT 树：显示每个标签的类型，可搜索键名和值，可粘贴 `tag.display.Lore[0]` 这样的路径直接跳转，可复制、粘贴、重复、移动节点。
-- SNBT：带行号和语法高亮的文本编辑器，实时检查错误，支持查找（`Ctrl+F`）、跳到行（`Ctrl+G`）、格式化和压成一行；有错误时不会写入物品。
-- 饰品栏：勾选这件物品能放进哪些饰品栏；「玩家饰品栏」页可以在测试时改自己的饰品栏数量。
-- 模板：把物品按名字存下来，再整份或按部分（名字、Lore、附魔、属性等）套用到别的物品上，只保存在本机。
-- 其他：「导入」读取剪贴板里的 `/give` 命令或物品 SNBT，「复制为命令」把物品导出成 `/give` 命令；`F4` 或点物品图标可换物品种类，NBT 和数量保留；`Ctrl+S` 保存，`Ctrl+Z` / `Ctrl+Y` 撤销重做，`Ctrl+Tab` 或 `Ctrl+1`～`Ctrl+9` 切页，`F1` 查看全部快捷键；有未保存的修改时关闭会列出改了哪些地方。
+- 饰品栏：勾选这件物品能放进哪些饰品栏。「玩家饰品栏」页供测试饰品时用，改的是自己的饰品栏格数（填 0 去掉这种饰品栏，也可以输入 ID 添加一格）。Curios 只给至少有一种饰品栏的玩家提供饰品栏，测试时可以把 `devCurioSlots` 设为 `true`，让所有玩家获得 Curios 自带的 10 种饰品栏各 1 格，正常游戏时保持关闭。
+- NBT 树：显示每个标签的类型，可搜索键名和值（`Ctrl+F`），可粘贴 `tag.display.Lore[0]` 这样的路径直接跳转，可复制节点路径，可添加、删除、复制、粘贴、重复、移动节点。
+- SNBT：带行号和语法高亮的文本编辑器，实时标出错误，支持查找（`Ctrl+F`）、跳到行（`Ctrl+G`）、缩进、复制行、移动行、格式化、压成一行和 `&` 与 `§` 互换；有错误时不会写入物品。
+- 模板：把物品的整份 NBT 和数量按名字存在本机。套用时可以整份覆盖，也可以只勾选名字、Lore、附魔、属性、饰品栏标记等部分，例如把同一组附魔和属性套到不同的武器上。
+- 其他：「导入」读取剪贴板里的 `/give` 命令、物品 ID 加 NBT 或物品 SNBT，「复制为命令」把物品导出成 `/give` 命令（超过 256 个字符的要用命令方块或函数执行）；`F4` 或点物品图标可换物品种类，NBT 和数量保留，搜索框输入 `@` 加模组 ID（如 `@battlecorrection`）只列出这个模组的物品；`Ctrl+S` 保存，`Ctrl+Z` / `Ctrl+Y` 撤销重做，`Ctrl+Tab` 或 `Ctrl+1`～`Ctrl+9` 切页，`F1` 查看全部快捷键；有未保存的修改时关闭，会先列出改了哪些地方。
 
 ### 属性
 
