@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://cdn.modrinth.com/data/yitVG9Jx/images/7280dbec79adfa817ef8696b60f0fedfe8960891.png" alt="BattleCorrection item editor" width="800">
+<img src="https://cdn.modrinth.com/data/yitVG9Jx/images/1054ac42466975727523bf60c77469e278d64831.png" alt="BattleCorrection item editor" width="800">
 
 # BattleCorrection | 战斗修正
 
