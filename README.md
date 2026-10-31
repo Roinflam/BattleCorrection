@@ -13,9 +13,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Roinflam-181717?style=for-the-badge&logo=github)](https://github.com/Roinflam)
 [![Bilibili](https://img.shields.io/badge/Bilibili-@Roinflam-00A1D6?style=for-the-badge&logo=bilibili)](https://space.bilibili.com/285030707/)
 
-This is the **1.12.2** branch (BattleCorrection 1.3.0). The Minecraft 1.20.1 version (3.0.0) is on the [`1.20.1` branch](https://github.com/Roinflam/BattleCorrection/tree/1.20.1).
+This is the **1.12.2** branch. The Minecraft 1.20.1 version is on the [`1.20.1` branch](https://github.com/Roinflam/BattleCorrection/tree/1.20.1).
 
-本分支是 **1.12.2** 版（战斗修正 1.3.0），Minecraft 1.20.1 版（3.0.0）在 [`1.20.1` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.20.1)。
+本分支是 **1.12.2** 版，Minecraft 1.20.1 版在 [`1.20.1` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.20.1)。
 
 </div>
 
@@ -31,12 +31,10 @@ BattleCorrection (BC) is for people who build RPG maps, modpacks and servers and
 - Any single item can become a Baubles accessory, with attributes that only count while it is worn.
 - An item editor for operators: coloured names and gradients, lore, enchantments, attributes, an NBT tree, an SNBT text editor and templates. It also edits entity and block entity NBT.
 
-The item editor, bauble marks, environmental damage settings and third-party magic recognition are new in 1.3.0.
-
 ### Installation
 
 1. Install [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.12.2.html) 14.23.5.2855 or newer for 1.12.2 (Java 8).
-2. Download BattleCorrection 1.3.0 from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
+2. Download the 1.12.2 version of BattleCorrection from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
 3. Put the jar into the `mods` folder of **both the client and the server**, same version on both sides.
 4. Optional: [Baubles](https://www.curseforge.com/minecraft/mc-mods/baubles) 1.5.2 for the accessory features.
 
@@ -114,7 +112,7 @@ Global settings. At their defaults they leave vanilla combat unchanged.
 - Invulnerability time after a hit, for players and for other entities: 0 keeps vanilla, -0.5 halves it, 1.0 doubles it.
 - Attack cooldown on or off (off gives 1.8-style combat), and combo correction, which scales uncharged swings by the attack charge, never below 50%.
 - Max health of every non-player mob: 1.0 doubles it.
-- Hunger: extra healing on top of natural regeneration (from saturation when the hunger bar is full, from hunger at 18 or more; flat or a share of max health), and less damage dealt by players per missing hunger point, with an optional cap.
+- Hunger: extra healing on top of natural regeneration (from saturation when the hunger bar is full, from hunger at 18 or more; flat or a share of max health), and less damage dealt by players per missing hunger point, with an optional cap (0 means no cap).
 - Spells from other mods can count as magic damage: list their damage type prefixes in `magicDamageTypePrefixes`, with a whitelist and a blacklist for single types. Melee hits by summons and pets never count as magic.
 - Whether lifesteal is boosted by healing bonuses (`lifestealAffectedByHealBonus`, on by default).
 
@@ -217,24 +215,9 @@ Yes. Set "Attack Cooldown System" to `false` for 1.8-style combat without a cool
 </details>
 
 <details>
-<summary><b>I'm updating from an older version. Do I need to change my config?</b></summary>
+<summary><b>Anything to know before updating?</b></summary>
 
-Usually not. The config is converted automatically on first launch, and the old file is kept as
-`config/battlecorrection.cfg.v0.bak`. The update also fixes these old problems:
-
-- "Vanilla Critical Damage" replaced the vanilla 1.5× jump-attack multiplier instead of adding to it, so with the old
-  default (0.5) jump attacks dealt only half of a normal hit. It now adds on top of 1.5×, and old values are converted
-  so each one gives the damage its description promised (the old 0.5 now really means 150%).
-- The hunger damage decay default used to be 0.05, so every hit lost 5% damage whenever hunger was not full. Configs
-  that still have exactly that old default are reset to 0 (off); values you changed yourself are kept.
-- 1.2.0's default (0) removed invulnerability frames completely; the default now keeps vanilla invulnerability.
-  Configs that still carry the even older default 1.0 are converted to 0; other values you set yourself are kept and
-  now give 10 more ticks than before, so subtract 1 (minimum -0.99) to keep the old timing.
-- In 1.2.0, Hunger Damage Decay did nothing while Maximum Hunger Damage Decay Limit was 0. 0 now means no limit,
-  so a decay you set above 0 now actually applies.
-- Bow speed and use speed values are converted so the actual speeds stay the same.
-
-Magic multipliers now also stack on top of the melee and projectile ones instead of replacing them.
+Back up your config folder before updating. The changelog of each version on [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection/files) or [Modrinth](https://modrinth.com/mod/battlecorrection/changelog) lists what changed and anything you may want to adjust.
 
 </details>
 
@@ -275,12 +258,10 @@ The 1.20.1 version bundles [Cloth Config API](https://github.com/shedaniel/cloth
 - 任意一件物品都能变成 Baubles 饰品，并带上只在佩戴时生效的属性。
 - 管理员用的物品编辑器：彩色名字和渐变、Lore、附魔、属性、NBT 树、SNBT 文本编辑和模板，还能编辑实体和方块实体的 NBT。
 
-物品编辑器、饰品栏标记、环境伤害设置和第三方魔法识别是 1.3.0 新增的。
-
 ### 安装方法
 
 1. 安装 1.12.2 的 [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.12.2.html) 14.23.5.2855 及以上（Java 8）。
-2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正 1.3.0。
+2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正的 1.12.2 版。
 3. 把 jar 放进**客户端和服务端**的 `mods` 文件夹，两端版本要一致。
 4. 可选：[Baubles](https://www.curseforge.com/minecraft/mc-mods/baubles) 1.5.2，用于饰品栏功能。
 
@@ -346,7 +327,7 @@ The 1.20.1 version bundles [Cloth Config API](https://github.com/shedaniel/cloth
 - 玩家和其他生物的无敌时间分别调整：0 为原版，-0.5 减半，1.0 翻倍。
 - 开关攻击冷却（关闭即 1.8 式战斗）；连击修正：未蓄满力的攻击按蓄力比例降低伤害，最低 50%。
 - 所有非玩家生物的最大生命值：1.0 即翻倍。
-- 饥饿：在自然恢复之外额外回复生命值（饥饿值满且有饱和度时按饱和度算，饥饿值 18 以上时按饥饿值算；固定值或最大生命值比例），以及玩家饥饿值每少 1 点造成的伤害降低多少，可设上限。
+- 饥饿：在自然恢复之外额外回复生命值（饥饿值满且有饱和度时按饱和度算，饥饿值 18 以上时按饥饿值算；固定值或最大生命值比例），以及玩家饥饿值每少 1 点造成的伤害降低多少，可设上限（0 为不设上限）。
 - 第三方魔法识别：在 `magicDamageTypePrefixes` 里填其他模组伤害类型的前缀，就能把它们的法术算作魔法伤害，另有白名单和黑名单处理单个类型。召唤物和宠物替主人的近战攻击不算魔法。
 - 吸血是否吃治疗加成（`lifestealAffectedByHealBonus`，默认是）。
 
@@ -449,17 +430,9 @@ The 1.20.1 version bundles [Cloth Config API](https://github.com/shedaniel/cloth
 </details>
 
 <details>
-<summary><b>从旧版本升级，配置要改吗？</b></summary>
+<summary><b>更新模组前要注意什么？</b></summary>
 
-一般不用。第一次启动时会自动转换配置，旧文件另存为 `config/battlecorrection.cfg.v0.bak`。这次更新还修了这几个老问题：
-
-- 「原版暴击伤害」以前会顶掉原版跳劈的 1.5 倍，而不是在它上面加，旧默认值 0.5 下跳劈只有平 A 的一半。现在改成在 1.5 倍之上加，旧数值会自动换算，按配置说明里写的效果生效（旧的 0.5 现在就是 150%）。
-- 饥饿伤害衰减以前默认是 0.05，饥饿值不满时每一击少 5%。配置里还是这个旧默认值的会改成 0（关闭），自己改过的数值保留不动。
-- 1.2.0 的默认值 0 会把无敌时间完全清掉，现在默认保持原版。更早的旧默认值 1.0 会换算成 0；自己改过的其他数值原样保留，但现在会比以前多 10 刻，要保持原来的效果就减 1（最低 -0.99）。
-- 1.2.0 里「最大饥饿伤害衰减上限」为 0 时饥饿伤害衰减完全不起作用，现在 0 表示不设上限，设过衰减的会真正生效。
-- 拉弓速度、使用速度的数值会自动换算，实际速度不变。
-
-另外，魔法倍率现在叠乘在近战和弹射物倍率之上，不再代替它们。
+更新前建议先备份 config 文件夹里的配置文件。每个版本改了什么、配置要不要调整，见 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection/files) 或 [Modrinth](https://modrinth.com/mod/battlecorrection/changelog) 上该版本的更新日志。
 
 </details>
 
