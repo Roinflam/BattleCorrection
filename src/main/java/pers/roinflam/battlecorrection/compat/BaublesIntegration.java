@@ -1,5 +1,3 @@
-// 文件：BaublesIntegration.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/compat/BaublesIntegration.java
 package pers.roinflam.battlecorrection.compat;
 
 import net.minecraft.entity.EntityLivingBase;

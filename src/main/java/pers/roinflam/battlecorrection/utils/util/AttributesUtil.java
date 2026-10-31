@@ -34,12 +34,12 @@ public class AttributesUtil {
 
     /**
      * 获取实体的属性值（包含装备加成和额外值，含饰品栏）
-     * ★ 核心方法：总是手动从装备和饰品栏收集属性
+     * 总是手动从装备和饰品栏收集属性
      */
     public static float getAttributeValue(@Nonnull EntityLivingBase entityLivingBase,
                                           @Nonnull IAttribute attribute,
                                           double value) {
-        // ★ 关键修改：总是手动计算，不依赖属性实例的修改器
+        // 总是手动计算，不依赖属性实例的修改器
         // 因为Minecraft不会自动把物品上的自定义属性应用到实体属性实例
 
         double base;
@@ -53,7 +53,7 @@ public class AttributesUtil {
             base = attribute.getDefaultValue() + value;
         }
 
-        // ★ 总是手动从装备和饰品栏收集属性修改器
+        // 总是手动从装备和饰品栏收集属性修改器
         List<Double>[] modifiers = collectModifiersFromEquipment(entityLivingBase, attribute);
 
         float finalValue = (float) calculateFinalValue(base, modifiers[0], modifiers[1], modifiers[2]);

@@ -1,5 +1,3 @@
-// 文件：BattleCorrection.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/BattleCorrection.java
 package pers.roinflam.battlecorrection;
 
 import net.minecraft.client.settings.KeyBinding;
@@ -40,7 +38,6 @@ import javax.annotation.Nonnull;
  * - Baubles饰品栏联动支持
  *
  * @author Roinflam
- * @version 1.1.0
  * @since 1.0.0
  * <p>
  * 特别鸣谢：
@@ -96,7 +93,7 @@ public class BattleCorrection {
     public static void preInit(@Nonnull FMLPreInitializationEvent evt) {
         LogUtil.info("═══════════════════════════════════════");
         LogUtil.info("  战斗修正模组 (Battle Correction)");
-        LogUtil.info("  版本: 1.1.0");
+        LogUtil.info("  版本: " + evt.getModMetadata().version);
         LogUtil.info("  作者: Roinflam");
         LogUtil.info("  特别鸣谢: 建议重开");
         LogUtil.info("═══════════════════════════════════════");
@@ -105,7 +102,7 @@ public class BattleCorrection {
         proxy.bindKey();
         LogUtil.info("快捷键绑定完成");
 
-        // ★ 重要：在最早期注册全局属性
+        // 在最早期注册全局属性
         ModAttributes.init();
 
         // 初始化Baubles集成（可选依赖）
@@ -227,7 +224,7 @@ public class BattleCorrection {
         if (attributeMap.getAttributeInstance(attribute) == null) {
             attributeMap.registerAttribute(attribute);
             if (LogUtil.isDetailed()) {
-                LogUtil.debug(String.format("  ✓ 注册属性: %s (默认值: %.2f)",
+                LogUtil.debug(String.format("  注册属性: %s (默认值: %.2f)",
                         attribute.getName(),
                         attribute.getDefaultValue()));
             }

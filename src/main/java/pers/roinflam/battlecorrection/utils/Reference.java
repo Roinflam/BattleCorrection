@@ -1,5 +1,3 @@
-// 文件：Reference.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/Reference.java
 package pers.roinflam.battlecorrection.utils;
 
 /**

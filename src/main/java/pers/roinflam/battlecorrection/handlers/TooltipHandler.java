@@ -1,5 +1,3 @@
-// 文件：TooltipHandler.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/handlers/TooltipHandler.java
 package pers.roinflam.battlecorrection.handlers;
 
 import net.minecraft.client.resources.I18n;

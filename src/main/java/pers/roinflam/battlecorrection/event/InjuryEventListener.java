@@ -1,5 +1,3 @@
-// 文件：InjuryEventListener.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/event/InjuryEventListener.java
 package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.entity.Entity;

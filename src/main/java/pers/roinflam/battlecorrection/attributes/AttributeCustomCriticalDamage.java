@@ -1,5 +1,3 @@
-// 文件：AttributeCustomCriticalDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeCustomCriticalDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.Entity;

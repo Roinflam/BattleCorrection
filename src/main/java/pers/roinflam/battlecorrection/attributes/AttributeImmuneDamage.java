@@ -1,5 +1,3 @@
-// 文件：AttributeImmuneDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeImmuneDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -41,7 +39,7 @@ public class AttributeImmuneDamage {
             if (!damageSource.canHarmInCreative()) {
                 @Nullable EntityLivingBase hurter = evt.getEntityLiving();
 
-                // 修复：正确计算免疫几率
+                // 免疫几率：装备加成和配置值都按百分比算，再相加
                 float attributeValue = AttributesUtil.getAttributeValue(hurter, IMMUNE_DAMAGE);
                 float equipmentChance = (attributeValue - 1) * 100; // 装备加成转为百分比
                 float configChance = ConfigAttribute.immuneDamage; // 配置值已经是百分比

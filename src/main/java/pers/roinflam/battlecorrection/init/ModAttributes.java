@@ -1,5 +1,3 @@
-// 文件：ModAttributes.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/init/ModAttributes.java
 package pers.roinflam.battlecorrection.init;
 
 import net.minecraft.entity.ai.attributes.IAttribute;

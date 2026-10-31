@@ -1,5 +1,3 @@
-// 文件：ConfigAttribute.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/config/ConfigAttribute.java
 package pers.roinflam.battlecorrection.config;
 
 import net.minecraftforge.common.config.Config;

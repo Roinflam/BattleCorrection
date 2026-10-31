@@ -1,5 +1,3 @@
-// 文件：AttributeAlmightyBloodthirsty.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeAlmightyBloodthirsty.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;

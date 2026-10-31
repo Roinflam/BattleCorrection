@@ -1,5 +1,3 @@
-// 文件：AttributeReducedFallDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeReducedFallDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -43,7 +41,7 @@ public class AttributeReducedFallDamage {
 
                 float originalDamage = evt.getAmount();
 
-                // 修复：统一使用三参数版本，避免重复计算
+                // 统一使用三参数版本，避免重复计算
                 float equipmentReduction = AttributesUtil.getAttributeValue(hurter, REDUCED_FALL_DAMAGE, 0);
                 float configReduction = ConfigAttribute.reducedFallDamage;
                 float totalReduction = equipmentReduction + configReduction;

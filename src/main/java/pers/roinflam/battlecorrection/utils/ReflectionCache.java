@@ -1,5 +1,3 @@
-// 文件：ReflectionCache.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/ReflectionCache.java
 package pers.roinflam.battlecorrection.utils;
 
 import net.minecraft.entity.EntityLivingBase;

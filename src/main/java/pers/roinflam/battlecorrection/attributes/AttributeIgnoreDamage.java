@@ -1,5 +1,3 @@
-// 文件：AttributeIgnoreDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeIgnoreDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -42,7 +40,7 @@ public class AttributeIgnoreDamage {
 
                 float originalDamage = evt.getAmount();
 
-                // 修复：统一使用三参数版本，避免重复计算
+                // 统一使用三参数版本，避免重复计算
                 float equipmentIgnore = AttributesUtil.getAttributeValue(hurter, IGNORE_DAMAGE, 0);
                 float configIgnore = ConfigAttribute.ignoreDamage;
                 float totalIgnore = equipmentIgnore + configIgnore;

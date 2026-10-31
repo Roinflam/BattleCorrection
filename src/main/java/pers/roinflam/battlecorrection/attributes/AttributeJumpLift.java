@@ -1,5 +1,3 @@
-// 文件：AttributeJumpLift.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeJumpLift.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.EntityLivingBase;
@@ -33,7 +31,7 @@ public class AttributeJumpLift {
      */
     @SubscribeEvent
     public static void onLivingJump(@Nonnull LivingEvent.LivingJumpEvent evt) {
-        // ✅ 只在服务端执行
+        // 只在服务端执行
         if (!evt.getEntity().world.isRemote) {
             EntityLivingBase entityLivingBase = evt.getEntityLiving();
 
@@ -45,7 +43,7 @@ public class AttributeJumpLift {
             jumpBoost += configBoost;
 
             if (jumpBoost > 0) {
-                // ✅ 正确的物理计算：增加格数 → 增加 motionY
+                // 物理计算：增加格数 → 增加 motionY
                 // 跳跃高度 h = motionY² / (2g)，其中 g ≈ 0.08
                 // 当前高度 h1 = motionY² / 0.16
                 // 目标高度 h2 = h1 + jumpBoost
@@ -56,7 +54,7 @@ public class AttributeJumpLift {
                         currentMotionY * currentMotionY + 0.16 * jumpBoost
                 );
 
-                // ✅ 发送速度包到客户端（关键！）
+                // 玩家的移动由客户端计算，需要把新速度推送给客户端
                 if (entityLivingBase instanceof EntityPlayerMP) {
                     EntityPlayerMP playerMP = (EntityPlayerMP) entityLivingBase;
                     playerMP.connection.sendPacket(

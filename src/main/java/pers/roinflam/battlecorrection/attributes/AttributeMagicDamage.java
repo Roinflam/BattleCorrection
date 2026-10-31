@@ -1,5 +1,3 @@
-// 文件：AttributeMagicDamage.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/attributes/AttributeMagicDamage.java
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.entity.Entity;
