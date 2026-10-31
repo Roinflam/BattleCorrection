@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
  * 全局倍率分两层：近战/远程（箭矢、弹射物）按伤害的投递方式判定，是基础层，始终生效；
  * 魔法由 {@link MagicDamageClassifier} 判定，是独立层，在基础层之上再乘一次。
  * 例如玩家的火球 = 弹射物倍率 × 魔法倍率，玩家亲手打出的射线法术 = 近战倍率 × 魔法倍率。
- * 旧版本把魔法和近战/远程做成了互斥，法术只吃魔法倍率，现已改为叠乘。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class DamageEventListener {
@@ -40,8 +39,7 @@ public class DamageEventListener {
      * 处理受伤事件 - 连击修正
      * <p>
      * 只对玩家真正的近战挥砍生效，伤害乘以 max(挥砍时的蓄力, 0.5)。
-     * 蓄力值取自挥砍发生那一刻（见 {@link EntityLivingUtil#getSwingStrength}）：
-     * 旧版本读的是上一刻开始时记下的蓄力，和这一下对不上。
+     * 蓄力值取自挥砍发生那一刻（见 {@link EntityLivingUtil#getSwingStrength}）。
      * 荆棘反伤、模组技能等不经过原版挥砍流程的伤害不做修正。
      * <p>
      * 优先级 NORMAL：排在固定伤害加成（HIGH）之后，和暴击倍率同一层（都是乘法，先后不影响结果）。
@@ -123,7 +121,7 @@ public class DamageEventListener {
         // 魔法判定（见 MagicDamageClassifier）；魔法是独立层，不影响下面的基础层判定
         boolean isMagicDamage = MagicDamageClassifier.isMagic(damageSource);
 
-        // ===== 基础层：按投递方式判定近战 / 箭矢 / 弹射物，魔法与否都照常生效 =====
+        // 基础层：按投递方式判定近战 / 箭矢 / 弹射物，魔法与否都照常生效
         if (immediateSource instanceof EntityPlayer) {
             // 玩家近战攻击（含玩家亲手打出的射线/触碰法术）
             finalDamage *= ConfigBattle.playerMeleeAttack;
@@ -139,7 +137,7 @@ public class DamageEventListener {
             }
         }
 
-        // ===== 魔法层：在基础层之上独立叠乘 =====
+        // 魔法层：在基础层之上独立叠乘
         if ((immediateSource instanceof EntityPlayer || trueSource instanceof EntityPlayer) && isMagicDamage) {
             finalDamage *= ConfigBattle.playerMagicAttack;
             appendReason(modificationReason, "玩家魔法倍率", ConfigBattle.playerMagicAttack);

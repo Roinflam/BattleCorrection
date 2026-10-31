@@ -26,7 +26,6 @@ import java.util.Set;
  * 模组配置界面
  * <p>
  * 每个配置类一个分类按钮（战斗 / 属性 / 饰品 / 物品编辑器）。
- * 旧版本只列出了战斗分类的条目，属性配置在界面里改不了。
  */
 @SideOnly(Side.CLIENT)
 public class ConfigGuiFactory implements IModGuiFactory {

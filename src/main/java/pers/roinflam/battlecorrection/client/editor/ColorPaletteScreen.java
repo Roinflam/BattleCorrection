@@ -76,9 +76,7 @@ public class ColorPaletteScreen extends Screen {
         void accept(int head, int tail);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 布局常量
-    // ═══════════════════════════════════════════════════════════════
 
     private static final int MAX_WIDTH = 400;
     private static final int MARGIN = 8;
@@ -101,9 +99,7 @@ public class ColorPaletteScreen extends Screen {
     private static final int FOOTER_BUTTON_HEIGHT = 16;
     private static final int FOOTER_BUTTON_MIN_WIDTH = 48;
 
-    // ═══════════════════════════════════════════════════════════════
     // 数量
-    // ═══════════════════════════════════════════════════════════════
 
     private static final int MIN_STOPS = 2;
     private static final int MAX_STOPS = 8;
@@ -145,9 +141,7 @@ public class ColorPaletteScreen extends Screen {
             codes("f78")
     };
 
-    // ═══════════════════════════════════════════════════════════════
     // 跨次打开保留的状态
-    // ═══════════════════════════════════════════════════════════════
 
     private static int[] stops = {0xFF5555, 0xFFFF55};
     private static int selected;
@@ -166,9 +160,7 @@ public class ColorPaletteScreen extends Screen {
     private static int recentCount;
     private static boolean recentLoaded;
 
-    // ═══════════════════════════════════════════════════════════════
     // 这一次打开
-    // ═══════════════════════════════════════════════════════════════
 
     private final Supplier<EditBox> target;
     private final ColorsApplied onApplied;
@@ -330,9 +322,7 @@ public class ColorPaletteScreen extends Screen {
         return result;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 布局
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void init() {
@@ -495,9 +485,7 @@ public class ColorPaletteScreen extends Screen {
         return names;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 颜色状态
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 当前颜色（选中的色标）
@@ -537,9 +525,7 @@ public class ColorPaletteScreen extends Screen {
         refreshPreview();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 色标
-    // ═══════════════════════════════════════════════════════════════
 
     private void selectStop(int index) {
         selected = Math.max(0, Math.min(stops.length - 1, index));
@@ -631,9 +617,7 @@ public class ColorPaletteScreen extends Screen {
         preview = Component.literal(LegacyText.toSection(colored));
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 应用
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 回车：执行高亮的那个按钮
@@ -734,9 +718,7 @@ public class ColorPaletteScreen extends Screen {
         cancel();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 最近使用
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 记一个用过的颜色：挪到最前面，去重，最多 8 个
@@ -876,9 +858,7 @@ public class ColorPaletteScreen extends Screen {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 输入
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void setFocused(@Nullable GuiEventListener listener) {
@@ -951,9 +931,7 @@ public class ColorPaletteScreen extends Screen {
         return false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {

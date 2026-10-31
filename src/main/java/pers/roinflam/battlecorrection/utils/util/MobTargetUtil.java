@@ -14,7 +14,6 @@ import java.util.Random;
  * 生物互殴目标工具类
  * <p>
  * 暴动 / 群殴 / 消灭三根权杖和对应的三个药水效果共用这里的"找随机目标、互相设为攻击目标"逻辑。
- * 以前同样的代码在六个类里各抄了一份，而且药水效果在找不到目标时每 tick 都扫一遍 64 格范围。
  * <p>
  * 所有方法都只应在服务端调用。
  */
@@ -32,7 +31,7 @@ public final class MobTargetUtil {
 
     /**
      * 目标丢失后重新搜索的间隔（tick）：1 秒
-     * 找不到目标时不再每 tick 搜索，最多晚 1 秒找到新目标
+     * 找不到目标时不每 tick 搜索，最多晚 1 秒找到新目标
      */
     private static final int LOST_TARGET_RETRY_TICKS = 20;
 

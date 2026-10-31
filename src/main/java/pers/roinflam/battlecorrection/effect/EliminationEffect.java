@@ -11,7 +11,7 @@ import javax.annotation.Nonnull;
  * 消灭效果
  * 使生物只攻击附近不同种类的生物
  * <p>
- * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找（以前找不到目标时每 tick 都扫一遍 64 格）。
+ * 每 5 秒强制换一次目标；目标丢失后最多 1 秒内重新找。
  */
 public class EliminationEffect extends HiddenPotionBase {
 

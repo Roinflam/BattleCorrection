@@ -5,9 +5,8 @@ import net.minecraftforge.fml.common.Mod;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 /**
- * 属性配置类 - Attribute Configuration Class
+ * 属性配置类
  * 包含所有RPG属性相关的配置选项
- * Contains all RPG attribute-related configuration options
  */
 @Mod.EventBusSubscriber
 @Config(modid = Reference.MOD_ID, category = "Attribute")
@@ -15,7 +14,6 @@ import pers.roinflam.battlecorrection.utils.Reference;
 public final class ConfigAttribute {
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Global Magic Damage Bonus (Flat Amount)",
             "     Flat damage amount added to all magic attacks",
             "     Affects: Damage potions, lingering potions, modded magic weapons",
@@ -32,15 +30,13 @@ public final class ConfigAttribute {
             "     • 0 = 无加成伤害(默认)",
             "     • 5 = 所有魔法攻击+5伤害",
             "     • 10 = 所有魔法攻击+10伤害",
-            "     与物品特定魔法伤害属性叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与物品特定魔法伤害属性叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.magicDamage")
     @Config.RangeDouble(min = 0)
     public static float magicDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Global Arrow Damage Bonus (Flat Amount)",
             "     Flat damage amount added to all arrow attacks",
             "     Affects: Bows, crossbows, and any arrow-based weapons",
@@ -59,15 +55,13 @@ public final class ConfigAttribute {
             "     • 5 = 所有箭矢攻击+5伤害",
             "     • 10 = 所有箭矢攻击+10伤害",
             "     与物品特定箭矢伤害属性叠加",
-            "     也与力量附魔和弓蓄力叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     也与力量附魔和弓蓄力叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.arrowDamage")
     @Config.RangeDouble(min = 0)
     public static float arrowDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Global Projectile Damage Bonus (Flat Amount)",
             "     Flat damage amount added to non-arrow projectile attacks",
             "     Affects: Snowballs, eggs, splash potions, modded projectiles",
@@ -86,15 +80,13 @@ public final class ConfigAttribute {
             "     • 0 = 无加成伤害(默认)",
             "     • 5 = 所有弹射物+5伤害",
             "     • 10 = 所有弹射物+10伤害",
-            "     适用于让雪球或鸡蛋成为可用武器",
-            "═══════════════════════════════════════════════════════════════"
+            "     适用于让雪球或鸡蛋成为可用武器"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.projectileDamage")
     @Config.RangeDouble(min = 0)
     public static float projectileDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Healing Received Multiplier",
             "     Multiplier for all healing received by the player",
             "     Affects: Natural regeneration, instant health potions, food healing",
@@ -119,15 +111,13 @@ public final class ConfigAttribute {
             "     • 2.0 = 受到200%的治疗(双倍)",
             "     公式: 最终治疗 = 原始 × ((装备 - 1.0) + 配置)",
             "     例: 装备1.5倍 + 配置1.0 = (1.5 - 1.0) + 1.0 = 1.5倍总计",
-            "     较低的值增加难度，较高的值使生存更容易",
-            "═══════════════════════════════════════════════════════════════"
+            "     较低的值增加难度，较高的值使生存更容易"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.restoreHeal")
     @Config.RangeDouble(min = 0)
     public static float restoreHeal = 1.0f;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Damage Immunity Chance (Dodge Chance)",
             "     Percentage chance to completely avoid incoming damage",
             "     • 0 = No dodge chance (default)",
@@ -146,15 +136,13 @@ public final class ConfigAttribute {
             "     • 100 = 总是闪避所有攻击(无敌)",
             "     触发时，攻击完全不造成伤害",
             "     对所有伤害类型有效，除了创造模式伤害",
-            "     攻击的视觉/音效仍会发生",
-            "═══════════════════════════════════════════════════════════════"
+            "     攻击的视觉/音效仍会发生"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.immuneDamage")
     @Config.RangeDouble(min = 0, max = 100)
     public static float immuneDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Bow Draw Speed Multiplier",
             "     Formula: Final Speed = (Equipment Bow Speed - 1) + This Value",
             "     • 1.0 = Normal speed (default)  • 2.0 = Twice as fast  • 0.5 = Half speed  • 0.0 = Cannot draw",
@@ -165,15 +153,13 @@ public final class ConfigAttribute {
             "     公式: 最终速度 = (装备拉弓速度 - 1) + 此值",
             "     • 1.0 = 正常速度(默认)  • 2.0 = 快一倍  • 0.5 = 减半速度  • 0.0 = 无法拉弓",
             "     每个游戏刻最多额外推进 64 次。",
-            "     不影响箭矢伤害，仅影响拉弓速度",
-            "═══════════════════════════════════════════════════════════════"
+            "     不影响箭矢伤害，仅影响拉弓速度"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.bowSpeed")
     @Config.RangeDouble(min = 0)
     public static float bowSpeed = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Item Use Speed Multiplier (Food, Potions, Shields)",
             "     Affects: Eating food, drinking potions, using shields, etc.",
             "     Does NOT affect: Bows (use bowSpeed for that)",
@@ -184,15 +170,13 @@ public final class ConfigAttribute {
             "     影响: 吃食物、喝药水、使用盾牌等",
             "     不影响: 弓(使用bowSpeed调整)",
             "     公式: 最终速度 = (装备使用速度 - 1) + 此值",
-            "     • 1.0 = 正常速度(默认)  • 2.0 = 快一倍  • 0.5 = 减半速度  • 0.0 = 无法使用",
-            "═══════════════════════════════════════════════════════════════"
+            "     • 1.0 = 正常速度(默认)  • 2.0 = 快一倍  • 0.5 = 减半速度  • 0.0 = 无法使用"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.preparationSpeed")
     @Config.RangeDouble(min = 0)
     public static float preparationSpeed = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Melee Lifesteal Ratio",
             "     Percentage of melee damage converted to health",
             "     IMPORTANT: Requires FULL attack charge to activate!",
@@ -213,15 +197,13 @@ public final class ConfigAttribute {
             "     • 1.0 = 恢复100%近战伤害为生命",
             "     例: 造成10点伤害，0.2吸血 = 恢复2点生命",
             "     仅对近战攻击有效，不对远程或魔法有效",
-            "     与almightyBloodthirsty(全能吸血)叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与almightyBloodthirsty(全能吸血)叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.bloodthirsty")
     @Config.RangeDouble(min = 0)
     public static float bloodthirsty = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Universal Lifesteal Ratio (All Damage Types)",
             "     Percentage of ALL damage converted to health",
             "     Works with: Melee, arrows, projectiles, and magic damage",
@@ -242,8 +224,7 @@ public final class ConfigAttribute {
             "     • 0.5 = 恢复50%伤害为生命",
             "     • 1.0 = 恢复100%伤害为生命",
             "     例: 造成10点伤害(任何类型)，0.2吸血 = 恢复2点生命",
-            "     与bloodthirsty(仅近战吸血)叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与bloodthirsty(仅近战吸血)叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.almightyBloodthirsty")
     @Config.RangeDouble(min = 0)
@@ -260,7 +241,6 @@ public final class ConfigAttribute {
     public static boolean lifestealAffectedByHealBonus = true;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Flat Damage Reduction (All Sources)",
             "     Flat amount of damage ignored from all sources",
             "     How it works:",
@@ -287,15 +267,13 @@ public final class ConfigAttribute {
             "     • 0 = 无伤害减免(默认)",
             "     • 5 = 格挡5点伤害或减少5点伤害",
             "     • 10 = 格挡10点伤害或减少10点伤害",
-            "     适用于减少来自弱小来源的零碎伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     适用于减少来自弱小来源的零碎伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.ignoreDamage")
     @Config.RangeDouble(min = 0)
     public static float ignoreDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Vanilla Critical Hit Damage Bonus (Fall Attack Only)",
             "     Formula: Damage × (1.5 + (Equipment Critical Damage - 1) + This Value)",
             "     Added on top of the multiplier other mods have already set, never multiplied with it.",
@@ -310,15 +288,13 @@ public final class ConfigAttribute {
             "     • 0.0 = 150%伤害(原版默认, 1.5倍)",
             "     • 0.5 = 200%伤害(2.0倍)",
             "     • 1.0 = 250%伤害(2.5倍)",
-            "     这独立于自定义暴击系统",
-            "═══════════════════════════════════════════════════════════════"
+            "     这独立于自定义暴击系统"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.vanillaCriticalHitDamage")
     @Config.RangeDouble(min = 0)
     public static float vanillaCriticalHitDamage = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Custom Critical Hit Chance (Decimal)",
             "     Base chance to land a critical hit (0.0 to 1.0)",
             "     OVERFLOW CONVERSION SYSTEM:",
@@ -347,15 +323,13 @@ public final class ConfigAttribute {
             "     • 1.5 = 100%暴击 + 0.5溢出转化为暴击伤害",
             "     • 2.0 = 100%暴击 + 1.0溢出转化为暴击伤害",
             "     溢出转化比例由criticalOverflowConversion控制",
-            "     独立于原版暴击系统",
-            "═══════════════════════════════════════════════════════════════"
+            "     独立于原版暴击系统"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.customCriticalChance")
     @Config.RangeDouble(min = 0)
     public static float customCriticalChance = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Custom Critical Hit Damage Multiplier",
             "     Damage multiplier applied when critical hit occurs",
             "     Minimum value: 1.0 (100% damage, no bonus)",
@@ -380,15 +354,13 @@ public final class ConfigAttribute {
             "     此值会被溢出暴击率增加",
             "     公式: 最终暴击伤害 = 此值 + (溢出值 × 转化比例)",
             "     例: 2.0基础, 1.5总几率(0.5溢出), 1.0比例",
-            "         → 最终 = 2.0 + (0.5 × 1.0) = 2.5倍伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "         → 最终 = 2.0 + (0.5 × 1.0) = 2.5倍伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.customCriticalDamage")
     @Config.RangeDouble(min = 1)
     public static float customCriticalDamage = 2;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Critical Chance Overflow to Damage Conversion Ratio",
             "     Controls how overflow critical chance converts to critical damage",
             "     When customCriticalChance > 1.0, the overflow is converted",
@@ -417,15 +389,13 @@ public final class ConfigAttribute {
             "     - customCriticalChance = 1.8 (溢出0.8)",
             "     - customCriticalDamage = 2.0 (基础200%)",
             "     - criticalOverflowConversion = 1.0 (1:1比例)",
-            "     → 结果: 100%暴击几率 + 2.8倍暴击伤害 (2.0 + 0.8)",
-            "═══════════════════════════════════════════════════════════════"
+            "     → 结果: 100%暴击几率 + 2.8倍暴击伤害 (2.0 + 0.8)"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.criticalOverflowConversion")
     @Config.RangeDouble(min = 0)
     public static float criticalOverflowConversion = 1.0F;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Jump Height Boost",
             "     Increases the height of jumps",
             "     Reference for comparison:",
@@ -450,15 +420,13 @@ public final class ConfigAttribute {
             "     • 0.2 = 大约+2格跳跃高度",
             "     • 0.3 = 大约+3格跳跃高度",
             "     较高的值允许跳过墙壁和障碍物",
-            "     可以与拥有跳跃提升属性的物品叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     可以与拥有跳跃提升属性的物品叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.jumpLift")
     @Config.RangeDouble(min = 0)
     public static float jumpLift = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Fall Damage Reduction (Flat Amount)",
             "     Flat amount of fall damage ignored",
             "     How it works:",
@@ -487,8 +455,7 @@ public final class ConfigAttribute {
             "     • 3 = 忽略约5格的坠落(软着陆)",
             "     • 10 = 忽略约15格的坠落",
             "     • 20 = 忽略约30格的坠落(非常安全)",
-            "     不影响其他伤害类型，仅摔落",
-            "═══════════════════════════════════════════════════════════════"
+            "     不影响其他伤害类型，仅摔落"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".attribute.reducedFallDamage")
     @Config.RangeDouble(min = 0)

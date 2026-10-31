@@ -1,5 +1,5 @@
 # ===================================
-# 物品名称 - Item Names
+# 物品名称
 # ===================================
 item.enemy_staff.name=敌对权杖
 item.rebel_staff.name=叛军权杖
@@ -16,7 +16,7 @@ item.advanced_sword.name=进阶之剑
 item.master_sword.name=大师之剑
 
 # ===================================
-# 物品工具提示 - Item Tooltips
+# 物品工具提示
 # ===================================
 item.enemy_staff.tooltip=右键点击两个生物，使它们互相攻击
 item.rebel_staff.tooltip=右键点击一个生物，使周围所有生物攻击它
@@ -30,25 +30,25 @@ item.range_healing_staff.tooltip=右键点击生物，使周围所有生物完�
 item.restoration_staff.tooltip=右键点击生物清除其所有药水效果
 
 # ===================================
-# 创造标签页 - Creative Tab
+# 创造标签页
 # ===================================
 itemGroup.battlecorrection_tab=战斗修正
 
 # ===================================
-# 游戏内消息 - In-Game Messages
+# 游戏内消息
 # ===================================
 message.battlecorrection.select_first=已选择第一个目标，请右键另一个生物
 message.battlecorrection.select_second=两个目标现在互相敌对！
 message.battlecorrection.select_cancel=第一个目标已失效（死亡、离开或不在同一维度），选择已取消
 
 # ===================================
-# 配置分类 - Config Categories
+# 配置分类
 # ===================================
 config.battlecorrection.battle=战斗配置
 config.battlecorrection.attribute=属性配置
 
 # ===================================
-# 战斗配置选项 - Battle Config Options
+# 战斗配置选项
 # ===================================
 config.battlecorrection.battle.pvp=PVP伤害倍率
 config.battlecorrection.battle.pvpHurtItself=自伤倍率
@@ -74,7 +74,7 @@ config.battlecorrection.battle.hungerDamageDecayLimit=最大饥饿伤害衰减�
 config.battlecorrection.battle.enableDetailedLogging=启用详细调试日志
 
 # ===================================
-# 属性配置选项 - Attribute Config Options
+# 属性配置选项
 # ===================================
 config.battlecorrection.attribute.magicDamage=全局魔法伤害加成
 config.battlecorrection.attribute.arrowDamage=全局箭矢伤害加成
@@ -94,13 +94,12 @@ config.battlecorrection.attribute.jumpLift=跳跃高度提升
 config.battlecorrection.attribute.reducedFallDamage=摔落伤害减免
 
 # ===================================
-# 按键绑定 - Key Bindings
+# 按键绑定
 # ===================================
 key.battlecorrection.openModList=打开模组列表
 
 # ===================================
 # 属性名称（显示在物品上）
-# Attribute Names (Displayed on Items)
 # ===================================
 attribute.name.battlecorrection.magicDamage=魔法伤害
 attribute.name.battlecorrection.arrowDamage=箭矢伤害
@@ -119,7 +118,7 @@ attribute.name.battlecorrection.customCriticalChance=暴击几率
 attribute.name.battlecorrection.customCriticalDamage=暴击伤害
 
 # ===================================
-# 新增配置项 - New Config Entries
+# 环境伤害、魔法识别等配置
 # ===================================
 config.battlecorrection.battle.playerSuffersEnvironment=玩家承受环境伤害倍率（总）
 config.battlecorrection.battle.playerSuffersFall=玩家承受摔落伤害倍率
@@ -136,7 +135,7 @@ config.battlecorrection.battle.configVersion=配置格式版本（请勿修改�
 config.battlecorrection.attribute.lifestealAffectedByHealBonus=吸血吃治疗加成
 
 # ===================================
-# 饰品栏标记 - Bauble Marks
+# 饰品栏标记
 # ===================================
 config.battlecorrection.baubles=饰品栏标记
 config.battlecorrection.baubles.baubleMarkEnabled=启用饰品栏标记
@@ -759,4 +758,3 @@ gui.battlecorrection.editor.palette.apply.tooltip=把选中的文字（没选中
 gui.battlecorrection.editor.palette.cancel=取消
 gui.battlecorrection.editor.palette.keys=Enter 执行高亮的按钮  Esc 取消
 gui.battlecorrection.editor.palette.no_target=没有可写入的输入框，只能取色
-# 帮助页这两条覆盖底座的版本：这个版本没有十六进制颜色，调色盘也没有取色方块

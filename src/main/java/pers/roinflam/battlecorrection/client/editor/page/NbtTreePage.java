@@ -313,7 +313,7 @@ public class NbtTreePage extends EditorPageBase {
     @Nullable
     private TreeNode formNode;
 
-    // ── 状态栏 ──
+    // 状态栏
     private Component status = Component.empty();
     private int statusColor = EditorTheme.TEXT_DIM;
     @Nullable
@@ -324,12 +324,12 @@ public class NbtTreePage extends EditorPageBase {
     @Nullable
     private List<Component> statusTooltip;
 
-    // ── 提示行（字符串值的彩色预览 / 输入提示） ──
+    // 提示行（字符串值的彩色预览 / 输入提示）
     @Nullable
     private Component hintLine;
     private int hintColor = EditorTheme.TEXT_DIM;
 
-    // ── 搜索 ──
+    // 搜索
     private String searchQuery = "";
     private int searchDebounce;
     private boolean searchJump;
@@ -346,7 +346,7 @@ public class NbtTreePage extends EditorPageBase {
     private String searchCountText = "";
     private int searchCountColor = EditorTheme.TEXT_MUTED;
 
-    // ── 控件 ──
+    // 控件
     @Nullable
     private NbtTreeView tree;
     @Nullable
@@ -385,7 +385,7 @@ public class NbtTreePage extends EditorPageBase {
     @Nullable
     private FlatButton downButton;
 
-    // ── 布局 ──
+    // 布局
     private int formTop;
     private int pathTop;
     private int countX;
@@ -612,9 +612,7 @@ public class NbtTreePage extends EditorPageBase {
         downButton = buttons.get(7);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
@@ -715,9 +713,7 @@ public class NbtTreePage extends EditorPageBase {
         return font.split(Component.literal(text), TOOLTIP_WIDTH);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 输入
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -943,9 +939,7 @@ public class NbtTreePage extends EditorPageBase {
         model.setSearchMarks(null, null);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 选中与表单
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 选中变化：把节点的名字和值填进表单，按规则启用/禁用按钮
@@ -1199,9 +1193,7 @@ public class NbtTreePage extends EditorPageBase {
         setStatus(Component.empty(), EditorTheme.TEXT_DIM);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 编辑
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 把表单里的名称/值写进选中节点
@@ -1723,9 +1715,7 @@ public class NbtTreePage extends EditorPageBase {
         setStatus(key, EditorTheme.DANGER, text, target.displayName());
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 复制粘贴、路径
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 复制选中节点：内部记一份，系统剪贴板放 SNBT
@@ -1892,9 +1882,7 @@ public class NbtTreePage extends EditorPageBase {
         model.collapseAll();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 右键菜单
-    // ═══════════════════════════════════════════════════════════════
 
     private void openContextMenu(@Nonnull TreeNode node, int mouseX, int mouseY) {
         typePopup.close();
@@ -1932,9 +1920,7 @@ public class NbtTreePage extends EditorPageBase {
         return new MenuItem(Component.translatable(LANG + "menu." + key), color, action);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 搜索
-    // ═══════════════════════════════════════════════════════════════
 
     private void onSearchChanged(@Nonnull String text) {
         if (text.equals(searchQuery)) {
@@ -2096,9 +2082,7 @@ public class NbtTreePage extends EditorPageBase {
         return true;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 与物品副本同步
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 从 session 重读根（物品是 {id, Count, Damage, tag}，实体/方块实体是整份 NBT），展开 / 选中状态保留

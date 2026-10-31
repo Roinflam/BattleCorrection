@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * 魔法伤害分类器（不依赖任何第三方模组）
  *
- * <p>回答一个问题：这次 {@link DamageSource} 算不算"魔法伤害"。
+ * <p>判断这次 {@link DamageSource} 算不算"魔法伤害"。
  * {@code AttributeMagicDamage} 用它决定要不要加魔法伤害；
  * {@code DamageEventListener} 用它决定要不要叠玩家魔法攻击/承受倍率。
  * 魔法是独立于近战/箭矢/弹射物基础层的叠加层：基础层按投递方式照常结算，魔法只在其上追加，两者互不排斥。</p>
@@ -68,7 +68,7 @@ public final class MagicDamageClassifier {
     private MagicDamageClassifier() {
     }
 
-    // ========== 对外判定入口 / Public API ==========
+    // 对外判定入口
 
     /**
      * 判断一次伤害是否算魔法伤害（原版规则 + 第三方规则）
@@ -129,7 +129,7 @@ public final class MagicDamageClassifier {
         return direct instanceof EntityLivingBase && owner != null && owner != direct;
     }
 
-    // ========== 配置缓存 / Config Cache ==========
+    // 配置缓存
 
     /**
      * 使缓存失效；配置界面保存后调用

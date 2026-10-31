@@ -168,9 +168,7 @@ public final class SnbtValidator {
         return new Result(null, offset, line, offset - lineStart + 1, reason, key, args);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 照 JsonToNBT 走一遍
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 一处解析错误

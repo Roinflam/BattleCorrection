@@ -4,9 +4,8 @@ import net.minecraftforge.common.config.Config;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 /**
- * 饰品栏标记配置类 - Bauble Mark Configuration Class
+ * 饰品栏标记配置类
  * 需要 Baubles；没装 Baubles 时这里的选项都不起作用
- * Requires Baubles; nothing here does anything without it
  */
 @Config(modid = Reference.MOD_ID, category = "Baubles")
 @Config.LangKey("config." + Reference.MOD_ID + ".baubles")
@@ -31,7 +30,6 @@ public final class ConfigBaubles {
     }
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Enable the bauble mark feature (/battlecorrection bauble)",
             "     An admin can let the held item go into chosen bauble slots and attach",
             "     extra attributes that only apply while it is worn there",
@@ -45,14 +43,12 @@ public final class ConfigBaubles {
             "     • true = 启用(默认)",
             "     • false = 命令不可用，标记过的物品不能再放进饰品栏，",
             "       并恢复成普通物品(拿在手上、穿在身上的属性照常生效)",
-            "     已经戴着的物品在摘下前属性照常生效",
-            "═══════════════════════════════════════════════════════════════"
+            "     已经戴着的物品在摘下前属性照常生效"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".baubles.baubleMarkEnabled")
     public static boolean baubleMarkEnabled = true;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Which vanilla-format attributes on an UNMARKED bauble take effect while it is worn",
             "     (AttributeModifiers NBT, the item's own attributes, attributes added by other mods)",
             "     • ALL = Every attribute (default)",
@@ -67,8 +63,7 @@ public final class ConfigBaubles {
             "     • MOD_ONLY = 只有 battlecorrection.* 的属性生效",
             "     • OFF = 都不生效",
             "     标记过的物品始终全部生效",
-            "     没有这个选项之前的版本相当于 MOD_ONLY，想保持老存档原来的效果就改成它",
-            "═══════════════════════════════════════════════════════════════"
+            "     没有这个选项之前的版本相当于 MOD_ONLY，想保持老存档原来的效果就改成它"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".baubles.baubleNbtAttributes")
     public static BaubleNbtAttributes baubleNbtAttributes = BaubleNbtAttributes.ALL;

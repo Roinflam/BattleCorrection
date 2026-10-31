@@ -141,9 +141,7 @@ public class NbtTreeView extends AbstractWidget {
         return node.isMore() ? null : node;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 滚动
-    // ═══════════════════════════════════════════════════════════════
 
     private int visibleRows() {
         return Math.max(1, (getHeight() - 2) / ROW_HEIGHT);
@@ -203,9 +201,7 @@ public class NbtTreeView extends AbstractWidget {
         return index >= 0 && index < model.rows().size() ? index : -1;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 选中
-    // ═══════════════════════════════════════════════════════════════
 
     private void selectRow(int index) {
         List<TreeNode> rows = model.rows();
@@ -258,9 +254,7 @@ public class NbtTreeView extends AbstractWidget {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 输入
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -422,9 +416,7 @@ public class NbtTreeView extends AbstractWidget {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {

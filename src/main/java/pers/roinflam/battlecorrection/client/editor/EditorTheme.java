@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
  */
 public final class EditorTheme {
 
-    // ── 强调色族（青色电光） ──
+    // 强调色族（青色电光）
     public static final int ACCENT = 0xFF37C8FF;
     public static final int ACCENT_HOVER = 0xFF7FE0FF;
     public static final int ACCENT_HI = 0xFFC8F4FF;
@@ -29,7 +29,7 @@ public final class EditorTheme {
     public static final int ACCENT_SOFT = 0x3837C8FF;
     public static final int ACCENT_GLOW = 0x1E37C8FF;
 
-    // ── 基材 ──
+    // 基材
     public static final int PANEL_BG = 0xFF0B1116;
     public static final int PANEL_LIGHT = 0xFF121B23;
     public static final int PANEL_EDGE_HI = 0xFF2C4252;
@@ -42,26 +42,26 @@ public final class EditorTheme {
     public static final int CARD_BORDER = 0xFF1E3542;
     public static final int DIVIDER = 0xFF193443;
 
-    // ── 凹槽 ──
+    // 凹槽
     public static final int GROOVE = 0xFF04070A;
     public static final int WELL = 0xFF070C10;
     public static final int WELL_TOP = 0xFF030507;
     public static final int WELL_LIGHT = 0xFF1A2C38;
     public static final int SCANLINE = 0x1437C8FF;
 
-    // ── 文字 ──
+    // 文字
     public static final int TEXT = 0xFFDDF2FA;
     public static final int TEXT_MUTED = 0xFF92B4C4;
     public static final int TEXT_DIM = 0xFF6F8B9A;
     public static final int TEXT_ON_ACCENT = 0xFF04141C;
 
-    // ── 状态色 ──
+    // 状态色
     public static final int DANGER = 0xFFFF5C7A;
     public static final int DANGER_HOVER = 0xFFFF8AA0;
     public static final int SUCCESS = 0xFF5CF2A6;
     public static final int WARNING = 0xFFF2C25C;
 
-    // ── 按钮 / 输入框 ──
+    // 按钮 / 输入框
     public static final int BUTTON_BG = 0xFF13212B;
     public static final int BUTTON_HOVER = 0xFF1B3242;
     public static final int BUTTON_BORDER = 0xFF2A4E62;
@@ -90,9 +90,7 @@ public final class EditorTheme {
     private EditorTheme() {
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 颜色
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 按系数缩放透明度
@@ -139,9 +137,7 @@ public final class EditorTheme {
         return hovered ? BUTTON_HOVER : BUTTON_BG;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 基本形状
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 矩形（左上角 + 宽高，比 fill 的两个坐标好算）
@@ -201,9 +197,7 @@ public final class EditorTheme {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 组合部件
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 主面板：投影 + 切角沟槽 + 底色 + 斜面明暗边 + 四角准线

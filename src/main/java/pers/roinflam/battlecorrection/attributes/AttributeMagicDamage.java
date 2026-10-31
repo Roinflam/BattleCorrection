@@ -36,8 +36,8 @@ public class AttributeMagicDamage {
      * 处理魔法伤害事件
      * 优先级 HIGH：固定加成统一在暴击倍率（NORMAL）之前结算，保证"先加后乘"
      * <p>
-     * 1.12.2 的物品属性一直按「伤害作底数」结算：底数 = 原伤害 + 配置加成，
-     * 加法修饰符直接加，乘法修饰符按伤害放大，已有物品上的写法保持不变。
+     * 1.12.2 的物品属性按「伤害作底数」结算：底数 = 原伤害 + 配置加成，
+     * 加法修饰符直接加，乘法修饰符按伤害放大。
      */
     @SubscribeEvent(priority = EventPriority.HIGH)
     public static void onLivingHurt(@Nonnull LivingHurtEvent evt) {

@@ -56,7 +56,7 @@ public class EliminationStaff extends ItemStaff {
                 }
             }
 
-            // 设置冷却（以前只有搜到目标时才设）
+            // 设置冷却
             playerIn.getCooldownTracker().setCooldown(this, 20);
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
         }

@@ -13,9 +13,8 @@ import pers.roinflam.battlecorrection.utils.util.MagicDamageClassifier;
 import javax.annotation.Nonnull;
 
 /**
- * 战斗配置类 - Battle Configuration Class
+ * 战斗配置类
  * 包含所有战斗相关的配置选项
- * Contains all combat-related configuration options
  */
 @Mod.EventBusSubscriber
 @Config(modid = Reference.MOD_ID, category = "Battle")
@@ -23,7 +22,6 @@ import javax.annotation.Nonnull;
 public final class ConfigBattle {
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] PVP Damage Multiplier",
             "     Controls the damage dealt between players in PVP combat",
             "     • 0.5 = Players deal 50% damage to each other",
@@ -38,15 +36,13 @@ public final class ConfigBattle {
             "     • 1.0 = 正常原版伤害(默认)",
             "     • 2.0 = 玩家互相造成200%伤害",
             "     • 0.0 = 完全禁用PVP伤害",
-            "     此选项仅影响玩家对玩家的伤害，不影响PVE",
-            "═══════════════════════════════════════════════════════════════"
+            "     此选项仅影响玩家对玩家的伤害，不影响PVE"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.pvp")
     @Config.RangeDouble(min = 0)
     public static float pvp = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Self-Damage Multiplier",
             "     Controls damage when a player hurts themselves",
             "     Affects: TNT explosions, splash potions, thorns, etc.",
@@ -61,15 +57,13 @@ public final class ConfigBattle {
             "     • 0.5 = 承受50%自伤",
             "     • 1.0 = 正常自伤(默认)",
             "     • 2.0 = 承受200%自伤",
-            "     • 0.0 = 完全防止自伤",
-            "═══════════════════════════════════════════════════════════════"
+            "     • 0.0 = 完全防止自伤"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.pvpHurtItself")
     @Config.RangeDouble(min = 0)
     public static float pvpHurtItself = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Combo Correction System",
             "     When enabled, attacks deal reduced damage if not fully charged",
             "     • true = Uncharged attacks deal less damage (discourages spam-clicking)",
@@ -82,13 +76,11 @@ public final class ConfigBattle {
             "     • true = 未蓄力攻击伤害降低(防止无脑连点)",
             "     • false = 所有攻击造成全额伤害，无视蓄力(1.8风格)",
             "     伤害随攻击蓄力缩放: 50%蓄力 = 50%伤害",
-            "     鼓励正确把握攻击时机而非无脑点击",
-            "═══════════════════════════════════════════════════════════════"
+            "     鼓励正确把握攻击时机而非无脑点击"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.comboCorrection")
     public static boolean comboCorrection = false;
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Entity Invulnerability Time Multiplier",
             "     Controls how long non-player entities are invulnerable after being hit",
             "     Formula: Effective Time = 10 ticks (vanilla) × (1 + This Value)",
@@ -105,15 +97,13 @@ public final class ConfigBattle {
             "     • 0.0 = 正常原版无敌时间(默认)",
             "     • 1.0 = 双倍无敌时间(更慢造成伤害)",
             "     • 2.0 = 三倍无敌时间",
-            "     较低的值使实体更容易击杀，但可能不太公平",
-            "═══════════════════════════════════════════════════════════════"
+            "     较低的值使实体更容易击杀，但可能不太公平"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hurtTimeEntity")
     @Config.RangeDouble(min = -0.99)  // 允许负值，但不能低于-0.99
     public static float hurtTimeEntity = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Invulnerability Time Multiplier",
             "     Controls how long players are invulnerable after being hit",
             "     Formula: Effective Time = 10 ticks (vanilla) × (1 + This Value)",
@@ -130,15 +120,13 @@ public final class ConfigBattle {
             "     • 0.0 = 正常原版无敌时间(默认)",
             "     • 1.0 = 双倍无敌时间",
             "     • 2.0 = 三倍无敌时间",
-            "     较低的值增加难度，较高的值使战斗更安全",
-            "═══════════════════════════════════════════════════════════════"
+            "     较低的值增加难度，较高的值使战斗更安全"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hurtTimePlayer")
     @Config.RangeDouble(min = -0.99)
     public static float hurtTimePlayer = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Attack Cooldown System",
             "     Controls whether the 1.9+ attack cooldown mechanic is enabled",
             "     • true = 1.9+ combat system with attack cooldown (default)",
@@ -151,14 +139,12 @@ public final class ConfigBattle {
             "     • true = 1.9+战斗系统，有攻击冷却(默认)",
             "     • false = 1.8战斗系统，无攻击冷却",
             "     禁用时，可以以最快速度进行攻击",
-            "     启用时，攻击需要蓄力以造成最大伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     启用时，攻击需要蓄力以造成最大伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.attackCooldown")
     public static boolean attackCooldown = true;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Melee Attack Damage Multiplier",
             "     Globally adjusts all melee damage dealt by players",
             "     Affects: Swords, axes, hand attacks, and other melee weapons",
@@ -173,15 +159,13 @@ public final class ConfigBattle {
             "     • 0.5 = 玩家造成50%近战伤害",
             "     • 1.0 = 正常原版近战伤害(默认)",
             "     • 2.0 = 玩家造成200%近战伤害",
-            "     不影响箭矢、弹射物或魔法伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     不影响箭矢、弹射物或魔法伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerMeleeAttack")
     @Config.RangeDouble(min = 0)
     public static float playerMeleeAttack = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Arrow Attack Damage Multiplier",
             "     Globally adjusts all arrow damage dealt by players",
             "     Affects: Bows, crossbows, and any arrow-based weapons",
@@ -196,15 +180,13 @@ public final class ConfigBattle {
             "     • 0.5 = 玩家造成50%箭矢伤害",
             "     • 1.0 = 正常原版箭矢伤害(默认)",
             "     • 2.0 = 玩家造成200%箭矢伤害",
-            "     不影响其他弹射物如雪球或鸡蛋",
-            "═══════════════════════════════════════════════════════════════"
+            "     不影响其他弹射物如雪球或鸡蛋"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerArrowAttack")
     @Config.RangeDouble(min = 0)
     public static float playerArrowAttack = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Projectile Attack Damage Multiplier",
             "     Globally adjusts non-arrow projectile damage dealt by players",
             "     Affects: Snowballs, eggs, splash potions, and modded projectiles",
@@ -219,15 +201,13 @@ public final class ConfigBattle {
             "     不影响: 箭矢(使用playerArrowAttack调整)",
             "     • 0.5 = 玩家造成50%弹射物伤害",
             "     • 1.0 = 正常原版弹射物伤害(默认)",
-            "     • 2.0 = 玩家造成200%弹射物伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     • 2.0 = 玩家造成200%弹射物伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerProjectileAttack")
     @Config.RangeDouble(min = 0)
     public static float playerProjectileAttack = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Magic Attack Damage Multiplier",
             "     Globally adjusts all magic damage dealt by players",
             "     Affects: Damage potions, lingering potions, modded magic weapons",
@@ -242,15 +222,13 @@ public final class ConfigBattle {
             "     • 0.5 = 玩家造成50%魔法伤害",
             "     • 1.0 = 正常原版魔法伤害(默认)",
             "     • 2.0 = 玩家造成200%魔法伤害",
-            "     适用于平衡魔法类模组",
-            "═══════════════════════════════════════════════════════════════"
+            "     适用于平衡魔法类模组"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerMagicAttack")
     @Config.RangeDouble(min = 0)
     public static float playerMagicAttack = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Melee Damage Resistance Multiplier",
             "     Adjusts how much melee damage players receive",
             "     • 0.5 = Players take 50% melee damage (more resistant)",
@@ -265,15 +243,13 @@ public final class ConfigBattle {
             "     • 1.0 = 玩家承受正常近战伤害(默认)",
             "     • 2.0 = 玩家承受200%近战伤害(更弱抗性)",
             "     较低的值使玩家在近战中更耐打",
-            "     较高的值增加近战战斗难度",
-            "═══════════════════════════════════════════════════════════════"
+            "     较高的值增加近战战斗难度"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersMelee")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersMelee = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Arrow Damage Resistance Multiplier",
             "     Adjusts how much arrow damage players receive",
             "     • 0.5 = Players take 50% arrow damage (more resistant)",
@@ -288,15 +264,13 @@ public final class ConfigBattle {
             "     • 1.0 = 玩家承受正常箭矢伤害(默认)",
             "     • 2.0 = 玩家承受200%箭矢伤害(更弱抗性)",
             "     较低的值使玩家在远程攻击中更耐打",
-            "     适用于平衡骷髅刷怪笼等场景",
-            "═══════════════════════════════════════════════════════════════"
+            "     适用于平衡骷髅刷怪笼等场景"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersArrow")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersArrow = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Projectile Damage Resistance Multiplier",
             "     Adjusts how much projectile damage players receive",
             "     • 0.5 = Players take 50% projectile damage (more resistant)",
@@ -309,15 +283,13 @@ public final class ConfigBattle {
             "     • 0.5 = 玩家承受50%弹射物伤害(更强抗性)",
             "     • 1.0 = 玩家承受正常弹射物伤害(默认)",
             "     • 2.0 = 玩家承受200%弹射物伤害(更弱抗性)",
-            "     影响恶魂火球、烈焰人火球等造成的伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     影响恶魂火球、烈焰人火球等造成的伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersProjectile")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersProjectile = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Magic Damage Resistance Multiplier",
             "     Adjusts how much magic damage players receive",
             "     • 0.5 = Players take 50% magic damage (more resistant)",
@@ -330,15 +302,13 @@ public final class ConfigBattle {
             "     • 0.5 = 玩家承受50%魔法伤害(更强抗性)",
             "     • 1.0 = 玩家承受正常魔法伤害(默认)",
             "     • 2.0 = 玩家承受200%魔法伤害(更弱抗性)",
-            "     影响来自药水、模组魔法等的伤害",
-            "═══════════════════════════════════════════════════════════════"
+            "     影响来自药水、模组魔法等的伤害"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersMagic")
     @Config.RangeDouble(min = 0)
     public static float playerSuffersMagic = 1;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Player Environmental Damage Multiplier (general)",
             "     Environmental damage = damage with no living attacker behind it (fall, fire, lava, drowning, cactus,",
             "     suffocation, poison/wither effects, unowned explosions, falling blocks, lightning ...).",
@@ -352,8 +322,7 @@ public final class ConfigBattle {
             "     虚空和 /kill 不受影响。",
             "     在护甲和其他所有减伤之后结算，所以后期装备把伤害压到接近 0 时，倍率依然能起作用。",
             "     与下面对应类别的倍率相乘（既算火焰又算爆炸的伤害两项都吃）。",
-            "     • 1.0 = 正常(默认)  • 3.0 = 承受300%环境伤害  • 0.0 = 免疫",
-            "═══════════════════════════════════════════════════════════════"
+            "     • 1.0 = 正常(默认)  • 3.0 = 承受300%环境伤害  • 0.0 = 免疫"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.playerSuffersEnvironment")
     @Config.RangeDouble(min = 0)
@@ -416,7 +385,6 @@ public final class ConfigBattle {
     public static float playerEnvironmentMinFlat = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Entity Maximum Health Multiplier (Non-Player Only)",
             "     Adjusts the maximum health of all non-player entities",
             "     This is a MULTIPLIER, not addition:",
@@ -435,15 +403,13 @@ public final class ConfigBattle {
             "     • 0.0 = 实体拥有100%最大生命(正常，默认)",
             "     • -0.5 = 实体拥有50%最大生命(减半)",
             "     最小值: -0.99 (防止实体生命值为0或负数)",
-            "     实体将被治疗以匹配新的最大生命值",
-            "═══════════════════════════════════════════════════════════════"
+            "     实体将被治疗以匹配新的最大生命值"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.extraMaxHealth")
     @Config.RangeDouble(min = -0.99f)
     public static float extraMaxHealth = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Extra Saturation Healing (Flat Bonus)",
             "     Flat amount of extra health restored when regenerating from saturation",
             "     Vanilla: Restores 1 HP per tick when saturated",
@@ -460,15 +426,13 @@ public final class ConfigBattle {
             "     • 0 = 恢复1点生命(原版，默认)",
             "     • 5 = 恢复6点生命(1原版 + 5加成)",
             "     • 10 = 恢复11点生命(1原版 + 10加成)",
-            "     与百分比饱和度治疗加成叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与百分比饱和度治疗加成叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.extraSaturationHeal")
     @Config.RangeDouble(min = 0)
     public static float extraSaturationHeal = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Extra Saturation Healing (Percentage Bonus)",
             "     Percentage of maximum health restored when regenerating from saturation",
             "     This is a percentage of YOUR MAX HEALTH, not the base healing:",
@@ -485,15 +449,13 @@ public final class ConfigBattle {
             "     • 0.05 = 每刻恢复5%最大生命",
             "     • 0.10 = 每刻恢复10%最大生命",
             "     例: 最大生命100的玩家，设置0.05时恢复5点生命",
-            "     与固定饱和度治疗加成叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与固定饱和度治疗加成叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.extraSaturationPercentageHeal")
     @Config.RangeDouble(min = 0)
     public static float extraSaturationPercentageHeal = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Extra Hunger Healing (Flat Bonus)",
             "     Flat amount of extra health restored when regenerating from hunger",
             "     Vanilla: Restores 1 HP per tick when hunger ≥ 18",
@@ -510,15 +472,13 @@ public final class ConfigBattle {
             "     • 0 = 恢复1点生命(原版，默认)",
             "     • 5 = 恢复6点生命(1原版 + 5加成)",
             "     • 10 = 恢复11点生命(1原版 + 10加成)",
-            "     与百分比饥饿值治疗加成叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与百分比饥饿值治疗加成叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.extraHungerHeal")
     @Config.RangeDouble(min = 0)
     public static float extraHungerHeal = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Extra Hunger Healing (Percentage Bonus)",
             "     Percentage of maximum health restored when regenerating from hunger",
             "     This is a percentage of YOUR MAX HEALTH:",
@@ -535,15 +495,13 @@ public final class ConfigBattle {
             "     • 0.05 = 每刻恢复5%最大生命",
             "     • 0.10 = 每刻恢复10%最大生命",
             "     例: 最大生命100的玩家，设置0.05时恢复5点生命",
-            "     与固定饥饿值治疗加成叠加",
-            "═══════════════════════════════════════════════════════════════"
+            "     与固定饥饿值治疗加成叠加"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.extraHungerPercentageHeal")
     @Config.RangeDouble(min = 0)
     public static float extraHungerPercentageHeal = 0;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Hunger Damage Decay (Damage Reduction Per Missing Hunger Point)",
             "     Percentage of damage reduced for each hunger point below 20",
             "     • 0.00 = No damage reduction from hunger (default, disabled)",
@@ -564,15 +522,13 @@ public final class ConfigBattle {
             "     - 20饥饿值 = 100%伤害(缺失0点)",
             "     - 15饥饿值 = 75%伤害(缺失5点 × 5% = 减少25%)",
             "     - 10饥饿值 = 50%伤害(缺失10点 × 5% = 减少50%)",
-            "     最大减少量受hungerDamageDecayLimit限制",
-            "═══════════════════════════════════════════════════════════════"
+            "     最大减少量受hungerDamageDecayLimit限制"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hungerDamageDecay")
     @Config.RangeDouble(min = 0)
     public static float hungerDamageDecay = 0f;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Maximum Hunger Damage Decay (Maximum Damage Reduction Cap)",
             "     Maximum percentage of damage that can be reduced by hunger",
             "     Prevents damage from becoming too low:",
@@ -593,15 +549,13 @@ public final class ConfigBattle {
             "     例: 上限0.70，每点衰减0.05:",
             "     - 即使0饥饿值，仍能造成至少30%伤害",
             "     - 没有此上限，0饥饿值会造成0%伤害",
-            "     注意: 只有当hungerDamageDecay > 0时此设置才有意义",
-            "═══════════════════════════════════════════════════════════════"
+            "     注意: 只有当hungerDamageDecay > 0时此设置才有意义"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.hungerDamageDecayLimit")
     @Config.RangeDouble(min = 0, max = 1)
     public static float hungerDamageDecayLimit = 0f;
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Third-party Magic Recognition",
             "     Decides which damage counts as 'magic' for the magicDamage attribute and the player magic attack / resistance",
             "     multipliers. Magic is an independent layer on top of the melee/arrow/projectile layer: the base bonuses and",
@@ -615,8 +569,7 @@ public final class ConfigBattle {
             "     魔法是叠在近战/箭矢/弹射物基础层之上的独立层：基础加成和倍率始终生效，魔法在其上叠加。",
             "     原版规则始终生效：isMagicDamage()，或伤害类型名含 magic。",
             "     召唤物/宠物替主人挥砍的命中一律不算魔法。",
-            "     • true = 启用下面的前缀/白名单/黑名单(默认)  • false = 只保留原版规则",
-            "═══════════════════════════════════════════════════════════════"
+            "     • true = 启用下面的前缀/白名单/黑名单(默认)  • false = 只保留原版规则"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.enableThirdPartyMagicRecognition")
     public static boolean enableThirdPartyMagicRecognition = true;
@@ -645,9 +598,8 @@ public final class ConfigBattle {
     public static String[] magicDamageTypeBlacklist = new String[0];
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Enable Detailed Debug Logging",
-            "     Enables comprehensive logging of all combat mechanics and calculations",
+            "     Logs every combat mechanic and calculation in detail",
             "     When enabled, logs include:",
             "     • All damage calculations (before and after modifiers)",
             "     • Critical hit calculations and results",
@@ -668,8 +620,7 @@ public final class ConfigBattle {
             "     • 事件触发(无敌时间、吸血等)",
             "     警告: 这会产生大量日志输出!",
             "     仅在调试或排查问题时启用",
-            "     对性能影响很小，但日志文件会快速增长",
-            "═══════════════════════════════════════════════════════════════"
+            "     对性能影响很小，但日志文件会快速增长"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".battle.enableDetailedLogging")
     public static boolean enableDetailedLogging = false;

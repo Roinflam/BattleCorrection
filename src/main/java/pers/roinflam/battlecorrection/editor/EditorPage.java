@@ -28,22 +28,22 @@ public enum EditorPage {
     TAGS("tags"),
 
     /**
-     * 附魔（下一批实现）
+     * 附魔
      */
     ENCHANTMENTS("enchantments"),
 
     /**
-     * 属性（下一批实现）
+     * 属性
      */
     ATTRIBUTES("attributes"),
 
     /**
-     * 饰品栏（下一批实现）
+     * 饰品栏
      */
     CURIOS("curios"),
 
     /**
-     * NBT 树（下一批实现）
+     * NBT 树
      */
     TREE("tree"),
 

@@ -18,7 +18,7 @@ public class ModAttributes {
      */
     private static final List<IAttribute> CUSTOM_ATTRIBUTES = new ArrayList<>();
 
-    // ===== 伤害增强属性 =====
+    // 伤害增强属性
     public static final IAttribute MAGIC_DAMAGE = register(
             new RangedAttribute(null, "battlecorrection.magicDamage", 0, 0, Float.MAX_VALUE)
                     .setDescription("Extra Magic Damage")
@@ -37,7 +37,7 @@ public class ModAttributes {
                     .setShouldWatch(true)
     );
 
-    // ===== 防御与减伤属性 =====
+    // 防御与减伤属性
     public static final IAttribute IMMUNE_DAMAGE = register(
             new RangedAttribute(null, "battlecorrection.immuneDamage", 1, 1, Float.MAX_VALUE)
                     .setDescription("Extra Immune Damage")
@@ -56,7 +56,7 @@ public class ModAttributes {
                     .setShouldWatch(true)
     );
 
-    // ===== 生命恢复属性 =====
+    // 生命恢复属性
     public static final IAttribute RESTORE_HEAL = register(
             new RangedAttribute(null, "battlecorrection.restoreHeal", 1, 0, Float.MAX_VALUE)
                     .setDescription("Extra Restore Heal")
@@ -75,7 +75,7 @@ public class ModAttributes {
                     .setShouldWatch(true)
     );
 
-    // ===== 速度与机动性属性 =====
+    // 速度与机动性属性
     public static final IAttribute BOW_SPEED = register(
             new RangedAttribute(null, "battlecorrection.bowSpeed", 1, 0, Float.MAX_VALUE)
                     .setDescription("Extra Bow Speed")
@@ -94,7 +94,7 @@ public class ModAttributes {
                     .setShouldWatch(true)
     );
 
-    // ===== 暴击系统属性 =====
+    // 暴击系统属性
     public static final IAttribute VANILLA_CRITICAL_HIT_DAMAGE = register(
             new RangedAttribute(null, "battlecorrection.vanillaCriticalHitDamage", 1, 1, Float.MAX_VALUE)
                     .setDescription("Vanilla Critical Hit Damage")
@@ -127,7 +127,6 @@ public class ModAttributes {
      * 1.12.2 没有全局属性注册表：物品 NBT 里的 AttributeModifiers 按属性名字符串保存，
      * 生效时按名字去实体自己的属性表里找。所以这里只需要让静态字段完成初始化，
      * 真正的注册在实体加入世界时做（BattleCorrection#onEntityJoinWorld）。
-     * 以前这里反射 SharedMonsterAttributes.REGISTRY，1.12.2 没有这个字段，每次启动都报一条错误。
      */
     public static void init() {
         LogUtil.info("已加载 " + CUSTOM_ATTRIBUTES.size() + " 个自定义属性，实体进入世界时注册");

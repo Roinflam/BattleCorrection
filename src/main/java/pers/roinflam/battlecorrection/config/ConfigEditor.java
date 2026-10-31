@@ -13,15 +13,13 @@ import pers.roinflam.battlecorrection.utils.Reference;
 public final class ConfigEditor {
 
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Enable the in-game item editor (/battlecorrection edit, hotkeys I / O / P)",
             "     Only players with OP level 2 in creative mode can use it",
             "     false = command and hotkeys are rejected, saving is refused on the server",
             "",
             "[中文] 启用游戏内物品编辑器（/battlecorrection edit，快捷键 I / O / P）",
             "     只有 OP 2 级且处于创造模式的玩家能用",
-            "     false = 命令和快捷键都不可用，服务端也会拒绝保存",
-            "═══════════════════════════════════════════════════════════════"
+            "     false = 命令和快捷键都不可用，服务端也会拒绝保存"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".itemeditor.itemEditorEnabled")
     public static boolean itemEditorEnabled = true;
@@ -36,7 +34,6 @@ public final class ConfigEditor {
      * - 超过 2048 KB 时一件物品的 SPacketSetSlot 自己就超了包的上限，持有者会断线、而且每次进服都断，所以上限卡在 2048。
      */
     @Config.Comment({
-            "═══════════════════════════════════════════════════════════════",
             "[EN] Max NBT size (KB) the editor may save onto one item, entity or block entity",
             "     The editor sends large NBT in chunks, so its own packets are not the limit. The real limit is",
             "     vanilla sync: a 1.12.2 packet may not exceed 2 MB after decompression, and a whole inventory or",
@@ -48,8 +45,7 @@ public final class ConfigEditor {
             "     编辑器的大 NBT 是分片发送的，编辑器自己的包不受限。真正的上限在原版同步：",
             "     1.12.2 解压后的单个数据包不能超过 2 MB，而整个背包、一个区块里的全部方块实体都是一个包发的，",
             "     物品太大会让持有者断线，而且每次进服都断",
-            "     调大要谨慎，最大只能到 2048",
-            "═══════════════════════════════════════════════════════════════"
+            "     调大要谨慎，最大只能到 2048"
     })
     @Config.LangKey("config." + Reference.MOD_ID + ".itemeditor.itemEditorMaxNbtKb")
     @Config.RangeInt(min = 16, max = 2048)

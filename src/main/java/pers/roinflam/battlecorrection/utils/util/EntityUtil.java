@@ -15,7 +15,7 @@ import java.util.List;
  * 实体工具类
  * 提供实体查找和操作功能
  * <p>
- * 权杖和药水效果的"周围生物"搜索已改用实体碰撞箱外扩（见 {@link MobTargetUtil}），
+ * 权杖和药水效果的"周围生物"搜索用的是实体碰撞箱外扩（见 {@link MobTargetUtil}），
  * 这里的方法以方块坐标为中心，供其他需要按坐标取范围的调用方使用。
  */
 public class EntityUtil {

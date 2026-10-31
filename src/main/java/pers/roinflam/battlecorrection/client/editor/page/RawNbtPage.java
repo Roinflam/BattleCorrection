@@ -209,7 +209,7 @@ public class RawNbtPage extends EditorPageBase {
 
     private final TextDocument doc = new TextDocument(Ui::millis);
 
-    // ── 控件（每次 build 重建） ──
+    // 控件（每次 build 重建）
     @Nullable
     private FlatTextArea box;
     @Nullable
@@ -229,7 +229,7 @@ public class RawNbtPage extends EditorPageBase {
     @Nullable
     private FlatButton[] editButtons;
 
-    // ── 几何 ──
+    // 几何
     private int textTopClosed;
     private int textTopOpen;
     private int textBottom;
@@ -240,7 +240,7 @@ public class RawNbtPage extends EditorPageBase {
     @Nonnull
     private Component gotoLabel = Component.empty();
 
-    // ── 文本与物品的对应 ──
+    // 文本与物品的对应
     private boolean loaded;
     private boolean reloadRequested;
     /**
@@ -262,11 +262,11 @@ public class RawNbtPage extends EditorPageBase {
     private boolean programmatic;
     private boolean escWarned;
 
-    // ── 后台任务 ──
+    // 后台任务
     @Nullable
     private Job job;
 
-    // ── 校验 ──
+    // 校验
     @Nullable
     private SnbtValidator.Result validation;
     private long validationVersion = -1;
@@ -285,14 +285,14 @@ public class RawNbtPage extends EditorPageBase {
     @Nullable
     private String itemProblem;
 
-    // ── 错误 ──
+    // 错误
     @Nullable
     private Component errorText;
     private int errorOffset = -1;
     @Nullable
     private Component appliedNote;
 
-    // ── 查找 / 跳到行 ──
+    // 查找 / 跳到行
     private Bar bar = Bar.NONE;
     private boolean focusBarOnBuild;
     @Nonnull
@@ -318,7 +318,7 @@ public class RawNbtPage extends EditorPageBase {
     private boolean countPending;
     private boolean countQueryEmpty = true;
 
-    // ── 状态栏 ──
+    // 状态栏
     private final StatusLine statusLine = new StatusLine();
     private final StatusLine flashLine = new StatusLine();
     private boolean statusStale = true;
@@ -347,9 +347,7 @@ public class RawNbtPage extends EditorPageBase {
         return false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 布局
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void build() {
@@ -556,9 +554,7 @@ public class RawNbtPage extends EditorPageBase {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
@@ -690,9 +686,7 @@ public class RawNbtPage extends EditorPageBase {
         flashUntil = Ui.millis() + FLASH_MS;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 生命周期
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     public void tick() {
@@ -779,9 +773,7 @@ public class RawNbtPage extends EditorPageBase {
         return false;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 载入
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 从物品重新读（丢掉没应用的改动；文档里用一步替换完成，Ctrl+Z 还能找回来）
@@ -962,9 +954,7 @@ public class RawNbtPage extends EditorPageBase {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 文本改动 / 校验
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 文档改了（玩家输入、撤销、格式化、颜色码转换……）：判断状态，安排校验和重新查找
@@ -1099,9 +1089,7 @@ public class RawNbtPage extends EditorPageBase {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 应用
-    // ═══════════════════════════════════════════════════════════════
 
     private void applyByUser() {
         if (!apply()) {
@@ -1187,9 +1175,7 @@ public class RawNbtPage extends EditorPageBase {
         screen.setFocused(box);
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 按钮
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 格式化 / 压成一行：先解析（文本没改过就用校验时缓存的结果），解析失败标出错误，成功就整篇换成新文本（一步撤销）
@@ -1277,9 +1263,7 @@ public class RawNbtPage extends EditorPageBase {
         startLoad();
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 查找
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * Ctrl+F：打开查找栏；选中的是一小段单行文字就拿来当查找词
@@ -1597,9 +1581,7 @@ public class RawNbtPage extends EditorPageBase {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 粗算字节数
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 按存盘格式（NBTTagCompound.write）累计字节数，超出预算就立刻停
@@ -1694,9 +1676,7 @@ public class RawNbtPage extends EditorPageBase {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 状态栏的一行（裁剪结果和悬停提示按宽度缓存）
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 按原样画：量宽、裁剪、提示框都不解析 §

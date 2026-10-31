@@ -91,12 +91,12 @@ public class BattleCorrection {
      */
     @Mod.EventHandler
     public static void preInit(@Nonnull FMLPreInitializationEvent evt) {
-        LogUtil.info("═══════════════════════════════════════");
+        LogUtil.info("---------------------------------------");
         LogUtil.info("  战斗修正模组 (Battle Correction)");
         LogUtil.info("  版本: " + evt.getModMetadata().version);
         LogUtil.info("  作者: Roinflam");
         LogUtil.info("  特别鸣谢: 建议重开");
-        LogUtil.info("═══════════════════════════════════════");
+        LogUtil.info("---------------------------------------");
 
         // 绑定快捷键
         proxy.bindKey();
@@ -135,7 +135,7 @@ public class BattleCorrection {
     public static void postInit(@Nonnull FMLPostInitializationEvent evt) {
         LogUtil.info("战斗修正模组 - 后初始化完成");
         LogUtil.info("所有战斗系统增强已激活");
-        LogUtil.info("═══════════════════════════════════════");
+        LogUtil.info("---------------------------------------");
     }
 
     /**
@@ -182,27 +182,27 @@ public class BattleCorrection {
      * @param attributeMap 实体的属性映射
      */
     public static void registerCustomAttributes(@Nonnull AbstractAttributeMap attributeMap) {
-        // ===== 伤害增强属性 =====
+        // 伤害增强属性
         ensureAttributeExists(attributeMap, ModAttributes.MAGIC_DAMAGE);
         ensureAttributeExists(attributeMap, ModAttributes.ARROW_DAMAGE);
         ensureAttributeExists(attributeMap, ModAttributes.PROJECTILE_DAMAGE);
 
-        // ===== 防御与减伤属性 =====
+        // 防御与减伤属性
         ensureAttributeExists(attributeMap, ModAttributes.IMMUNE_DAMAGE);
         ensureAttributeExists(attributeMap, ModAttributes.IGNORE_DAMAGE);
         ensureAttributeExists(attributeMap, ModAttributes.REDUCED_FALL_DAMAGE);
 
-        // ===== 生命恢复属性 =====
+        // 生命恢复属性
         ensureAttributeExists(attributeMap, ModAttributes.RESTORE_HEAL);
         ensureAttributeExists(attributeMap, ModAttributes.BLOODTHIRSTY);
         ensureAttributeExists(attributeMap, ModAttributes.ALMIGHTY_BLOODTHIRSTY);
 
-        // ===== 速度与机动性属性 =====
+        // 速度与机动性属性
         ensureAttributeExists(attributeMap, ModAttributes.BOW_SPEED);
         ensureAttributeExists(attributeMap, ModAttributes.PREPARATION_SPEED);
         ensureAttributeExists(attributeMap, ModAttributes.JUMP_LIFT);
 
-        // ===== 暴击系统属性 =====
+        // 暴击系统属性
         ensureAttributeExists(attributeMap, ModAttributes.VANILLA_CRITICAL_HIT_DAMAGE);
         ensureAttributeExists(attributeMap, ModAttributes.CUSTOM_CRITICAL_CHANCE);
         ensureAttributeExists(attributeMap, ModAttributes.CUSTOM_CRITICAL_DAMAGE);

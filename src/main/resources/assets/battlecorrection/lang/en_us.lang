@@ -118,7 +118,7 @@ attribute.name.battlecorrection.customCriticalChance=Critical Chance
 attribute.name.battlecorrection.customCriticalDamage=Critical Damage
 
 # ===================================
-# New Config Entries
+# Environmental Damage, Magic Recognition and Other Options
 # ===================================
 config.battlecorrection.battle.playerSuffersEnvironment=Player Environmental Damage (General)
 config.battlecorrection.battle.playerSuffersFall=Player Fall Damage
@@ -758,4 +758,3 @@ gui.battlecorrection.editor.palette.apply.tooltip=Fades the selection (or the wh
 gui.battlecorrection.editor.palette.cancel=Cancel
 gui.battlecorrection.editor.palette.keys=Enter: highlighted button  Esc: cancel
 gui.battlecorrection.editor.palette.no_target=No text box to write to
-# These two help lines replace the core versions: this version has no hex colours and the palette has no picker square

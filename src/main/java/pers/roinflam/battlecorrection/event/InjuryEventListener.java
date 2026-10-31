@@ -32,7 +32,7 @@ public class InjuryEventListener {
 
     /**
      * 关闭攻击冷却时加到攻击速度上的数值
-     * 原版攻击速度属性的上限就是 1024，再大也会被截断；用它代替原来的 Double.MAX_VALUE / 2，
+     * 原版攻击速度属性的上限就是 1024，再大也会被截断；不用 Double.MAX_VALUE 这类极大值，
      * 避免遇到放开属性上限的模组时算出 0/0 这类异常值
      */
     private static final double NO_COOLDOWN_ATTACK_SPEED = 1024.0D;
@@ -45,8 +45,8 @@ public class InjuryEventListener {
     /**
      * 处理攻击事件 - 自伤与PVP拦截
      * <p>
-     * 自伤（伤害来源就是自己）只看自伤倍率，不再参与PVP判定：
-     * 旧版本在 pvp = 0 时会把自伤也一起拦掉，导致 pvpHurtItself 失效。
+     * 自伤（伤害来源就是自己）只看自伤倍率，不参与PVP判定，
+     * 否则 pvp = 0 时会把自伤也一起拦掉，pvpHurtItself 就失效了。
      *
      * @param evt 生物攻击事件
      */
@@ -144,7 +144,7 @@ public class InjuryEventListener {
      * <p>
      * 配置含义：有效无敌时间 = 门槛 × (1 + 配置值)，写回字段时要加上门槛。
      * 门槛按实体自己的 maxHurtResistantTime 算，改过这个字段的模组生物同样按比例缩放。
-     * 旧版本直接写成 maxHurtResistantTime/2 × (1+配置)，默认配置 0 时刚好等于门槛 10，无敌时间被整个清零。
+     * 直接写成 maxHurtResistantTime/2 × (1+配置) 的话，默认配置 0 时刚好等于门槛 10，无敌时间会被整个清零。
      * <p>
      * LivingDamageEvent 在 damageEntity() 里触发，此时 attackEntityFrom() 已经写好了字段：
      * 只在"新的一击"（字段恰好是原版刚写入的 20）时调整，无敌期内补差价的伤害不重复调整；
@@ -175,9 +175,9 @@ public class InjuryEventListener {
     /**
      * 处理实体加入世界事件 - 攻击冷却开关
      * <p>
-     * 现在使用不写进存档的修饰符（setSaved(false)），卸载模组后玩家不会残留"永远没有攻击冷却"。
-     * 旧版本用的是会存档的修饰符，这里无论开关状态都先按同一个 UUID 移除一次，
-     * 老存档里残留的修饰符会在玩家下次进入世界时被自动清掉。
+     * 使用不写进存档的修饰符（setSaved(false)），卸载模组后玩家不会残留"永远没有攻击冷却"。
+     * 早期版本用的是会存档的修饰符，所以无论开关状态都先按同一个 UUID 移除一次，
+     * 老存档里残留的修饰符会在玩家下次进入世界时被清掉。
      *
      * @param evt 实体加入世界事件
      */

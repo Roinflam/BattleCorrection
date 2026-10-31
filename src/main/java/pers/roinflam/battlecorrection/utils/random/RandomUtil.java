@@ -11,7 +11,7 @@ import java.util.Random;
 public class RandomUtil {
 
     /**
-     * 共用的随机数生成器（java.util.Random 线程安全），不再每次调用都新建一个
+     * 共用的随机数生成器（java.util.Random 线程安全）
      */
     private static final Random RANDOM = new Random();
 

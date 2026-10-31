@@ -36,7 +36,6 @@ public class AttributeJumpLift {
             EntityLivingBase entityLivingBase = evt.getEntityLiving();
 
             // 属性值统一通过 AttributesUtil 读取，包含饰品栏物品上的加成
-            // （旧版本优先读属性实例，饰品栏那部分加成算不进来）
             double jumpBoost = AttributesUtil.getAttributeValue(entityLivingBase, JUMP_LIFT);
 
             double configBoost = ConfigAttribute.jumpLift;

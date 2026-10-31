@@ -29,8 +29,6 @@ public class AttributeCriticalHitDamage {
      * 处理原版暴击事件
      * <p>
      * 在当前倍率（原版 1.5，可能已被其他模组改过）上直接加：1.5 + (装备 - 1) + 配置。
-     * 旧版本直接把倍率覆盖成 (装备 - 1) + 配置：默认配置 0.5 时跳劈只有 0.5 倍，
-     * 装备 +50% 跳劈伤害时跳劈只剩普通攻击的一半。
      */
     @SubscribeEvent
     public static void onCriticalHit(@Nonnull CriticalHitEvent evt) {

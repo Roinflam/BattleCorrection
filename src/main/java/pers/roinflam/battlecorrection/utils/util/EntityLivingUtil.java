@@ -23,12 +23,11 @@ import java.util.UUID;
  * 挥砍蓄力的记录方式：原版 EntityPlayer.attackTargetEntityWithCurrentItem() 先按蓄力算伤害，
  * 然后立刻 resetCooldown() 把蓄力清零，再去调用 target.attackEntityFrom()。
  * 所以在 LivingHurtEvent / LivingDamageEvent 里直接读蓄力永远是 0。
- * 这里改为在 AttackEntityEvent（方法第一行触发，此时还没清零）里记下蓄力值和当时的游戏刻，
+ * 这里在 AttackEntityEvent（方法第一行触发，此时还没清零）里记下蓄力值和当时的游戏刻，
  * 同一刻内的伤害事件读取这份记录。
  * <p>
- * 只在服务端记录：旧版本在 PlayerTickEvent 里两端都写同一张静态表，
- * 单人游戏时客户端线程和内置服务端线程会同时修改 HashMap；
- * 而且记的是「上一刻开始时」的蓄力，和挥砍那一下对不上。
+ * 只在服务端记录：两端都写同一张静态表的话，
+ * 单人游戏时客户端线程和内置服务端线程会同时修改 HashMap。
  */
 @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
 public class EntityLivingUtil {

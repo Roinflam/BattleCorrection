@@ -77,9 +77,7 @@ public class GradientBar extends PickerWidget {
         return this;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 色带（调色盘里几个控件共用）
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 换成原版颜色后的渐变：一段段纯色，按色标和宽度缓存，内容不变时每帧不重算
@@ -140,9 +138,7 @@ public class GradientBar extends PickerWidget {
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 位置
-    // ═══════════════════════════════════════════════════════════════
 
     /**
      * 第 index 个色标的中心 X（count 个色标等距分布在渐变条上）
@@ -232,9 +228,7 @@ public class GradientBar extends PickerWidget {
         return true;
     }
 
-    // ═══════════════════════════════════════════════════════════════
     // 绘制
-    // ═══════════════════════════════════════════════════════════════
 
     @Override
     protected void renderWidget(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {

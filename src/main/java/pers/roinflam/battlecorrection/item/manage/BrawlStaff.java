@@ -49,14 +49,14 @@ public class BrawlStaff extends ItemStaff {
                 // 添加群殴效果（10 分钟，不显示粒子）
                 mob.addPotionEffect(new PotionEffect(ModPotions.BRAWL, 12000, 0, false, false));
 
-                // 从同一批生物里挑一个随机目标（不再为每只生物新建一份候选列表）
+                // 从同一批生物里挑一个随机目标
                 EntityLiving randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, false);
                 if (randomTarget != null) {
                     MobTargetUtil.setMutualTarget(mob, randomTarget);
                 }
             }
 
-            // 设置冷却（以前只有搜到目标时才设）
+            // 设置冷却
             playerIn.getCooldownTracker().setCooldown(this, 20);
             return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, playerIn.getHeldItem(handIn));
         }

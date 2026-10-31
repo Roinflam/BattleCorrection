@@ -82,7 +82,7 @@ public abstract class Screen extends GuiScreen {
         return title;
     }
 
-    // ---------------------------------------------------------------- 生命周期（子类覆写这些）
+    // 生命周期（子类覆写这些）
 
     /**
      * 创建控件（打开和窗口大小变化时调用，调之前控件和焦点都已清空）
@@ -137,7 +137,7 @@ public abstract class Screen extends GuiScreen {
         drawDefaultBackground();
     }
 
-    // ---------------------------------------------------------------- 控件
+    // 控件
 
     @Nonnull
     protected <T extends GuiEventListener & Renderable> T addRenderableWidget(@Nonnull T widget) {
@@ -224,7 +224,7 @@ public abstract class Screen extends GuiScreen {
         return Optional.empty();
     }
 
-    // ---------------------------------------------------------------- 输入回调（1.20.1 语义，子类可覆写）
+    // 输入回调（1.20.1 语义，子类可覆写）
 
     public void mouseMoved(double mouseX, double mouseY) {
     }
@@ -325,7 +325,7 @@ public abstract class Screen extends GuiScreen {
         return null;
     }
 
-    // ---------------------------------------------------------------- 提示框
+    // 提示框
 
     /**
      * 这一帧画完后在鼠标处画提示框（一帧只画一个；已经有了就不替换）
@@ -357,7 +357,7 @@ public abstract class Screen extends GuiScreen {
         setTooltipForNextRenderPass(font.split(text, Math.max(width / 2, 200)), TooltipPositioner.DEFAULT, true);
     }
 
-    // ---------------------------------------------------------------- 修饰键
+    // 修饰键
 
     public static boolean hasControlDown() {
         return GuiScreen.isCtrlKeyDown();
@@ -394,7 +394,7 @@ public abstract class Screen extends GuiScreen {
         return keyboardLastInput;
     }
 
-    // ---------------------------------------------------------------- 接管 GuiScreen
+    // 接管 GuiScreen
 
     @Override
     public void setWorldAndResolution(@Nonnull Minecraft mc, int width, int height) {
