@@ -60,11 +60,17 @@ Operators (permission level 2) in creative mode press `I` or run `/battlecorrect
 
 The screenshots below are from the 1.20.1 version. The 1.12.2 editor has the same pages, except for hex colours, the colour square and RGB sliders in the palette, CustomModelData and the 1.20.1-only My Slots page.
 
-![Item editor, Attributes page](https://cdn.modrinth.com/data/yitVG9Jx/images/8c6c910f949dd3c3df7f6a192f9e65bc805aadf5.png)
+![Item editor, Enchantments page](https://cdn.modrinth.com/data/cached_images/eaa78f8d886fd72e26297794b4e0a9be82863718.png)
 
-![Item editor, NBT tree page](https://cdn.modrinth.com/data/yitVG9Jx/images/659f70372c6bcdd5e6734c5203fcedcbedef5fdb.png)
+![Item editor, Attributes page](https://cdn.modrinth.com/data/cached_images/aa5211549f92643a17dc6fa3be16576a024f5204.png)
 
-![Item editor, SNBT page](https://cdn.modrinth.com/data/yitVG9Jx/images/c90e78fb1cf97e6996e38e648e38c55e611fc9b8.png)
+![Item editor, NBT tree page](https://cdn.modrinth.com/data/cached_images/650e1da79b7fb21c164d6b84732b5a1e5905645e.png)
+
+![Item editor, SNBT page](https://cdn.modrinth.com/data/cached_images/c9da546b99fc3959324dafff60511f233d447e19.png)
+
+![Item editor, Templates page](https://cdn.modrinth.com/data/cached_images/dbe44539407b5f8b4f430dcd9fd7b736fc646607.png)
+
+![Entity NBT editor](https://cdn.modrinth.com/data/cached_images/7bb0041a62b5c1c7a6444775202f30e779e92846.png)
 
 ### Attributes
 
