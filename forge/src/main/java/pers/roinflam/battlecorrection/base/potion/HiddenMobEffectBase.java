@@ -1,5 +1,3 @@
-// 文件：HiddenMobEffectBase.java（替代原HiddenPotionBase）
-// 路径：src/main/java/pers/roinflam/battlecorrection/base/effect/HiddenMobEffectBase.java
 package pers.roinflam.battlecorrection.base.potion;
 
 import net.minecraft.world.effect.MobEffect;

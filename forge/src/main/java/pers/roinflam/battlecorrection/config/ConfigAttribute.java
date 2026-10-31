@@ -327,11 +327,11 @@ public class ConfigAttribute {
                         "     (head, necklace, back, body, bracelet, hands, ring, belt, charm, curio), 1 each",
                         "     Curios only attaches a curios inventory to entities that have at least one slot type,",
                         "     so in a bare dev environment players have none and nothing can be edited. Run /reload after changing",
-                        "     Keep this false on a real server: other accessory mods assign the slots there",
+                        "     Keep this false in normal play: slots are usually assigned by other accessory mods",
                         "[中文] 仅开发测试用：给所有玩家 Curios 自带的 10 种默认饰品栏各 1 格",
                         "     （头、项链、背、身体、手镯、手、戒指、腰带、护符、通用）",
                         "     Curios 只给至少有一种饰品栏的实体装饰品栏能力，开发环境只装 Curios 时玩家一种都没有，什么都改不了",
-                        "     改完要 /reload。正式服保持 false：那边由别的饰品模组分配"
+                        "     改完要 /reload。正常游戏保持 false：饰品栏一般由别的模组分配"
                 )
                 .define("devCurioSlots", false);
 

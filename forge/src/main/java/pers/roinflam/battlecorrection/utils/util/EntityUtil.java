@@ -1,5 +1,3 @@
-// 文件：EntityUtil.java
-// 路径：src/main/java/pers/roinflam/battlecorrection/utils/util/EntityUtil.java
 package pers.roinflam.battlecorrection.utils.util;
 
 import net.minecraft.core.BlockPos;

@@ -44,9 +44,9 @@ public class ReflectionCache {
             );
             updatingUsingItemMethod.setAccessible(true);
             updatingUsingItemAvailable = true;
-            LogUtil.info("✓ 成功获取 updatingUsingItem 方法");
+            LogUtil.info("成功获取 updatingUsingItem 方法");
         } catch (Exception e) {
-            LogUtil.error("✗ 无法获取 updatingUsingItem 方法，弓速/使用速度的加速效果将失效", e);
+            LogUtil.error("无法获取 updatingUsingItem 方法，弓速/使用速度的加速效果将失效", e);
             updatingUsingItemAvailable = false;
         }
     }

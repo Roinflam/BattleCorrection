@@ -272,7 +272,7 @@ public final class EditorSession {
     /**
      * 这件物品带不带 Forge 能力数据（ForgeCaps）
      * <p>
-     * 匠魂进化模组之类会把关键数据放在能力里而不是 tag 里。编辑器只改 tag，服务端写回时是在原物品的副本上换 tag，
+     * 有些模组会把关键数据放在能力里而不是 tag 里。编辑器只改 tag，服务端写回时是在原物品的副本上换 tag，
      * 能力数据原样保留——这正是某些 NBT 编辑器"一保存特效就没了"的原因：它们把物品整个重建了一遍。
      */
     public boolean hasForgeCaps() {

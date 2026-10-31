@@ -8,7 +8,7 @@ version = "${version}"
 displayName = "${mod_name}"
 logoFile = "logo.png"
 authors = "${mod_author}"
-credits = "特别感谢 建议重开 为本项目提供的支持和帮助"
+credits = "特别感谢 建议重开 为本项目提供的支持和帮助。内嵌 shedaniel 的 Cloth Config API（GNU LGPLv3），未作修改，以独立 jar-in-jar 形式提供配置界面。 / Cloth Config API by shedaniel (GNU LGPLv3) is bundled unmodified as a separate jar-in-jar for the config screen."
 description = '''
 战斗修正模组，提供各种
 RPG 战斗增强功能

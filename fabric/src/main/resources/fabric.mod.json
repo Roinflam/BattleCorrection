@@ -10,7 +10,7 @@
   "contact": {
     "homepage": ""
   },
-  "license": "unlicense",
+  "license": "CC-BY-NC-SA-4.0",
   "icon": "assets/battlecorrection/icon.png",
   "environment": "*",
   "entrypoints": {
