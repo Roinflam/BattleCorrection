@@ -6,16 +6,16 @@
 
 [![CurseForge Downloads](https://cf.way2muchnoise.eu/full_battlecorrection_downloads.svg?badge_style=for_the_badge)](https://www.curseforge.com/minecraft/mc-mods/battlecorrection)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/battlecorrection?style=for-the-badge&logo=modrinth&label=Modrinth)](https://modrinth.com/mod/battlecorrection)
-[![MC Version](https://img.shields.io/badge/Minecraft-1.20.1-brightgreen?style=for-the-badge&logo=minecraft)](https://minecraft.net)
-[![Forge](https://img.shields.io/badge/Forge-47.x-orange?style=for-the-badge)](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html)
+[![MC Version](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen?style=for-the-badge&logo=minecraft)](https://minecraft.net)
+[![NeoForge](https://img.shields.io/badge/NeoForge-21.1.265+-orange?style=for-the-badge)](https://projects.neoforged.net/neoforged/neoforge)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey?style=for-the-badge)](LICENSE)
 
 [![GitHub](https://img.shields.io/badge/GitHub-Roinflam-181717?style=for-the-badge&logo=github)](https://github.com/Roinflam)
 [![Bilibili](https://img.shields.io/badge/Bilibili-@Roinflam-00A1D6?style=for-the-badge&logo=bilibili)](https://space.bilibili.com/285030707/)
 
-This is the **1.20.1** branch. The Minecraft 1.12.2 version is on the [`1.12.2` branch](https://github.com/Roinflam/BattleCorrection/tree/1.12.2).
+This is the **1.21.1** branch. The other Minecraft versions are on the [`1.20.1`](https://github.com/Roinflam/BattleCorrection/tree/1.20.1) and [`1.12.2`](https://github.com/Roinflam/BattleCorrection/tree/1.12.2) branches.
 
-本分支是 **1.20.1** 版，Minecraft 1.12.2 版在 [`1.12.2` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.12.2)。
+本分支是 **1.21.1** 版，其他 Minecraft 版本在 [`1.20.1`](https://github.com/Roinflam/BattleCorrection/tree/1.20.1)、[`1.12.2`](https://github.com/Roinflam/BattleCorrection/tree/1.12.2) 分支。
 
 </div>
 
@@ -33,10 +33,10 @@ BattleCorrection (BC) is for people who build RPG maps, modpacks and servers and
 
 ### Installation
 
-1. Install [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html) 47.x for 1.20.1 (Java 17).
-2. Download the 1.20.1 version of BattleCorrection from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
+1. Install [NeoForge](https://neoforged.net/) 21.1.265 or newer for 1.21.1 (Java 21).
+2. Download the 1.21.1 version of BattleCorrection from [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) or [Modrinth](https://modrinth.com/mod/battlecorrection).
 3. Put the jar into the `mods` folder of **both the client and the server**, same version on both sides.
-4. Optional: [Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 5.14.1 or newer for the accessory features.
+4. Optional: [Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 9.5.1 or newer for the accessory features.
 
 Cloth Config API, used for the config screen, is already inside the jar, so you don't need to download it.
 
@@ -44,7 +44,7 @@ Cloth Config API, used for the config screen, is already inside the jar, so you 
 
 Operators (permission level 2) in creative mode press `I` or run `/battlecorrection edit`. The editor opens on the held item, on the item under the mouse in any open inventory or chest, or, with an empty hand, on the entity or block entity you are looking at. `O` opens the SNBT page directly and `P` the NBT tree. The server checks permission, creative mode, the target and the NBT size again on every save, and `itemEditorEnabled = false` turns the editor off completely.
 
-The editor is drawn by the mod itself: page tabs on the left, the current page in the middle, a live tooltip preview on the right, and Copy command, Import, the NBT size, Cancel and Save along the bottom. The screenshots are from 1.20.1; what differs on 1.12.2 is listed at the end of this section.
+The editor is drawn by the mod itself: page tabs on the left, the current page in the middle, a live tooltip preview on the right, and Copy command, Import, the NBT size, Cancel and Save along the bottom. The screenshots are from 1.20.1, where the editor looks the same; what differs on 1.21.1 and 1.12.2 is listed at the end of this section.
 
 #### Name and lore
 
@@ -72,15 +72,15 @@ Attributes work the same way: every registered attribute, vanilla or from any mo
 
 #### Tags and slots
 
-The Tags page sets Unbreakable, enchantment glint, hide flags, damage, anvil repair cost, count (1 to 127) and, on 1.20.1, CustomModelData. The Curios page is covered under Accessory marks below.
+The Tags page sets Unbreakable, enchantment glint, what the tooltip hides, damage, anvil repair cost, count (1 to 99) and CustomModelData. The Curios page is covered under Accessory marks below.
 
-My Slots (1.20.1) is for testing accessories and changes your own Curios slots. It lists every slot type you have with its count: change a count (0 removes that type), or type an id to add a slot, even one no mod has registered (it just has no icon). Curios only gives slots to players who already have at least one slot type, so with none this page cannot change anything. For testing, `devCurioSlots = true` gives every player one of each of Curios' ten built-in slots; keep it off in normal play.
+My Slots is for testing accessories and changes your own Curios slots. It lists every slot type you have with its count: change a count (0 removes that type), or type an id to add a slot, even one no mod has registered (it just has no icon). Curios only gives slots to players who already have at least one slot type, so with none this page cannot change anything. For testing, `devCurioSlots = true` gives every player one of each of Curios' ten built-in slots; keep it off in normal play.
 
 ![Item editor, My Slots page](https://cdn.modrinth.com/data/cached_images/0b65dd55625334b182021811fca99da3ae33d410.png)
 
 #### NBT tree and SNBT
 
-The tree shows every tag with its type. Search keys and values (`Ctrl+F`), jump to a path such as `tag.display.Lore[0]`, copy a node's path, edit keys and values in place, and add, delete, copy, paste, duplicate or move nodes.
+The tree shows every tag with its type. Search keys and values (`Ctrl+F`), jump to a path such as `components.minecraft:lore[0]`, copy a node's path, edit keys and values in place, and add, delete, copy, paste, duplicate or move nodes.
 
 ![Item editor, NBT tree page](https://cdn.modrinth.com/data/cached_images/650e1da79b7fb21c164d6b84732b5a1e5905645e.png)
 
@@ -90,11 +90,11 @@ The SNBT page edits the whole item as text, with line numbers, highlighting and 
 
 #### Templates, import and changing the item
 
-A template stores an item's full NBT and count under a name, on your own computer. Apply it whole, or tick only the parts you want (name, lore, enchantments, attributes, curio marks and so on) and keep the rest, for example to give several weapons the same enchantments and attributes.
+A template stores an item's full data and count under a name, on your own computer. Apply it whole, or tick only the parts you want (name, lore, enchantments, attributes, curio marks and so on) and keep the rest, for example to give several weapons the same enchantments and attributes.
 
 ![Item editor, Templates page](https://cdn.modrinth.com/data/cached_images/dbe44539407b5f8b4f430dcd9fd7b736fc646607.png)
 
-Import reads a `/give` command, an item id with NBT, or item SNBT from the clipboard and replaces the current item. Copy command exports the item as a `/give` command; commands longer than 256 characters cannot be sent from chat, so run those from a command block or function. `F4` or a click on the item icon in the title bar changes the item type and keeps its NBT and count. Search by name or id, or type `@` and a mod id (such as `@battlecorrection`) to list one mod's items.
+Import reads a `/give` command, an item id with components, or item SNBT from the clipboard and replaces the current item. Copy command exports the item as a `/give` command; commands longer than 256 characters cannot be sent from chat, so run those from a command block or function. `F4` or a click on the item icon in the title bar changes the item type and keeps its data and count. Search by name or id, or type `@` and a mod id (such as `@battlecorrection`) to list one mod's items.
 
 ![Change item window](https://cdn.modrinth.com/data/cached_images/ce451130b542d98026ec98f6cf0306550c22203b.png)
 
@@ -110,9 +110,20 @@ With an empty hand, `I` edits the entity under the crosshair (players excluded) 
 
 ![Unsaved changes prompt](https://cdn.modrinth.com/data/cached_images/7695e03d256039d4dc3ded1e636d7eb33b8721eb.png)
 
-`Ctrl+S` or Save sends the item to the server. The NBT size of one item is capped by `itemEditorMaxNbtKb` (1 MB on 1.20.1 and 256 KB on 1.12.2 by default), and larger items are not saved. Past about 2 MB the vanilla client cannot read an item at all, and players holding one get disconnected. `F1` lists every shortcut.
+`Ctrl+S` or Save sends the item to the server. The NBT size of one item is capped by `itemEditorMaxNbtKb` (1 MB by default, 256 KB on 1.12.2), and larger items are not saved. Past about 2 MB the vanilla client cannot read an item at all, and players holding one get disconnected. `F1` lists every shortcut.
 
 ![Keyboard shortcuts](https://cdn.modrinth.com/data/cached_images/6c848970fc14c5476a48d39444c312d07a295167.png)
+
+#### On 1.21.1
+
+Minecraft 1.21.1 stores item data as components instead of NBT tags, which changes a few things in the editor:
+
+- The NBT tree, the SNBT page, Import, Copy command and templates use the 1.21.1 format: an `{id, count, components}` root and commands like `diamond_sword[custom_name='"Name"']`. Commands, SNBT and templates written for 1.20.1 are converted automatically when pasted or loaded.
+- Count goes up to 99 and lore up to 256 lines.
+- In the NBT tree, everything under `components` must be a valid component, and your own data goes into `minecraft:custom_data`. Until an edit is valid it stays in the tree, marked as not applied yet, and pages cannot be switched or saved.
+- Hiding Unbreakable, Can Break, Can Place On, dye colour or armour trim needs the item to have that component, otherwise the switch is greyed out.
+- The attribute slot list adds Both Hands, Armor and Body.
+- When saving, the server checks the whole item against the game's own rules and reports what is invalid.
 
 #### On 1.12.2
 
@@ -120,9 +131,9 @@ The editor is the same apart from what that game version allows. 1.12.2 has no h
 
 ### Attributes
 
-All 15 attributes are registered on every living entity type, so `/attribute`, `/give`, data packs, the editor and any tool that writes attribute modifiers can use them. Each attribute also has a global value in `battlecorrection-attribute.toml` that applies to every entity, mobs included. The examples use Operation 0 (addition), which suits all 15.
+All 15 attributes are registered on every living entity type, so `/attribute`, `/give`, data packs, the editor and any tool that writes attribute modifiers can use them. Each attribute also has a global value in `battlecorrection-attribute.toml` that applies to every entity, mobs included. The examples use the `add_value` operation (addition, called Operation 0 before 1.20.5), which suits all 15.
 
-| Attribute | Id | Effect (Operation 0) |
+| Attribute | Id | Effect (`add_value`) |
 |---|---|---|
 | Magic Damage | `battlecorrection:magic_damage` | Extra damage on magic hits that have an attacker |
 | Arrow Damage | `battlecorrection:arrow_damage` | Extra damage on arrow and trident hits |
@@ -140,14 +151,14 @@ All 15 attributes are registered on every living entity type, so `/attribute`, `
 | Critical Chance | `battlecorrection:custom_critical_chance` | Chance of this mod's own critical hit on melee and projectile hits: 0.3 = 30% |
 | Critical Damage | `battlecorrection:custom_critical_damage` | Added to the critical multiplier, which is 2.0 by default: +1.0 = 3× damage |
 
-Attributes that start at 0 (the three damage bonuses, Ignore Damage, Reduced Fall Damage, Jump Boost, Critical Chance and Critical Damage) only react to Operation 0. Attributes that start at 1.0 count what is above 1.0, so an amount of 0.25 on its own gives the same bonus with Operation 0 or 1.
+Attributes that start at 0 (the three damage bonuses, Ignore Damage, Reduced Fall Damage, Jump Boost, Critical Chance and Critical Damage) only react to `add_value`. Attributes that start at 1.0 count what is above 1.0, so an amount of 0.25 on its own gives the same bonus with `add_value` or `add_multiplied_base`.
 
 Critical chance above 100% is not wasted: the excess is added to the multiplier (times `criticalOverflowConversion`, default 1.0). With the default settings a chance of 1.5 makes every hit critical for 2.5× damage. Melee hits and projectiles roll once each, and a piercing arrow keeps one roll for all its targets.
 
 A bow with +5 Arrow Damage (the editor's Copy command button writes commands like this for you):
 
 ```
-/give @p bow{AttributeModifiers:[{AttributeName:"battlecorrection:arrow_damage",Name:"bonus",Amount:5.0d,Operation:0,UUID:[I;1,2,3,4],Slot:"mainhand"}]}
+/give @p bow[attribute_modifiers={modifiers:[{type:"battlecorrection:arrow_damage",id:"battlecorrection:bonus",amount:5.0,operation:"add_value",slot:"mainhand"}]}]
 ```
 
 ![A bow with +5 Arrow Damage](https://cdn.modrinth.com/data/cached_images/c2134fa74a6ca5f465c6ebea3f2d7bca1a5340fd.png)
@@ -163,7 +174,7 @@ Global settings. At their defaults they leave vanilla combat unchanged.
 - Attack cooldown on or off (off gives 1.8-style combat), and combo correction, which scales uncharged swings by the attack charge, never below 50%.
 - Max health of every non-player mob: 1.0 doubles it.
 - Hunger: extra regeneration from saturation and from a hunger bar of 18 or more (flat or a share of max health), and less damage dealt by players per missing hunger point, with an optional cap (0 means no cap).
-- Spells from other mods count as magic damage. Iron's Spells 'n Spellbooks, Ars Nouveau, Goety, Sweet Magic and Geomancy Plus are recognised out of the box by mod namespace, together with the `forge:is_magic` damage type tag, a whitelist and a blacklist. Melee hits by summons and pets never count as magic.
+- Spells from other mods count as magic damage. Iron's Spells 'n Spellbooks, Ars Nouveau, Goety, Sweet Magic and Geomancy Plus are recognised out of the box by mod namespace, together with the `neoforge:is_magic` and `c:is_magic` damage type tags, a whitelist and a blacklist. Melee hits by summons and pets never count as magic.
 - Whether lifesteal is boosted by healing bonuses (`lifestealAffectedByHealBonus`, on by default).
 
 ![Config screen, Player Damage Resistance tab](https://cdn.modrinth.com/data/cached_images/569eb49a50e19651112d41624b970e4f2d35ec8d.png)
@@ -172,10 +183,10 @@ Global settings. At their defaults they leave vanilla combat unchanged.
 
 ### Curios marks
 
-With Curios installed, an operator can mark one single item so it fits chosen curio slots: a sword worn as a charm, a helmet worn as a ring. The mark is stored in the item's NBT (`BattleCorrectionCurioSlots`, `BattleCorrectionCurioModifiers`), so copies and trades keep it.
+With Curios installed, an operator can mark one single item so it fits chosen curio slots: a sword worn as a charm, a helmet worn as a ring. The mark is stored in the item's custom data (`BattleCorrectionCurioSlots` and `BattleCorrectionCurioModifiers` in `minecraft:custom_data`), so copies and trades keep it.
 
-- A marked item is curio-only. Its own attributes (armor, attack damage, `AttributeModifiers`, bonuses from other mods) apply only in the curio slot, and marked armor can no longer be worn in armor slots.
-- Extra attributes that count only while worn can be attached, optionally for one slot type. Curios' own `CurioAttributeModifiers` tag is never touched.
+- A marked item is curio-only. Its own attributes (armor, attack damage, the `attribute_modifiers` component, bonuses from other mods) apply only in the curio slot, and marked armor can no longer be worn in armor slots.
+- Extra attributes that count only while worn can be attached, optionally for one slot type. Curios' own `curios:attribute_modifiers` component is never touched.
 - Right-click equips a marked item into a free slot; shift-click works in the Curios screen too.
 - The tooltip lists the attributes in one section per slot, in the same style as Curios accessories.
 - For curios without a mark, `curioNbtAttributes` decides which vanilla-format attributes apply while worn: `ALL` (default), `MOD_ONLY` or `OFF`.
@@ -233,17 +244,17 @@ Most changes apply as soon as they are saved. `attackCooldown` and `extraMaxHeal
 
 | Component | Version |
 |---|---|
-| Minecraft | 1.20.1 |
-| Forge | 47.x |
-| Java | 17 |
+| Minecraft | 1.21.1 |
+| NeoForge | 21.1.265 or newer |
+| Java | 21 |
 | Required mods | None (Cloth Config API is bundled) |
-| Optional | Curios API 5.14.1 or newer |
+| Optional | Curios API 9.5.1 or newer |
 | Sides | Client and server, same version |
 
 ### Compatibility
 
-- Combat changes run on Forge's damage and healing events, so they also apply to weapons and damage from other mods.
-- Curios API is optional; without it the curio features stay off. If it is installed, it must be 5.14.1 or newer, otherwise the game will not start.
+- Combat changes run on NeoForge's damage and healing events, so they also apply to weapons and damage from other mods.
+- Curios API is optional; without it the curio features stay off. If it is installed, it must be 9.5.1 or newer, otherwise the game will not start.
 - Cloth Config API is bundled with Jar-in-Jar.
 - The magic mods listed under Combat tuning are only defaults in `magicDamageNamespaces`; any mod namespace can be added.
 
@@ -259,14 +270,14 @@ No. It needs permission level 2 and creative mode, and the server checks both ag
 <details>
 <summary><b>Why does P open the social screen on a server?</b></summary>
 
-Vanilla 1.20.1 also uses `P` for its Social Interactions Screen, and on a server that screen opens before the NBT tree. Rebind one of the two under Options → Controls → Key Binds.
+Vanilla also uses `P` for its Social Interactions Screen, and on a server that screen opens before the NBT tree. Rebind one of the two under Options → Controls → Key Binds.
 
 </details>
 
 <details>
 <summary><b>How do I give an item one of these attributes?</b></summary>
 
-Open the item editor's Attributes page, or write an attribute modifier with `/give` (see above), a data pack or any tool that edits item NBT. For curios, use `/battlecorrection curio attr add` or pick a curio slot in the editor.
+Open the item editor's Attributes page, or write an attribute modifier with `/give` (see above), a data pack or any tool that edits item data. For curios, use `/battlecorrection curio attr add` or pick a curio slot in the editor.
 
 </details>
 
@@ -305,7 +316,7 @@ Licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4
 - ❌ No commercial use
 - ⚠️ Redistributed or modified versions must credit the original author (Roinflam), state what was changed, and use the same license
 
-The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-config) through Jar-in-Jar. It is included unmodified and stays under its own license, LGPL-3.0, whose text ships with it inside the jar.
+The 1.21.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-config) through Jar-in-Jar. It is included unmodified and stays under its own license, LGPL-3.0, whose text ships with it inside the jar.
 
 ### Credits
 
@@ -321,7 +332,7 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 
 ### 关于模组
 
-战斗修正（BattleCorrection，简称 BC）为 Minecraft 1.20.1 Forge 加入 15 种战斗属性、全局战斗数值调整，以及一套完整的游戏内物品和 NBT 编辑器，面向自己定数值的 RPG 地图、整合包和服务器作者。
+战斗修正（BattleCorrection，简称 BC）为 Minecraft 1.21.1 NeoForge 加入 15 种战斗属性、全局战斗数值调整，以及一套完整的游戏内物品和 NBT 编辑器，面向自己定数值的 RPG 地图、整合包和服务器作者。
 
 - 15 种属性对玩家和怪物都有效：带溢出的暴击、两种吸血、闪避几率、固定减伤、魔法 / 箭矢 / 弹射物伤害、拉弓和使用速度、跳跃高度。
 - 全局设置：PVP、玩家按伤害类型造成和承受的伤害、环境伤害、无敌时间、攻击冷却、生物生命值和饥饿。
@@ -330,10 +341,10 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 
 ### 安装方法
 
-1. 安装 1.20.1 的 [Minecraft Forge](https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.1.html) 47.x（Java 17）。
-2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正的 1.20.1 版。
+1. 安装 1.21.1 的 [NeoForge](https://neoforged.net/) 21.1.265 及以上（Java 21）。
+2. 从 [CurseForge](https://www.curseforge.com/minecraft/mc-mods/battlecorrection) 或 [Modrinth](https://modrinth.com/mod/battlecorrection) 下载战斗修正的 1.21.1 版。
 3. 把 jar 放进**客户端和服务端**的 `mods` 文件夹，两端版本要一致。
-4. 可选：[Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 5.14.1 及以上，用于饰品栏功能。
+4. 可选：[Curios API](https://www.curseforge.com/minecraft/mc-mods/curios) 9.5.1 及以上，用于饰品栏功能。
 
 配置界面用的 Cloth Config API 已经在 jar 里，不用另外下载。
 
@@ -341,24 +352,33 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 
 拥有 2 级权限且处于创造模式的玩家按 `I` 或输入 `/battlecorrection edit` 打开。可以编辑手上的物品、打开的物品栏或箱子里鼠标指着的物品；空手时编辑准星对着的实体或方块实体（生物、盔甲架、箱子、刷怪笼等，玩家除外），实体和方块实体只有 NBT 树和 SNBT 两页。`O` 直接打开 SNBT 页，`P` 直接打开 NBT 树。每次保存时服务端都会重新检查权限、创造模式、目标和 NBT 大小。
 
-界面由本模组自行绘制：左侧是标签页，中间是当前页面，右侧实时预览物品的提示框，底部有「复制为命令」「导入」、NBT 大小、取消和保存。截图见英文部分。
+界面由本模组自行绘制：左侧是标签页，中间是当前页面，右侧实时预览物品的提示框，底部有「复制为命令」「导入」、NBT 大小、取消和保存。截图见英文部分（截自 1.20.1 版，界面相同）。
 
 - 名字和 Lore：`&` 颜色码和 `&#RRGGBB` 十六进制颜色，也可以点色块和格式按钮插入；渐变可以作用于整行或选中的文字，右边的提示框预览随输入实时更新。Lore 每行一个输入框，可以上下移动、删除和添加，多行粘贴自动拆成多行。没改过的 Lore 行原样保留，点击和悬停事件也不会丢。
 - 调色盘：饱和度 / 明度方块、色相条、RGB 滑块和十六进制输入；渐变支持 2 到 8 个色标，有彩虹、火焰、海洋等 10 个预设，记住最近用过的 16 个颜色。
 - 附魔：左侧是已有附魔，旁边标出原版上限，左键改等级、右键删除；右侧搜索全部附魔（含其他模组的），诅咒显示为红色，悬停查看说明。等级最高 255；超过原版上限或原版不允许附在该物品上的照样生效。
 - 属性：原版和所有模组的属性都在一个可搜索的列表里，悬停查看说明；可设数值、运算方式和生效位置，输入 `20%` 自动切换成百分比，生效位置选某个饰品栏时，物品同时可以戴进这个饰品栏。
-- 标签：不可破坏、附魔光效、隐藏提示信息、CustomModelData、耐久损耗、铁砧修复惩罚、数量（1 到 127）。
+- 标签：不可破坏、附魔光效、隐藏提示信息、CustomModelData、耐久损耗、铁砧修复惩罚、数量（1 到 99）。
 - 饰品栏：勾选这件物品能放进哪些饰品栏。「玩家饰品栏」页供测试饰品时用，改的是自己的饰品栏格数（填 0 去掉这种饰品栏，也可以输入 ID 添加一格）。Curios 只给至少有一种饰品栏的玩家提供饰品栏，测试时可以把 `devCurioSlots` 设为 `true`，让所有玩家获得 Curios 自带的 10 种饰品栏各 1 格，正常游戏时保持关闭。
-- NBT 树：显示每个标签的类型，可搜索键名和值（`Ctrl+F`），可粘贴 `tag.display.Lore[0]` 这样的路径直接跳转，可复制节点路径，可添加、删除、复制、粘贴、重复、移动节点。
+- NBT 树：显示每个标签的类型，可搜索键名和值（`Ctrl+F`），可粘贴 `components.minecraft:lore[0]` 这样的路径直接跳转，可复制节点路径，可添加、删除、复制、粘贴、重复、移动节点。
 - SNBT：带行号和语法高亮的文本编辑器，实时标出错误，支持查找（`Ctrl+F`）、跳到行（`Ctrl+G`）、缩进、复制行、移动行、格式化、压成一行和 `&` 与 `§` 互换；有错误时不会写入物品。
-- 模板：把物品的整份 NBT 和数量按名字存在本机。套用时可以整份覆盖，也可以只勾选名字、Lore、附魔、属性、饰品栏标记等部分，例如把同一组附魔和属性套到不同的武器上。
-- 其他：「导入」读取剪贴板里的 `/give` 命令、物品 ID 加 NBT 或物品 SNBT，「复制为命令」把物品导出成 `/give` 命令（超过 256 个字符的要用命令方块或函数执行）；`F4` 或点物品图标可换物品种类，NBT 和数量保留，搜索框输入 `@` 加模组 ID（如 `@battlecorrection`）只列出这个模组的物品；`Ctrl+S` 保存，`Ctrl+Z` / `Ctrl+Y` 撤销重做，`Ctrl+Tab` 或 `Ctrl+1`～`Ctrl+9` 切页，`F1` 查看全部快捷键；有未保存的修改时关闭，会先列出改了哪些地方。
+- 模板：把物品的整份数据和数量按名字存在本机。套用时可以整份覆盖，也可以只勾选名字、Lore、附魔、属性、饰品栏标记等部分，例如把同一组附魔和属性套到不同的武器上。
+- 其他：「导入」读取剪贴板里的 `/give` 命令、物品 ID 加组件或物品 SNBT，「复制为命令」把物品导出成 `/give` 命令（超过 256 个字符的要用命令方块或函数执行）；`F4` 或点物品图标可换物品种类，数据和数量保留，搜索框输入 `@` 加模组 ID（如 `@battlecorrection`）只列出这个模组的物品；`Ctrl+S` 保存，`Ctrl+Z` / `Ctrl+Y` 撤销重做，`Ctrl+Tab` 或 `Ctrl+1`～`Ctrl+9` 切页，`F1` 查看全部快捷键；有未保存的修改时关闭，会先列出改了哪些地方。
+
+1.21.1 版的物品数据改成了组件，编辑器和 1.20.1 版有这些不同：
+
+- NBT 树、SNBT、导入、复制为命令和模板都用 1.21.1 的写法：物品根是 `{id, count, components}`，命令形如 `diamond_sword[custom_name='"名字"']`。粘贴或读到 1.20.1 的写法会自动转换。
+- 数量最多 99，Lore 最多 256 行。
+- NBT 树里 `components` 下的每一项都必须是有效的组件，自定义数据放在 `minecraft:custom_data` 里。改到有效之前，改动先留在树上并标出「还没写进物品」，这时不能切页或保存。
+- 隐藏「不可破坏」字样、可破坏方块、可放置方块、染色和盔甲纹饰，要物品上有对应的组件才能勾选。
+- 属性的生效位置多了双手、盔甲槽和身体。
+- 保存时服务端按游戏自己的规则校验整件物品，不合规的会提示原因。
 
 ### 属性
 
-15 种属性注册在所有生物类型上，`/attribute`、`/give`、数据包、编辑器和任何能写属性修饰符的工具都能用。每种属性在 `battlecorrection-attribute.toml` 里另有一个全局数值，对所有生物（包括怪物）生效。下表的例子都用运算 0（加法），15 种属性都适合用它。
+15 种属性注册在所有生物类型上，`/attribute`、`/give`、数据包、编辑器和任何能写属性修饰符的工具都能用。每种属性在 `battlecorrection-attribute.toml` 里另有一个全局数值，对所有生物（包括怪物）生效。下表的例子都用 `add_value` 运算（加法，1.20.5 之前叫运算 0），15 种属性都适合用它。
 
-| 属性 | ID | 效果（运算 0） |
+| 属性 | ID | 效果（`add_value`） |
 |---|---|---|
 | 魔法伤害 | `battlecorrection:magic_damage` | 有攻击者的魔法攻击额外造成的伤害 |
 | 箭矢伤害 | `battlecorrection:arrow_damage` | 箭矢和三叉戟命中额外造成的伤害 |
@@ -376,14 +396,14 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 | 暴击几率 | `battlecorrection:custom_critical_chance` | 本模组自己的暴击，近战和弹射物命中时判定：0.3 = 30% |
 | 暴击伤害 | `battlecorrection:custom_critical_damage` | 加到暴击倍率上（默认 2.0）：+1.0 = 3 倍伤害 |
 
-起始值为 0 的属性（三种伤害加成、忽略伤害、减少摔落伤害、跳跃提升、暴击几率、暴击伤害）只对运算 0 有反应；起始值为 1.0 的属性只算超出 1.0 的部分，所以单独一条 0.25 用运算 0 和运算 1 效果一样。
+起始值为 0 的属性（三种伤害加成、忽略伤害、减少摔落伤害、跳跃提升、暴击几率、暴击伤害）只对 `add_value` 有反应；起始值为 1.0 的属性只算超出 1.0 的部分，所以单独一条 0.25 用 `add_value` 和 `add_multiplied_base` 效果一样。
 
 暴击几率超过 100% 的部分不会浪费，会乘上 `criticalOverflowConversion`（默认 1.0）加到暴击倍率上：默认设置下几率 1.5 就是每一击都暴击、造成 2.5 倍伤害。近战每一击、每个弹射物各判定一次，穿透箭对所有目标共用同一次判定。
 
 一把箭矢伤害 +5 的弓（编辑器的「复制为命令」按钮也能生成这种命令）：
 
 ```
-/give @p bow{AttributeModifiers:[{AttributeName:"battlecorrection:arrow_damage",Name:"bonus",Amount:5.0d,Operation:0,UUID:[I;1,2,3,4],Slot:"mainhand"}]}
+/give @p bow[attribute_modifiers={modifiers:[{type:"battlecorrection:arrow_damage",id:"battlecorrection:bonus",amount:5.0,operation:"add_value",slot:"mainhand"}]}]
 ```
 
 ### 战斗数值调整
@@ -397,15 +417,15 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 - 开关攻击冷却（关闭即 1.8 式战斗）；连击修正：未蓄满力的攻击按蓄力比例降低伤害，最低 50%。
 - 所有非玩家生物的最大生命值：1.0 即翻倍。
 - 饥饿：饱和度和饥饿值 18 以上时的额外生命恢复（固定值或最大生命值比例），以及玩家饥饿值每少 1 点造成的伤害降低多少，可设上限（0 为不设上限）。
-- 第三方魔法识别：其他模组的法术算作魔法伤害。默认按命名空间识别 Iron的法术与魔法书（Iron's Spells 'n Spellbooks）、新生魔艺（Ars Nouveau）、诡厄巫法（Goety）、甜蜜魔法（Sweet Magic）和 Geomancy Plus，同时认 `forge:is_magic` 伤害类型标签，另有白名单和黑名单。召唤物和宠物替主人的近战攻击不算魔法。
+- 第三方魔法识别：其他模组的法术算作魔法伤害。默认按命名空间识别 Iron的法术与魔法书（Iron's Spells 'n Spellbooks）、新生魔艺（Ars Nouveau）、诡厄巫法（Goety）、甜蜜魔法（Sweet Magic）和 Geomancy Plus，同时认 `neoforge:is_magic` 和 `c:is_magic` 伤害类型标签，另有白名单和黑名单。召唤物和宠物替主人的近战攻击不算魔法。
 - 吸血是否吃治疗加成（`lifestealAffectedByHealBonus`，默认是）。
 
 ### 饰品栏标记
 
-装了 Curios 时，管理员可以给某一件物品打上标记，让它能放进指定的饰品栏，比如把剑当护符戴、把头盔当戒指戴。标记写在物品自己的 NBT 里（`BattleCorrectionCurioSlots`、`BattleCorrectionCurioModifiers`），复制、交易都会带着。
+装了 Curios 时，管理员可以给某一件物品打上标记，让它能放进指定的饰品栏，比如把剑当护符戴、把头盔当戒指戴。标记写在物品自己的自定义数据里（`minecraft:custom_data` 下的 `BattleCorrectionCurioSlots`、`BattleCorrectionCurioModifiers`），复制、交易都会带着。
 
-- 打过标记的物品只当饰品用：它自己的属性（盔甲值、攻击伤害、`AttributeModifiers`、其他模组加的属性）只在饰品栏里生效，标记过的防具也不能再穿进盔甲栏。
-- 可以附加只在佩戴时生效的属性，并可限定某一种饰品栏；不会改动 Curios 自己的 `CurioAttributeModifiers` 标签。
+- 打过标记的物品只当饰品用：它自己的属性（盔甲值、攻击伤害、`attribute_modifiers` 组件、其他模组加的属性）只在饰品栏里生效，标记过的防具也不能再穿进盔甲栏。
+- 可以附加只在佩戴时生效的属性，并可限定某一种饰品栏；不会改动 Curios 自己的 `curios:attribute_modifiers` 组件。
 - 右键直接戴进空的饰品栏，在 Curios 界面里按住 Shift 点击也行。
 - 提示框按饰品栏分段列出属性，样式和 Curios 饰品一致。
 - 没有标记的饰品上原版格式的属性戴着时哪些生效，由 `curioNbtAttributes` 决定：`ALL`（默认）、`MOD_ONLY` 或 `OFF`。
@@ -459,17 +479,17 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 
 | 组件 | 版本 |
 |---|---|
-| Minecraft | 1.20.1 |
-| Forge | 47.x |
-| Java | 17 |
+| Minecraft | 1.21.1 |
+| NeoForge | 21.1.265 及以上 |
+| Java | 21 |
 | 前置模组 | 无（Cloth Config API 已内置） |
-| 可选 | Curios API 5.14.1 及以上 |
+| 可选 | Curios API 9.5.1 及以上 |
 | 安装位置 | 客户端和服务端，版本一致 |
 
 ### 兼容性
 
-- 战斗数值都通过 Forge 的伤害和治疗事件处理，其他模组的武器和伤害同样适用。
-- Curios API 是可选的，没装时只是没有饰品栏相关功能；装了的话版本要在 5.14.1 及以上，否则游戏无法启动。
+- 战斗数值都通过 NeoForge 的伤害和治疗事件处理，其他模组的武器和伤害同样适用。
+- Curios API 是可选的，没装时只是没有饰品栏相关功能；装了的话版本要在 9.5.1 及以上，否则游戏无法启动。
 - Cloth Config API 以 Jar-in-Jar 方式内置。
 - 战斗数值调整里列出的魔法模组只是 `magicDamageNamespaces` 的默认值，任何模组的命名空间都可以加进去。
 
@@ -485,14 +505,14 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 <details>
 <summary><b>在服务器上按 P 为什么打开的是社交屏幕？</b></summary>
 
-原版 1.20.1 的「社交屏幕」默认也是 `P`，在服务器上会先打开它。在「选项 → 按键控制 → 按键绑定」里改掉其中一个即可。
+原版的「社交屏幕」默认也是 `P`，在服务器上会先打开它。在「选项 → 按键控制 → 按键绑定」里改掉其中一个即可。
 
 </details>
 
 <details>
 <summary><b>怎么给物品加上这些属性？</b></summary>
 
-打开物品编辑器的属性页，或者用 `/give`（见上文）、数据包或任何能改物品 NBT 的工具写属性修饰符。饰品用 `/battlecorrection curio attr add`，或者在编辑器里把生效位置选成某个饰品栏。
+打开物品编辑器的属性页，或者用 `/give`（见上文）、数据包或任何能改物品数据的工具写属性修饰符。饰品用 `/battlecorrection curio attr add`，或者在编辑器里把生效位置选成某个饰品栏。
 
 </details>
 
@@ -531,7 +551,7 @@ The 1.20.1 jar bundles [Cloth Config API](https://github.com/shedaniel/cloth-con
 - ❌ 不得用于商业用途
 - ⚠️ 转载或发布修改版必须署原作者（Roinflam）、注明改动，并沿用同一协议
 
-1.20.1 的 jar 通过 Jar-in-Jar 内置了 [Cloth Config API](https://github.com/shedaniel/cloth-config)，未做任何修改，仍按它自己的 LGPL-3.0 协议授权，协议全文随它一起放在 jar 里。
+1.21.1 的 jar 通过 Jar-in-Jar 内置了 [Cloth Config API](https://github.com/shedaniel/cloth-config)，未做任何修改，仍按它自己的 LGPL-3.0 协议授权，协议全文随它一起放在 jar 里。
 
 ### 制作人员
 
