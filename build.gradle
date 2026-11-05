@@ -1,64 +1,88 @@
 plugins {
-    id 'dev.architectury.loom' version '1.13-SNAPSHOT' apply false
-    id 'architectury-plugin' version '3.4-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id 'java-library'
+    // NeoForge 官方构建插件；1.20.5 起运行期就是 Mojang 映射，不再需要重映射和 refmap
+    id 'net.neoforged.moddev' version '2.0.148'
 }
 
-architectury {
-    minecraft = project.minecraft_version
+version = mod_version
+group = maven_group
+
+base {
+    // 产物：BattleCorrection-neoforge-1.21.1-<版本>.jar
+    archivesName = "${mod_name}-neoforge-${minecraft_version}"
 }
 
-allprojects {
-    group = rootProject.maven_group
-    version = rootProject.mod_version
-}
+// Minecraft 1.21.1 需要 Java 21
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-subprojects {
-    apply plugin: 'dev.architectury.loom'
-    apply plugin: 'architectury-plugin'
-    apply plugin: 'maven-publish'
+neoForge {
+    version = project.neo_version
 
-    base {
-        archivesName = "$rootProject.mod_name-$project.name-$rootProject.minecraft_version"
-    }
-
-    repositories {
-        maven { url "https://maven.theillusivec4.top/" }   // Curios 饰品 API
-        maven { url "https://maven.shedaniel.me/" }        // Cloth Config 配置界面 API
-    }
-
-    dependencies {
-        minecraft "net.minecraft:minecraft:$rootProject.minecraft_version"
-        mappings loom.officialMojangMappings()
-    }
-
-    loom {
-        runConfigs.configureEach {
-            // 添加 JVM 参数解决控制台中文乱码问题
-            vmArgs "-Dfile.encoding=UTF-8",
-                    "-Dconsole.encoding=UTF-8",
-                    "-Dstdout.encoding=UTF-8",
-                    "-Dstderr.encoding=UTF-8"
+    runs {
+        // 客户端、服务端各用自己的游戏目录：测试客户端要往 mods 里放只给客户端用的开发 jar，
+        // 和专用服共用一个 run/ 时专用服会因为加载到客户端类起不来
+        client {
+            client()
+            gameDirectory = file('run/client')
+        }
+        server {
+            server()
+            gameDirectory = file('run/server')
+            programArgument '--nogui'
+        }
+        configureEach {
+            // 控制台中文不乱码
+            jvmArguments.addAll('-Dfile.encoding=UTF-8', '-Dconsole.encoding=UTF-8',
+                    '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8')
         }
     }
 
-    java {
-        withSourcesJar()
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    tasks.withType(JavaCompile).configureEach {
-        it.options.release = 17
-        it.options.encoding = "UTF-8"
-    }
-
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                artifactId = base.archivesName.get()
-                from components.java
-            }
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
         }
+    }
+}
+
+repositories {
+    maven { url 'https://maven.shedaniel.me/' }          // Cloth Config
+    maven { url 'https://maven.theillusivec4.top/' }     // Curios 饰品 API
+}
+
+dependencies {
+    // Cloth Config：游戏内配置界面，以 jar-in-jar 内嵌，玩家不用另装
+    jarJar(api("me.shedaniel.cloth:cloth-config-neoforge:${cloth_version}")) {
+        version {
+            strictly "[${cloth_version},)"
+            prefer cloth_version
+        }
+    }
+
+    // Curios 是可选联动：编译时可见，运行时由玩家自己装（开发环境里也装上，方便测试）
+    compileOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+    runtimeOnly "top.theillusivec4.curios:curios-neoforge:${curios_version}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+// 只对 neoforge.mods.toml 做占位符替换
+processResources {
+    var props = [
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            version                : version,
+            mod_author             : mod_author,
+            mod_license            : mod_license,
+            minecraft_version_range: minecraft_version_range,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            cloth_version          : cloth_version,
+            curios_version_range   : curios_version_range
+    ]
+    inputs.properties props
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand props
     }
 }
