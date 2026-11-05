@@ -13,9 +13,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Roinflam-181717?style=for-the-badge&logo=github)](https://github.com/Roinflam)
 [![Bilibili](https://img.shields.io/badge/Bilibili-@Roinflam-00A1D6?style=for-the-badge&logo=bilibili)](https://space.bilibili.com/285030707/)
 
-This is the **1.20.1** branch. The Minecraft 1.12.2 version is on the [`1.12.2` branch](https://github.com/Roinflam/BattleCorrection/tree/1.12.2).
+This is the **1.20.1** branch. The other Minecraft versions are on the [`1.21.1`](https://github.com/Roinflam/BattleCorrection/tree/1.21.1) (NeoForge) and [`1.12.2`](https://github.com/Roinflam/BattleCorrection/tree/1.12.2) branches.
 
-本分支是 **1.20.1** 版，Minecraft 1.12.2 版在 [`1.12.2` 分支](https://github.com/Roinflam/BattleCorrection/tree/1.12.2)。
+本分支是 **1.20.1** 版，其他 Minecraft 版本在 [`1.21.1`](https://github.com/Roinflam/BattleCorrection/tree/1.21.1)（NeoForge）、[`1.12.2`](https://github.com/Roinflam/BattleCorrection/tree/1.12.2) 分支。
 
 </div>
 
