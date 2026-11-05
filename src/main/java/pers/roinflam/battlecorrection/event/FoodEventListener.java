@@ -2,9 +2,9 @@ package pers.roinflam.battlecorrection.event;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -17,7 +17,7 @@ import javax.annotation.Nonnull;
  * <p>
  * 注意：这里每个玩家每 tick 都会执行（每秒 20 次），配置里的回血量也是"每 tick"的量。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class FoodEventListener {
 
     /**
@@ -31,12 +31,12 @@ public class FoodEventListener {
      * @param evt 玩家 tick 事件
      */
     @SubscribeEvent
-    public static void onPlayerTick(@Nonnull TickEvent.PlayerTickEvent evt) {
-        if (evt.phase != TickEvent.Phase.END || evt.player.level().isClientSide()) {
+    public static void onPlayerTick(@Nonnull PlayerTickEvent.Post evt) {
+        if (evt.getEntity().level().isClientSide()) {
             return;
         }
 
-        Player player = evt.player;
+        Player player = evt.getEntity();
         // 只在玩家需要治疗时处理
         if (!player.isAlive() || player.getHealth() >= player.getMaxHealth()) {
             return;

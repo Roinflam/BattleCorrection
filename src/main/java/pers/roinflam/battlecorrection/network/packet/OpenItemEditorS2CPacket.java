@@ -1,15 +1,17 @@
 package pers.roinflam.battlecorrection.network.packet;
 
+import pers.roinflam.battlecorrection.utils.Reference;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorClient;
 import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.editor.ItemEditTarget;
 
 import javax.annotation.Nonnull;
-import java.util.function.Supplier;
 
 /**
  * 服务端 → 客户端：打开物品编辑器
@@ -18,9 +20,15 @@ import java.util.function.Supplier;
  * 按位置取就行，少传一份 NBT。命令 {@code /battlecorrection edit} 走这条路；
  * 快捷键在客户端本地直接开界面，不经过这个包。
  * <p>
- * 处理方法里引用了客户端类，必须包在 DistExecutor 的 lambda 里，专用服务端加载这个类时才不会去找 Minecraft 类。
+ * 处理方法里引用了客户端类：这种包只登记为发往客户端，处理方法只会在客户端执行，专用服务端不会解析到那些类。
  */
-public class OpenItemEditorS2CPacket {
+public class OpenItemEditorS2CPacket implements CustomPacketPayload {
+
+    public static final Type<OpenItemEditorS2CPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "open_item_editor"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, OpenItemEditorS2CPacket> STREAM_CODEC =
+            CustomPacketPayload.codec(OpenItemEditorS2CPacket::encode, OpenItemEditorS2CPacket::decode);
 
     private final ItemEditTarget target;
     private final EditorPage page;
@@ -62,7 +70,13 @@ public class OpenItemEditorS2CPacket {
      *
      * @param ctx 网络上下文
      */
-    public void handle(@Nonnull Supplier<NetworkEvent.Context> ctx) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> ItemEditorClient.openFromServer(target, page));
+    public void handle(@Nonnull IPayloadContext ctx) {
+        ItemEditorClient.openFromServer(target, page);
+    }
+
+    @Nonnull
+    @Override
+    public Type<OpenItemEditorS2CPacket> type() {
+        return TYPE;
     }
 }

@@ -50,12 +50,12 @@ public class BrawlStaff extends ItemStaff {
 
             for (Mob mob : nearbyMobs) {
                 // 移除其他暴动类效果
-                mob.removeEffect(ModMobEffects.RIOT_EFFECT.get());
-                mob.removeEffect(ModMobEffects.BRAWL_EFFECT.get());
-                mob.removeEffect(ModMobEffects.ELIMINATION_EFFECT.get());
+                mob.removeEffect(ModMobEffects.RIOT_EFFECT);
+                mob.removeEffect(ModMobEffects.BRAWL_EFFECT);
+                mob.removeEffect(ModMobEffects.ELIMINATION_EFFECT);
 
                 // 添加群殴效果
-                mob.addEffect(new MobEffectInstance(ModMobEffects.BRAWL_EFFECT.get(), 12000, 0, false, false));
+                mob.addEffect(new MobEffectInstance(ModMobEffects.BRAWL_EFFECT, 12000, 0, false, false));
 
                 // 从同一批生物里挑一个随机目标
                 Mob randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, false);

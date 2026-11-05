@@ -6,7 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.ISlotType;
@@ -14,7 +14,6 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.common.inventory.CurioStacksHandler;
-import top.theillusivec4.curios.common.network.NetworkHandler;
 import top.theillusivec4.curios.common.network.server.sync.SPacketSyncCurios;
 
 import javax.annotation.Nonnull;
@@ -35,7 +34,7 @@ import java.util.regex.Pattern;
  * 现建出来的类型 Curios 存盘时不认（重进时它只按数据包分配的类型重建，多出来的会被丢掉，里面的物品退回背包），
  * 所以把编辑器设过的数量记在玩家的持久化 NBT 里，登录和重生后再按记录加回去。
  * <p>
- * 引用了 Curios 的实现类（CurioStacksHandler、NetworkHandler、SPacketSyncCurios），版本对应 5.14.1；
+ * 引用了 Curios 的实现类（CurioStacksHandler、SPacketSyncCurios），版本对应 9.5.1（1.21.1）；
  * 只能在 {@link CuriosIntegration#isCuriosLoaded()} 为 true 时调用。
  */
 public final class CurioSlotManager {
@@ -76,7 +75,7 @@ public final class CurioSlotManager {
     @Nonnull
     public static Component setSlotCount(@Nonnull ServerPlayer player, @Nonnull String slotId, int amount) {
         int target = Mth.clamp(amount, 0, MAX_SLOTS);
-        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).resolve().orElse(null);
+        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).orElse(null);
         if (handler == null) {
             return Component.translatable("message.battlecorrection.slots.no_inventory").withStyle(ChatFormatting.RED);
         }
@@ -101,7 +100,7 @@ public final class CurioSlotManager {
         if (counts == null || counts.isEmpty()) {
             return;
         }
-        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).resolve().orElse(null);
+        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).orElse(null);
         if (handler == null) {
             return;
         }
@@ -182,7 +181,7 @@ public final class CurioSlotManager {
      * @param handler 饰品栏
      */
     private static void sync(@Nonnull ServerPlayer player, @Nonnull ICuriosItemHandler handler) {
-        NetworkHandler.INSTANCE.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> player),
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(player,
                 new SPacketSyncCurios(player.getId(), handler.getCurios()));
     }
 

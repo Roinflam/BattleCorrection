@@ -1,9 +1,8 @@
 package pers.roinflam.battlecorrection.editor;
 
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.world.item.component.ItemLore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -15,16 +14,18 @@ import java.util.Set;
 /**
  * Lore 的行模型：载入、编辑、写回，不依赖界面，可以单独测
  * <p>
- * 每一行记着载入时的原文（display.Lore 里那串 JSON）。写回时没动过的行原样写原文，逐字节一致，
- * 点击 / 悬停事件、字体、翻译键这些编辑文本表达不了的东西都还在；动过的行才按编辑文本重新生成。
+ * 每一行记着载入时的原文。写回时没动过的行原样写原文，点击 / 悬停事件、字体、翻译键这些编辑文本表达不了的东西都还在；
+ * 动过的行才按编辑文本重新生成。
+ * <p>
+ * 1.21.1：Lore 是 {@code minecraft:lore} 组件，每行已经是解析好的聊天组件，不再是 JSON 字符串。"原文"就是载入时那个组件对象，
+ * 没动过的行把同一个对象写回去（1.20.1 是逐字节保留原 JSON，效果一样）。原版读存档时就把每行解析成组件了，
+ * 1.20.1 里"原文不是合法 JSON"、"原文是 null"这两种坏行在 1.21.1 碰不到，对应的处理去掉了。
  * <p>
  * "没动过"看结果不看操作：当前编辑文本和"用当前基础样式解码原文"的结果一样就算没动。所以改了又改回去、
  * 上移再下移，写出去的都还是原文。切"原版样式"开关时编辑文本不变，显示效果不受基础样式影响的行（每个字都自己写了颜色）
  * 照样保留原文，只有显示效果真的会变的行才重新生成。
  * <p>
- * 原文不是合法 JSON 的行（插件直接写了 § 文本之类）按 § 文本读进来。原版显示提示框时一遇到这种行就把整个 Lore 删掉，
- * 原样留着只会继续坏，所以只要写回，这种行就改写成合法的 JSON。一行都没动时页面根本不写，物品保持原样。
- * 原文是 {@code ""} 或 {@code null} 的行不算坏：原版只是跳过它，没改成别的字就原样写回。
+ * 一行都没动时页面根本不写，物品保持原样。
  * <p>
  * 基础样式和外层样式见 {@link LegacyComponents#loreBase} / {@link LegacyComponents#LORE_PARENT}。
  */
@@ -35,25 +36,12 @@ public final class LoreLines {
      */
     private static final class Line {
         /**
-         * 载入时的原文；新加的行为 null
-         */
-        @Nullable
-        final String raw;
-        /**
-         * 原文解析出的组件；新加的行、原文不是合法 JSON 时为 null
+         * 载入时的原文（物品上那一行组件）；新加的行为 null
          */
         @Nullable
         final Component parsed;
         /**
-         * 原文不是合法 JSON，按 § 文本读进来的
-         */
-        final boolean plain;
-        /**
-         * 原文解析出来是 null（空串、"null"）：原版跳过这一行，编辑文本是空的
-         */
-        final boolean nullJson;
-        /**
-         * 原文里编辑文本表达不了的东西；合法 JSON 的行在第一次解码时顺带算出（省一遍拍平），之前为 null
+         * 原文里编辑文本表达不了的东西；有原文的行在第一次解码时顺带算出（省一遍拍平），之前为 null
          */
         @Nullable
         Set<LegacyComponents.Lossy> lossy;
@@ -70,15 +58,13 @@ public final class LoreLines {
         String editable;
 
         /**
-         * 生成缓存：按 genFor（编辑文本，比身份）和 genVanilla 生成的组件与 JSON
+         * 生成缓存：按 genFor（编辑文本，比身份）和 genVanilla 生成的组件
          */
         @Nullable
         String genFor;
         boolean genVanilla;
         @Nullable
         MutableComponent genComponent;
-        @Nullable
-        String genJson;
 
         /**
          * "没动过"的判断缓存：按 keptFor（编辑文本，比身份）和 keptVanilla
@@ -88,12 +74,8 @@ public final class LoreLines {
         boolean keptVanilla;
         boolean kept;
 
-        Line(@Nullable String raw, @Nullable Component parsed, boolean plain, boolean nullJson,
-             @Nullable Set<LegacyComponents.Lossy> lossy, @Nonnull String editable) {
-            this.raw = raw;
+        Line(@Nullable Component parsed, @Nullable Set<LegacyComponents.Lossy> lossy, @Nonnull String editable) {
             this.parsed = parsed;
-            this.plain = plain;
-            this.nullJson = nullJson;
             this.lossy = lossy;
             this.decoded = parsed == null ? null : new String[2];
             this.editable = editable;
@@ -103,11 +85,11 @@ public final class LoreLines {
          * 新加的一行
          */
         static Line fresh(@Nonnull String editable) {
-            return new Line(null, null, false, false, Collections.emptySet(), editable);
+            return new Line(null, Collections.emptySet(), editable);
         }
 
         /**
-         * 原文按某种基础样式解码的编辑文本（只对合法 JSON 的原文有意义）
+         * 原文按某种基础样式解码的编辑文本（只对有原文的行有意义）
          */
         @Nonnull
         String decodedFor(boolean vanilla) {
@@ -151,8 +133,8 @@ public final class LoreLines {
          */
         boolean kept(boolean vanilla) {
             if (parsed == null) {
-                // 新加的行没有原文；原文不是合法 JSON 的行一写就改写；原文是 null 的行没打字就照旧
-                return nullJson && editable.isEmpty();
+                // 新加的行没有原文
+                return false;
             }
             String current = editable;
             if (keptFor != current || keptVanilla != vanilla) {
@@ -171,13 +153,11 @@ public final class LoreLines {
          */
         void generate(boolean vanilla) {
             String current = editable;
-            if (genFor == current && genVanilla == vanilla && genJson != null) {
+            if (genFor == current && genVanilla == vanilla && genComponent != null) {
                 return;
             }
-            MutableComponent component = LegacyComponents.toComponent(current, LegacyComponents.loreBase(vanilla),
+            genComponent = LegacyComponents.toComponent(current, LegacyComponents.loreBase(vanilla),
                     LegacyComponents.LORE_PARENT);
-            genComponent = component;
-            genJson = Component.Serializer.toJson(component);
             genFor = current;
             genVanilla = vanilla;
         }
@@ -214,20 +194,14 @@ public final class LoreLines {
     }
 
     /**
-     * 从 display.Lore 载入
+     * 从 {@code minecraft:lore} 组件载入
      *
-     * @param lore 列表（元素是 JSON 字符串）；null = 没有 Lore
+     * @param lore 组件；null = 没有 Lore
      * @return 模型
      */
     @Nonnull
-    public static LoreLines fromTag(@Nullable ListTag lore) {
-        List<String> raws = new ArrayList<>(lore == null ? 0 : lore.size());
-        if (lore != null) {
-            for (int i = 0; i < lore.size(); i++) {
-                raws.add(lore.getString(i));
-            }
-        }
-        return load(raws);
+    public static LoreLines fromLore(@Nullable ItemLore lore) {
+        return load(lore == null ? List.of() : lore.lines());
     }
 
     /**
@@ -242,7 +216,7 @@ public final class LoreLines {
      * @return 模型
      */
     @Nonnull
-    public static LoreLines load(@Nonnull List<String> raws) {
+    public static LoreLines load(@Nonnull List<Component> raws) {
         List<Line> lines = new ArrayList<>(raws.size());
         long white = 0;
         long purple = 0;
@@ -250,19 +224,15 @@ public final class LoreLines {
         for (int i = 0; i < raws.size(); i++) {
             Line line = read(raws.get(i));
             lines.add(line);
-            if (line.parsed != null) {
-                white += line.decodedFor(false).length();
-                purple += line.decodedFor(true).length();
-                if (i == 0) {
-                    firstBlank = LegacyComponents.isBlank(line.parsed.getStyle());
-                }
+            white += line.decodedFor(false).length();
+            purple += line.decodedFor(true).length();
+            if (i == 0) {
+                firstBlank = LegacyComponents.isBlank(raws.get(i).getStyle());
             }
         }
         boolean vanilla = purple < white || (purple == white && firstBlank);
         for (Line line : lines) {
-            if (line.parsed != null) {
-                line.editable = line.decodedFor(vanilla);
-            }
+            line.editable = line.decodedFor(vanilla);
         }
         return new LoreLines(lines, vanilla);
     }
@@ -275,13 +245,11 @@ public final class LoreLines {
      * @return 模型
      */
     @Nonnull
-    public static LoreLines load(@Nonnull List<String> raws, boolean vanilla) {
+    public static LoreLines load(@Nonnull List<Component> raws, boolean vanilla) {
         List<Line> lines = new ArrayList<>(raws.size());
-        for (String raw : raws) {
+        for (Component raw : raws) {
             Line line = read(raw);
-            if (line.parsed != null) {
-                line.editable = line.decodedFor(vanilla);
-            }
+            line.editable = line.decodedFor(vanilla);
             lines.add(line);
         }
         return new LoreLines(lines, vanilla);
@@ -291,82 +259,41 @@ public final class LoreLines {
      * 读一行原文（编辑文本先放解码前的占位，载入时按选定的基础样式填）
      */
     @Nonnull
-    private static Line read(@Nonnull String raw) {
-        MutableComponent parsed = parse(raw);
-        if (parsed == null) {
-            // 原版对解析出 null 的行（"null"、空串）什么都不显示，对解析失败的行整个 Lore 都不显示；
-            // 前者当空行，后者按 § 文本处理：§ 码变 & 码，不成码的 § 变成字面的 &，一个字都不吞，
-            // 编辑文本里也不会留下输入框打不出来的 §。原文里的 & 是普通字符（"R&D" 这种），必要时转义成 &&，
-            // 不能像粘贴那样把不带 § 的文本当成 & 写法，否则 &D 会被读成颜色码
-            boolean nullJson = isNullJson(raw);
-            String editable = nullJson ? "" : LegacyText.fromStored(raw);
-            return new Line(raw, null, !nullJson, nullJson, Collections.emptySet(), editable);
-        }
-        return new Line(raw, parsed, false, false, null, "");
+    private static Line read(@Nonnull Component raw) {
+        return new Line(raw, null, "");
     }
 
     /**
-     * 解析一行 JSON
+     * 写回用的组件：没动过的行是原来那个组件对象，其余按编辑文本生成
+     * <p>
+     * 1.21.1 的 Lore 最多 {@link ItemLore#MAX_LINES} 行（编解码器的限制，超了整件物品存不了盘），多出来的行不写。
      *
-     * @param json JSON
-     * @return 组件；不合法或者是 null 时返回 null
-     */
-    @Nullable
-    public static MutableComponent parse(@Nonnull String json) {
-        try {
-            return Component.Serializer.fromJson(json);
-        } catch (RuntimeException ignored) {
-            // 物品数据来自任意来源，JSON 结构不对时 Gson 会抛各种运行时异常，原版这里也是全接住
-            return null;
-        }
-    }
-
-    private static boolean isNullJson(@Nonnull String raw) {
-        String trimmed = raw.trim();
-        return trimmed.isEmpty() || trimmed.equals("null");
-    }
-
-    /**
-     * 写回用的列表：没动过的行是原文，其余按编辑文本生成
-     *
-     * @return 列表（元素是 JSON 字符串）
+     * @return 组件
      */
     @Nonnull
-    public ListTag toTag() {
-        ListTag tag = new ListTag();
-        for (int i = 0; i < lines.size(); i++) {
-            tag.add(StringTag.valueOf(json(i)));
+    public ItemLore toLore() {
+        int size = Math.min(lines.size(), ItemLore.MAX_LINES);
+        List<Component> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            result.add(component(i));
         }
-        return tag;
-    }
-
-    /**
-     * 写回用的字符串列表
-     *
-     * @return 每行 JSON
-     */
-    @Nonnull
-    public List<String> jsons() {
-        List<String> result = new ArrayList<>(lines.size());
-        for (int i = 0; i < lines.size(); i++) {
-            result.add(json(i));
-        }
-        return result;
+        return new ItemLore(result);
     }
 
     /**
      * 物品上现在的 Lore 是不是就是这个模型会写出去的东西
      *
-     * @param lore 物品上的列表；null = 没有
+     * @param lore 物品上的组件；null = 没有
      * @return true = 一致
      */
-    public boolean matches(@Nullable ListTag lore) {
-        int size = lore == null ? 0 : lore.size();
-        if (size != lines.size()) {
+    public boolean matches(@Nullable ItemLore lore) {
+        List<Component> current = lore == null ? List.of() : lore.lines();
+        int size = Math.min(lines.size(), ItemLore.MAX_LINES);
+        if (current.size() != size) {
             return false;
         }
         for (int i = 0; i < size; i++) {
-            if (!lore.getString(i).equals(json(i))) {
+            if (!current.get(i).equals(component(i))) {
                 return false;
             }
         }
@@ -412,7 +339,7 @@ public final class LoreLines {
     }
 
     /**
-     * 原文里编辑文本表达不了的东西（新加的行、原文不合法的行为空）
+     * 原文里编辑文本表达不了的东西（新加的行为空）
      *
      * @param index 行下标
      * @return 集合
@@ -424,12 +351,14 @@ public final class LoreLines {
 
     /**
      * 原文是不是不合法的 JSON（按 § 文本读进来的）
+     * <p>
+     * 1.21.1 的 Lore 每行都是解析好的组件，没有这种行，恒为 false（接口留着给界面的提示用）。
      *
      * @param index 行下标
      * @return true = 不合法
      */
     public boolean plain(int index) {
-        return lines.get(index).plain;
+        return false;
     }
 
     /**
@@ -444,23 +373,7 @@ public final class LoreLines {
     }
 
     /**
-     * 写出去的 JSON
-     *
-     * @param index 行下标
-     * @return JSON
-     */
-    @Nonnull
-    public String json(int index) {
-        Line line = lines.get(index);
-        if (line.kept(vanilla)) {
-            return line.raw == null ? "" : line.raw;
-        }
-        line.generate(vanilla);
-        return line.genJson == null ? "" : line.genJson;
-    }
-
-    /**
-     * 写出去的那一行对应的组件（预览用，和写进物品的是同一份转换结果；不要改它）
+     * 写出去的那一行对应的组件（写回物品、预览都用它；不要改它）
      *
      * @param index 行下标
      * @return 组件
@@ -472,7 +385,8 @@ public final class LoreLines {
             return line.parsed;
         }
         line.generate(vanilla);
-        return line.genComponent == null ? Component.empty() : line.genComponent;
+        MutableComponent generated = line.genComponent;
+        return generated == null ? Component.empty() : generated;
     }
 
     // 改

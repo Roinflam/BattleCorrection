@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.command;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -10,6 +11,7 @@ import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -20,7 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import pers.roinflam.battlecorrection.compat.CurioMark;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -149,12 +151,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.addSlot(stack, slotId)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.already",
-                    ItemUtil.chatName(stack), CurioMark.slotName(slotId)));
+                    ItemUtil.chatName(stack, source.registryAccess()), CurioMark.slotName(slotId)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.added",
-                ItemUtil.chatName(stack), CurioMark.slotName(slotId)), true);
+                ItemUtil.chatName(stack, source.registryAccess()), CurioMark.slotName(slotId)), true);
         warnNativeModifiers(source, stack);
         LogUtil.info(String.format("%s 给物品 %s 添加了饰品栏标记: %s",
                 player.getName().getString(), stack.getHoverName().getString(), slotId));
@@ -182,12 +184,12 @@ public final class CurioMarkCommand {
         String slotId = readSlot(context);
         if (!CurioMark.removeSlot(stack, slotId)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.not_marked_slot",
-                    ItemUtil.chatName(stack), CurioMark.slotName(slotId)));
+                    ItemUtil.chatName(stack, source.registryAccess()), CurioMark.slotName(slotId)));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.removed",
-                ItemUtil.chatName(stack), CurioMark.slotName(slotId)), true);
+                ItemUtil.chatName(stack, source.registryAccess()), CurioMark.slotName(slotId)), true);
         LogUtil.info(String.format("%s 移除了物品 %s 的饰品栏标记: %s",
                 player.getName().getString(), stack.getHoverName().getString(), slotId));
         return 1;
@@ -213,12 +215,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.clearSlots(stack)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.list_none",
-                    ItemUtil.chatName(stack)));
+                    ItemUtil.chatName(stack, source.registryAccess())));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.cleared",
-                ItemUtil.chatName(stack)), true);
+                ItemUtil.chatName(stack, source.registryAccess())), true);
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品栏标记",
                 player.getName().getString(), stack.getHoverName().getString()));
         return 1;
@@ -244,20 +246,20 @@ public final class CurioMarkCommand {
 
         if (slots.isEmpty() && modifiers.isEmpty()) {
             source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.list_none",
-                    ItemUtil.chatName(stack)), false);
+                    ItemUtil.chatName(stack, source.registryAccess())), false);
             return 0;
         }
 
         if (!slots.isEmpty()) {
             source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.list",
-                    ItemUtil.chatName(stack), CurioMark.joinSlotNames(slots)), false);
+                    ItemUtil.chatName(stack, source.registryAccess()), CurioMark.joinSlotNames(slots)), false);
         }
         for (CurioMark.ModifierEntry entry : modifiers) {
-            ResourceLocation attributeId = ForgeRegistries.ATTRIBUTES.getKey(entry.attribute());
+            ResourceLocation attributeId = entry.attribute().unwrapKey().map(key -> key.location()).orElse(null);
             source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.attr_line",
                     attributeId == null ? "?" : attributeId.toString(),
-                    ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(entry.modifier().getAmount()),
-                    OPERATION_NAMES[entry.modifier().getOperation().toValue()],
+                    ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(entry.modifier().amount()),
+                    OPERATION_NAMES[entry.modifier().operation().id()],
                     CurioMark.slotName(entry.slotId())), false);
         }
         warnNativeModifiers(source, stack);
@@ -297,7 +299,7 @@ public final class CurioMarkCommand {
             return 0;
         }
 
-        Attribute attribute = readAttribute(source, context);
+        Holder<Attribute> attribute = readAttribute(source, context);
         if (attribute == null) {
             return 0;
         }
@@ -310,11 +312,11 @@ public final class CurioMarkCommand {
 
         UUID uuid = CurioMark.newModifierUuid();
         CurioMark.addModifier(stack, attribute, amount,
-                AttributeModifier.Operation.fromValue(operationId), slotId, uuid);
+                AttributeModifier.Operation.BY_ID.apply(operationId), slotId, uuid);
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.attr_added",
-                Component.translatable(attribute.getDescriptionId()),
-                ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(amount),
+                Component.translatable(attribute.value().getDescriptionId()),
+                ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(amount),
                 OPERATION_NAMES[operationId],
                 CurioMark.slotName(slotId)), true);
 
@@ -327,7 +329,7 @@ public final class CurioMarkCommand {
 
         LogUtil.info(String.format("%s 给物品 %s 追加了饰品属性: %s %s (%s, 饰品栏: %s)",
                 player.getName().getString(), stack.getHoverName().getString(),
-                attribute.getDescriptionId(), amount, OPERATION_NAMES[operationId], slotId));
+                attribute.value().getDescriptionId(), amount, OPERATION_NAMES[operationId], slotId));
         return 1;
     }
 
@@ -351,7 +353,7 @@ public final class CurioMarkCommand {
             return 0;
         }
 
-        Attribute attribute = readAttribute(source, context);
+        Holder<Attribute> attribute = readAttribute(source, context);
         if (attribute == null) {
             return 0;
         }
@@ -359,16 +361,16 @@ public final class CurioMarkCommand {
         int removed = CurioMark.removeModifiers(stack, attribute, slotId);
         if (removed == 0) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.attr_not_found",
-                    Component.translatable(attribute.getDescriptionId())));
+                    Component.translatable(attribute.value().getDescriptionId())));
             return 0;
         }
 
         int count = removed;
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.attr_removed",
-                Component.translatable(attribute.getDescriptionId()), count), true);
+                Component.translatable(attribute.value().getDescriptionId()), count), true);
         LogUtil.info(String.format("%s 移除了物品 %s 的饰品属性: %s (%d 条)",
                 player.getName().getString(), stack.getHoverName().getString(),
-                attribute.getDescriptionId(), removed));
+                attribute.value().getDescriptionId(), removed));
         return removed;
     }
 
@@ -393,12 +395,12 @@ public final class CurioMarkCommand {
 
         if (!CurioMark.clearModifiers(stack)) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.attr_none",
-                    ItemUtil.chatName(stack)));
+                    ItemUtil.chatName(stack, source.registryAccess())));
             return 0;
         }
 
         source.sendSuccess(() -> Component.translatable("command.battlecorrection.curio.attr_cleared",
-                ItemUtil.chatName(stack)), true);
+                ItemUtil.chatName(stack, source.registryAccess())), true);
         LogUtil.info(String.format("%s 清除了物品 %s 的全部饰品属性",
                 player.getName().getString(), stack.getHoverName().getString()));
         return 1;
@@ -488,10 +490,10 @@ public final class CurioMarkCommand {
      * @return 属性；不存在时返回 null 并已发出提示
      */
     @Nullable
-    private static Attribute readAttribute(@Nonnull CommandSourceStack source,
-                                           @Nonnull CommandContext<CommandSourceStack> context) {
+    private static Holder<Attribute> readAttribute(@Nonnull CommandSourceStack source,
+                                                   @Nonnull CommandContext<CommandSourceStack> context) {
         ResourceLocation attributeId = ResourceLocationArgument.getId(context, ARG_ATTRIBUTE);
-        Attribute attribute = ForgeRegistries.ATTRIBUTES.getValue(attributeId);
+        Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attributeId).orElse(null);
         if (attribute == null) {
             source.sendFailure(Component.translatable("command.battlecorrection.curio.unknown_attribute",
                     attributeId.toString()));
@@ -512,7 +514,7 @@ public final class CurioMarkCommand {
     @Nonnull
     private static CompletableFuture<Suggestions> suggestAttributes(
             @Nonnull CommandContext<CommandSourceStack> context, @Nonnull SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggestResource(ForgeRegistries.ATTRIBUTES.getKeys(), builder);
+        return SharedSuggestionProvider.suggestResource(BuiltInRegistries.ATTRIBUTE.keySet(), builder);
     }
 
     /**
@@ -531,7 +533,7 @@ public final class CurioMarkCommand {
         }
         List<ResourceLocation> ids = new ArrayList<>();
         for (CurioMark.ModifierEntry entry : CurioMark.getModifiers(player.getMainHandItem())) {
-            ResourceLocation id = ForgeRegistries.ATTRIBUTES.getKey(entry.attribute());
+            ResourceLocation id = entry.attribute().unwrapKey().map(key -> key.location()).orElse(null);
             if (id != null && !ids.contains(id)) {
                 ids.add(id);
             }

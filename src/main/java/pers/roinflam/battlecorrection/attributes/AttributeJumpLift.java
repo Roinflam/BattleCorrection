@@ -3,9 +3,9 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
  * 跳跃提升属性
  * 提高跳跃高度，数值约等于额外的跳跃格数（1 ≈ +1格）
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeJumpLift {
 
     /**
@@ -36,7 +36,7 @@ public class AttributeJumpLift {
             return;
         }
 
-        double attributeBoost = AttributesUtil.getAttributeValue(entity, ModAttributes.JUMP_LIFT.get());
+        double attributeBoost = AttributesUtil.getAttributeValue(entity, ModAttributes.JUMP_LIFT);
         double configBoost = ConfigAttribute.JUMP_LIFT.get();
         double jumpBoost = attributeBoost + configBoost;
 

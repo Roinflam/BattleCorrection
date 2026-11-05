@@ -22,13 +22,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.editor.ItemEditTarget;
@@ -91,7 +91,7 @@ public final class ItemEditorClient {
     /**
      * MOD 总线：注册按键
      */
-    @Mod.EventBusSubscriber(modid = Reference.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = Reference.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
     public static final class ModBusEvents {
 
         private ModBusEvents() {
@@ -114,7 +114,7 @@ public final class ItemEditorClient {
     /**
      * FORGE 总线：按键检测
      */
-    @Mod.EventBusSubscriber(modid = Reference.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = Reference.MOD_ID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
     public static final class ForgeBusEvents {
 
         private ForgeBusEvents() {
@@ -126,10 +126,8 @@ public final class ItemEditorClient {
          * @param evt 事件
          */
         @SubscribeEvent
-        public static void onClientTick(@Nonnull TickEvent.ClientTickEvent evt) {
-            if (evt.phase != TickEvent.Phase.END) {
-                return;
-            }
+        public static void onClientTick(@Nonnull ClientTickEvent.Post evt) {
+            // 1.21.1 的客户端 tick 事件分成 Pre / Post 两个类，订 Post 就是 1.20.1 的 END 阶段
             Minecraft mc = Minecraft.getInstance();
             // 点击计数得清掉，否则开着界面时攒下的点击会在关界面后突然触发
             boolean open = KEY_OPEN.consumeClick();

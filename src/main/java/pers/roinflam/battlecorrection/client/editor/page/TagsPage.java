@@ -2,16 +2,18 @@ package pers.roinflam.battlecorrection.client.editor.page;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.component.Unbreakable;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorScreen;
+import pers.roinflam.battlecorrection.client.editor.ItemRoots;
+import pers.roinflam.battlecorrection.client.editor.TooltipFlags;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatEditBox;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatToggle;
@@ -29,12 +31,14 @@ import java.util.List;
 import java.util.function.IntConsumer;
 
 /**
- * 标签页：常用的特殊 NBT 标签，全是开关和数字框
+ * 标签页：常用的特殊数据，全是开关和数字框
  * <ul>
- *   <li>Unbreakable：不可破坏</li>
- *   <li>附魔光效：往 Enchantments 里塞一个空条目 {@code [{}]}，物品会发光但不显示任何附魔。
+ *   <li>不可破坏：{@code minecraft:unbreakable}</li>
+ *   <li>附魔光效：{@code minecraft:enchantment_glint_override} 设为 true，物品会发光但不显示任何附魔
+ *   （1.20.1 是往 Enchantments 里塞一个空条目 {@code [{}]}，原版数据修复器也是把它换成这个组件）。
  *   物品已有真实附魔时光效本来就有，开关锁定</li>
- *   <li>HideFlags：8 个位，每位隐藏一类提示信息</li>
+ *   <li>隐藏信息：8 个开关，每个隐藏一类提示信息。1.20.1 是 HideFlags 的 8 个位；1.21.1 拆进了各组件自己的
+ *   {@code show_in_tooltip}，对应关系见 {@link TooltipFlags}。物品上没有那个组件（例如不是不可破坏的物品）时没东西可藏，开关灰掉</li>
  *   <li>CustomModelData、Damage、RepairCost、Count：数字</li>
  *   <li>最低品质：提示框模组可以读的 Epic / Legendary / Myth / Genesis 标记，见 {@link ItemQuality}，
  *   配置 itemEditorQualityTags 关掉就不显示这一行</li>
@@ -49,17 +53,17 @@ public class TagsPage extends EditorPageBase {
     private static final int NUMBER_BOX_HEIGHT = 14;
 
     /**
-     * HideFlags 的各个位：掩码 + 翻译键后缀
+     * 隐藏信息的各个开关：对应 1.20.1 HideFlags 的位 + 翻译键后缀
      */
     private static final Object[][] HIDE_FLAGS = {
-            {1, "enchantments"},
-            {2, "modifiers"},
-            {4, "unbreakable"},
-            {8, "can_destroy"},
-            {16, "can_place"},
-            {32, "additional"},
-            {64, "dye"},
-            {128, "upgrades"},
+            {TooltipFlags.ENCHANTMENTS, "enchantments"},
+            {TooltipFlags.MODIFIERS, "modifiers"},
+            {TooltipFlags.UNBREAKABLE, "unbreakable"},
+            {TooltipFlags.CAN_BREAK, "can_destroy"},
+            {TooltipFlags.CAN_PLACE_ON, "can_place"},
+            {TooltipFlags.ADDITIONAL, "additional"},
+            {TooltipFlags.DYE, "dye"},
+            {TooltipFlags.TRIM, "upgrades"},
     };
 
     /**
@@ -81,6 +85,10 @@ public class TagsPage extends EditorPageBase {
 
     @Nullable
     private FlatToggle glintToggle;
+    /**
+     * 隐藏信息的开关，按 {@link #HIDE_FLAGS} 的顺序；物品上有没有对应组件会变（例如刚勾上不可破坏），要跟着刷新能不能点
+     */
+    private final List<FlatToggle> hideToggles = new ArrayList<>();
     @Nullable
     private FlatButton qualityButton;
     private final PopupList<QualityRow> qualityPopup = new PopupList<>();
@@ -105,19 +113,18 @@ public class TagsPage extends EditorPageBase {
     @Override
     protected void build() {
         ItemStack working = session.working();
-        CompoundTag tag = session.tagOrNull();
         int columnWidth = (width - COLUMN_GAP) / 2;
         int rightX = x + columnWidth + COLUMN_GAP;
         int cursorY = y;
 
         // 第一行：不可破坏 | 附魔光效
         add(new FlatToggle(x, cursorY, Component.translatable("gui.battlecorrection.editor.tags.unbreakable"),
-                tag != null && tag.getBoolean("Unbreakable"), this::setUnbreakable)
+                working.has(DataComponents.UNBREAKABLE), this::setUnbreakable)
                 .tooltip(Component.translatable("gui.battlecorrection.editor.tags.unbreakable.tooltip")));
 
-        boolean hasRealEnchantments = !EnchantmentHelper.getEnchantments(working).isEmpty();
+        boolean hasRealEnchantments = !EnchantmentHelper.getEnchantmentsForCrafting(working).isEmpty();
         glintToggle = add(new FlatToggle(rightX, cursorY, Component.translatable("gui.battlecorrection.editor.tags.glint"),
-                working.isEnchanted(), this::setGlint));
+                hasGlintOverride(working), this::setGlint));
         if (hasRealEnchantments) {
             glintToggle.active = false;
             glintToggle.setSelected(true);
@@ -143,7 +150,8 @@ public class TagsPage extends EditorPageBase {
         // 隐藏信息：标签在 render 里画，下面两列开关
         hideLabelY = cursorY + 4;
         cursorY += 15;
-        int hideFlags = tag != null ? tag.getInt("HideFlags") : 0;
+        int hideFlags = TooltipFlags.read(working);
+        hideToggles.clear();
         for (int i = 0; i < HIDE_FLAGS.length; i++) {
             int mask = (Integer) HIDE_FLAGS[i][0];
             String key = (String) HIDE_FLAGS[i][1];
@@ -151,9 +159,10 @@ public class TagsPage extends EditorPageBase {
             int row = i / 2;
             int toggleX = column == 0 ? x : rightX;
             int toggleY = cursorY + row * (FlatToggle.HEIGHT + ROW_GAP);
-            add(new FlatToggle(toggleX, toggleY, Component.translatable("gui.battlecorrection.editor.tags.hide." + key),
-                    (hideFlags & mask) != 0, value -> setHideFlag(mask, value)));
+            hideToggles.add(add(new FlatToggle(toggleX, toggleY, Component.translatable("gui.battlecorrection.editor.tags.hide." + key),
+                    (hideFlags & mask) != 0, value -> setHideFlag(mask, value))));
         }
+        refreshHideToggles();
         cursorY += 4 * (FlatToggle.HEIGHT + ROW_GAP) + 6;
 
         // 数字：两列两行
@@ -162,7 +171,8 @@ public class TagsPage extends EditorPageBase {
         int numberRowHeight = NUMBER_BOX_HEIGHT + 16;
 
         addNumberBox(x, cursorY, columnWidth, "custom_model_data",
-                tag != null && tag.contains("CustomModelData", Tag.TAG_ANY_NUMERIC) ? tag.getInt("CustomModelData") : null,
+                working.has(DataComponents.CUSTOM_MODEL_DATA) ? working.getOrDefault(DataComponents.CUSTOM_MODEL_DATA,
+                        CustomModelData.DEFAULT).value() : null,
                 this::setCustomModelData, true);
 
         boolean damageable = working.isDamageableItem();
@@ -174,8 +184,9 @@ public class TagsPage extends EditorPageBase {
         }
         cursorY += numberRowHeight;
 
+        int repairCost = working.getOrDefault(DataComponents.REPAIR_COST, 0);
         addNumberBox(x, cursorY, columnWidth, "repair_cost",
-                working.getBaseRepairCost() > 0 ? working.getBaseRepairCost() : null, this::setRepairCost, true);
+                repairCost > 0 ? repairCost : null, this::setRepairCost, true);
         addNumberBox(rightX, cursorY, columnWidth, "count", working.getCount(), this::setCount, true);
     }
 
@@ -286,69 +297,88 @@ public class TagsPage extends EditorPageBase {
 
     /**
      * 不可破坏
+     * <p>
+     * 1.21.1 的"隐藏不可破坏"存在不可破坏组件自己身上，取消不可破坏时它也就没了；勾上时沿用隐藏开关当前的状态。
      *
      * @param value 开/关
      */
     private void setUnbreakable(boolean value) {
+        ItemStack working = session.working();
         if (value) {
-            session.tag().putBoolean("Unbreakable", true);
-        } else {
-            CompoundTag tag = session.tagOrNull();
-            if (tag != null) {
-                tag.remove("Unbreakable");
+            if (!working.has(DataComponents.UNBREAKABLE)) {
+                working.set(DataComponents.UNBREAKABLE, new Unbreakable(!hideToggleSelected(TooltipFlags.UNBREAKABLE)));
             }
+        } else {
+            working.remove(DataComponents.UNBREAKABLE);
         }
+        refreshHideToggles();
     }
 
     /**
-     * 附魔光效：靠一个空的附魔条目实现
+     * 物品上的附魔光效是不是这一页（或者别人）手动打开的：只看组件补丁，物品自带的光效（下界之星这类）不算
+     */
+    private static boolean hasGlintOverride(@Nonnull ItemStack stack) {
+        var override = stack.getComponentsPatch().get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
+        return override != null && override.isPresent() && Boolean.TRUE.equals(override.get());
+    }
+
+    /**
+     * 附魔光效：靠 {@code minecraft:enchantment_glint_override} 组件实现
+     * <p>
+     * 关掉 = 还原物品默认的光效设定（1.20.1 关掉也只是删掉那个空附魔条目，自带光效的物品照样发光）。
      *
      * @param value 开/关
      */
     private void setGlint(boolean value) {
+        ItemStack working = session.working();
         if (value) {
-            CompoundTag tag = session.tag();
-            ListTag enchantments = tag.getList("Enchantments", Tag.TAG_COMPOUND);
-            if (enchantments.isEmpty()) {
-                enchantments.add(new CompoundTag());
-                tag.put("Enchantments", enchantments);
-            }
-            return;
-        }
-        CompoundTag tag = session.tagOrNull();
-        if (tag == null || !tag.contains("Enchantments", Tag.TAG_LIST)) {
-            return;
-        }
-        ListTag enchantments = tag.getList("Enchantments", Tag.TAG_COMPOUND);
-        ListTag kept = new ListTag();
-        for (int i = 0; i < enchantments.size(); i++) {
-            CompoundTag entry = enchantments.getCompound(i);
-            if (!entry.isEmpty()) {
-                kept.add(entry);
-            }
-        }
-        if (kept.isEmpty()) {
-            tag.remove("Enchantments");
-        } else {
-            tag.put("Enchantments", kept);
+            working.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        } else if (hasGlintOverride(working)) {
+            ItemRoots.resetToDefault(working, DataComponents.ENCHANTMENT_GLINT_OVERRIDE);
         }
     }
 
     /**
-     * 设置/清除 HideFlags 的某一位
+     * 打开 / 关闭一类提示信息的隐藏
      *
-     * @param mask  位掩码
+     * @param mask  1.20.1 HideFlags 的位
      * @param value 开/关
      */
     private void setHideFlag(int mask, boolean value) {
-        CompoundTag tag = session.tag();
-        int flags = tag.getInt("HideFlags");
-        flags = value ? (flags | mask) : (flags & ~mask);
-        if (flags == 0) {
-            tag.remove("HideFlags");
-        } else {
-            tag.putInt("HideFlags", flags);
+        TooltipFlags.set(session.working(), mask, value);
+    }
+
+    /**
+     * 按物品上现在有哪些组件刷新各隐藏开关能不能点；没东西可藏的开关显示为未勾选
+     */
+    private void refreshHideToggles() {
+        ItemStack working = session.working();
+        int flags = TooltipFlags.read(working);
+        for (int i = 0; i < hideToggles.size() && i < HIDE_FLAGS.length; i++) {
+            int mask = (Integer) HIDE_FLAGS[i][0];
+            FlatToggle toggle = hideToggles.get(i);
+            boolean available = TooltipFlags.available(working, mask);
+            toggle.active = available;
+            if (available) {
+                toggle.setSelected((flags & mask) != 0);
+                toggle.setTooltip(null);
+            } else {
+                toggle.setSelected(false);
+                toggle.tooltip(Component.translatable("gui.battlecorrection.editor.tags.hide.na"));
+            }
         }
+    }
+
+    /**
+     * 某个隐藏开关现在勾没勾
+     */
+    private boolean hideToggleSelected(int mask) {
+        for (int i = 0; i < hideToggles.size() && i < HIDE_FLAGS.length; i++) {
+            if ((Integer) HIDE_FLAGS[i][0] == mask) {
+                return hideToggles.get(i).isSelected();
+            }
+        }
+        return false;
     }
 
     /**
@@ -358,13 +388,10 @@ public class TagsPage extends EditorPageBase {
      */
     private void setCustomModelData(int value) {
         if (value == Integer.MIN_VALUE) {
-            CompoundTag tag = session.tagOrNull();
-            if (tag != null) {
-                tag.remove("CustomModelData");
-            }
+            session.working().remove(DataComponents.CUSTOM_MODEL_DATA);
             return;
         }
-        session.tag().putInt("CustomModelData", value);
+        session.working().set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(value));
     }
 
     /**
@@ -384,17 +411,14 @@ public class TagsPage extends EditorPageBase {
     /**
      * 铁砧修复惩罚
      *
-     * @param value 数值；Integer.MIN_VALUE 或 0 = 清除
+     * @param value 数值；Integer.MIN_VALUE 或 0 = 清除（还原成默认的 0）
      */
     private void setRepairCost(int value) {
         if (value == Integer.MIN_VALUE || value <= 0) {
-            CompoundTag tag = session.tagOrNull();
-            if (tag != null) {
-                tag.remove("RepairCost");
-            }
+            ItemRoots.resetToDefault(session.working(), DataComponents.REPAIR_COST);
             return;
         }
-        session.working().setRepairCost(value);
+        session.working().set(DataComponents.REPAIR_COST, value);
     }
 
     /**

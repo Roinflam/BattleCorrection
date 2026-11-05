@@ -1,9 +1,10 @@
 package pers.roinflam.battlecorrection.compat;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.fml.ModList;
+import net.neoforged.fml.loading.FMLEnvironment;
 import pers.roinflam.battlecorrection.handlers.CurioMarkTooltipHandler;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 
@@ -12,7 +13,7 @@ import pers.roinflam.battlecorrection.utils.LogUtil;
  * <p>
  * 只做两件事：检测 Curios 是否存在，存在时注册 {@link CurioMarkValidator}（饰品栏校验器）、
  * {@link CurioMarkEvents}（两端事件）和 {@link CurioMarkTooltipHandler}（客户端）。这几个类引用了 Curios 的类，
- * 不能用 @Mod.EventBusSubscriber 自动注册，否则没装 Curios 时启动就会找不到类而崩溃。
+ * 不能用 @EventBusSubscriber 自动注册，否则没装 Curios 时启动就会找不到类而崩溃。
  * <p>
  * 饰品上的属性怎么生效，全在 {@link CurioMarkEvents#onCurioAttributeModifiers} 里：
  * 不论是 Curios 自己的属性、命令追加的附加属性、还是物品上原版格式的 AttributeModifiers，
@@ -42,9 +43,9 @@ public class CuriosIntegration {
         if (curiosLoaded) {
             // 只有装了 Curios 才注册，这几个类都引用了 Curios 的类
             CurioMarkValidator.register();
-            MinecraftForge.EVENT_BUS.register(CurioMarkEvents.class);
+            NeoForge.EVENT_BUS.register(CurioMarkEvents.class);
             if (FMLEnvironment.dist == Dist.CLIENT) {
-                MinecraftForge.EVENT_BUS.register(CurioMarkTooltipHandler.class);
+                NeoForge.EVENT_BUS.register(CurioMarkTooltipHandler.class);
             }
             LogUtil.info("成功检测到Curios模组，已启用饰品栏属性支持和饰品栏标记功能");
         } else {

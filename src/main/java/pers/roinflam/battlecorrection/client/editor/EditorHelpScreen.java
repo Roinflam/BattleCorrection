@@ -93,9 +93,17 @@ public class EditorHelpScreen extends Screen {
         return Component.translatable("gui.battlecorrection.editor.help.desc." + row);
     }
 
+    /**
+     * 1.20.2 起 {@code Screen.render} 会先自己画一遍背景（1.21.1 在世界里是模糊 + 半透明贴图）。
+     * 背景改在 {@link #render} 开头自己画，和 1.20.1 一样只是一层暗色渐变、不模糊；super.render 里那一次就什么都不画，免得叠两层。
+     */
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
+        renderTransparentBackground(g);
         EditorTheme.panel(g, boxX, boxY, WIDTH, boxHeight);
         g.drawString(font, title, boxX + PAD + 12, boxY + 9, EditorTheme.ACCENT_HI, false);
         EditorTheme.headingLine(g, boxX + PAD, boxY + 20, WIDTH - 2 * PAD);
@@ -183,7 +191,8 @@ public class EditorHelpScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+        // 1.20.2 起滚轮事件分横向 / 纵向两个量，这里和 1.20.1 一样只用纵向的（delta）
         scroll -= (int) Math.signum(delta) * font.lineHeight * 3;
         clampScroll();
         return true;

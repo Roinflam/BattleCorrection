@@ -2,8 +2,7 @@ package pers.roinflam.battlecorrection.client.editor.page;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -18,7 +17,6 @@ import pers.roinflam.battlecorrection.client.editor.widget.FlatToggle;
 import pers.roinflam.battlecorrection.client.editor.widget.LossyMarker;
 import pers.roinflam.battlecorrection.editor.EditorPage;
 import pers.roinflam.battlecorrection.editor.LegacyComponents;
-import pers.roinflam.battlecorrection.editor.LegacyText;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,13 +28,15 @@ import java.util.Set;
  * 名字页：改显示名称
  * <p>
  * 输入框里用 & 写颜色码（含 {@code &#RRGGBB}），下面的色块/格式按钮点一下就插一个码，预览行实时显示效果。
- * 留空 = 用原版名称（删掉 display.Name）；读进来就是空白名字、还没动过时除外，见 {@link #writeToItem}。
+ * 留空 = 用原版名称（删掉自定义名字）；读进来就是空白名字、还没动过时除外，见 {@link #writeToItem}。
+ * 1.21.1 的自定义名字是 {@code minecraft:custom_name} 组件（1.20.1 是 display.Name 里的 JSON 字符串），
+ * 读写的都是组件对象，"原文"就是载入时的那个组件。
  * <p>
  * 关于斜体：原版给自定义名字默认加斜体，大多数人不想要，所以默认写 italic=false；勾上"斜体"就不写，恢复原版行为。
  * 读取时每个字都是斜体的名字自动勾上（例如铁砧改的名字），这样一个代码都不用多写。
  * 开关管的是整个名字：切换时连文字里的 {@code &o} 一起改写（{@link #setItalic}）。
  * <p>
- * 无损：读进来的名字只要文字和斜体开关都没动，写回的就是原来那串 JSON，点击事件、字体这些编辑器表达不了的东西不会丢；
+ * 无损：读进来的名字只要文字和斜体开关都没动，写回的就是原来那个组件，点击事件、字体这些编辑器表达不了的东西不会丢；
  * 动过之后才按编辑文本重新生成，此时如果原来有表达不了的东西，标题旁亮一个黄色标记提醒。
  * 预览画的就是写进物品的那个组件，外面套上和原版提示框一样的稀有度颜色 + 斜体。
  */
@@ -64,10 +64,10 @@ public class NamePage extends EditorPageBase {
     private boolean loading;
 
     /**
-     * 载入时物品上的 display.Name 原文（合法 JSON 才记）；文字和斜体开关都没动时原样写回
+     * 载入时物品上的自定义名字原文；文字和斜体开关都没动时原样写回
      */
     @Nullable
-    private String loadedJson;
+    private Component loadedName;
     private String loadedEditable = "";
     private boolean loadedItalic;
     /**
@@ -76,10 +76,10 @@ public class NamePage extends EditorPageBase {
     private Set<LegacyComponents.Lossy> lossy = Collections.emptySet();
 
     /**
-     * 上次写进物品的 display.Name（null = 删掉了）；页面重建时物品里还是它，说明没被别的页改过，保留输入状态
+     * 上次写进物品的自定义名字（null = 删掉了）；页面重建时物品里还是它，说明没被别的页改过，保留输入状态
      */
     @Nullable
-    private String writtenJson;
+    private Component writtenName;
     private boolean synced;
 
     /**
@@ -241,7 +241,7 @@ public class NamePage extends EditorPageBase {
     }
 
     /**
-     * 还原原版名称：清空输入框并删掉 display.Name
+     * 还原原版名称：清空输入框并删掉自定义名字
      */
     private void resetName() {
         editable = "";
@@ -260,15 +260,14 @@ public class NamePage extends EditorPageBase {
     /**
      * 删掉自定义名字
      * <p>
-     * 物品上本来就没有名字时什么都不动：resetHoverName 还会顺手删掉空的 display、把空 tag 置空，物品会被白白标成改过。
+     * 物品上本来就没有名字时什么都不动，免得物品被白白标成改过。
      */
     private void clearName() {
         ItemStack working = session.working();
-        CompoundTag display = working.getTagElement("display");
-        if (display != null && display.contains("Name")) {
-            working.resetHoverName();
+        if (working.has(DataComponents.CUSTOM_NAME)) {
+            working.remove(DataComponents.CUSTOM_NAME);
         }
-        writtenJson = null;
+        writtenName = null;
         refreshPreview(null);
     }
 
@@ -276,7 +275,7 @@ public class NamePage extends EditorPageBase {
      * 现在写进物品的是不是已经不是载入时的原文了
      */
     private boolean isModified() {
-        return loadedJson != null && !Objects.equals(writtenJson, loadedJson);
+        return loadedName != null && !Objects.equals(writtenName, loadedName);
     }
 
     /**
@@ -286,34 +285,27 @@ public class NamePage extends EditorPageBase {
      * 重新读会把文字规范化（例如 {@code &6&6x} 变成 {@code &6x}），光标乱跳，也会丢掉"原文"这个基准。
      */
     private void loadFromItem() {
-        CompoundTag display = session.working().getTagElement("display");
-        String json = display != null && display.contains("Name", Tag.TAG_STRING) ? display.getString("Name") : null;
-        if (synced && Objects.equals(json, writtenJson)) {
+        Component name = session.working().get(DataComponents.CUSTOM_NAME);
+        if (synced && Objects.equals(name, writtenName)) {
             refreshPreview(null);
             return;
         }
         synced = true;
-        writtenJson = json;
-        loadedJson = null;
+        writtenName = name;
+        loadedName = null;
         lossy = Collections.emptySet();
-        if (json == null) {
+        if (name == null) {
             editable = "";
             italic = false;
         } else {
-            MutableComponent name = parse(json);
-            if (name == null) {
-                // 不是合法 JSON：当 § 文本读（原版显示名字时会直接把它删掉，改一下就会存成合法的）
-                editable = LegacyText.fromSection(json);
-                italic = false;
-            } else {
-                boolean allItalic = LegacyComponents.allItalic(name, parent);
-                LegacyComponents.Decoded decoded = LegacyComponents.decode(name, LegacyComponents.nameBase(allItalic), parent);
-                editable = decoded.editable();
-                // 一个字都没有时开关没法从文字推断，按根样式来
-                italic = editable.isEmpty() ? name.getStyle().isItalic() : allItalic;
-                lossy = decoded.lossy();
-                loadedJson = json;
-            }
+            // 1.21.1 读存档时名字就已经解析成组件了，1.20.1 那种"不是合法 JSON、按 § 文本读"的情况碰不到
+            boolean allItalic = LegacyComponents.allItalic(name, parent);
+            LegacyComponents.Decoded decoded = LegacyComponents.decode(name, LegacyComponents.nameBase(allItalic), parent);
+            editable = decoded.editable();
+            // 一个字都没有时开关没法从文字推断，按根样式来
+            italic = editable.isEmpty() ? name.getStyle().isItalic() : allItalic;
+            lossy = decoded.lossy();
+            loadedName = name;
         }
         loadedEditable = editable;
         loadedItalic = italic;
@@ -330,54 +322,32 @@ public class NamePage extends EditorPageBase {
     private void writeToItem() {
         ItemStack working = session.working();
         if (editable.isEmpty()) {
-            boolean untouchedBlank = loadedJson != null && loadedEditable.isEmpty() && loadedJson.equals(writtenJson);
+            boolean untouchedBlank = loadedName != null && loadedEditable.isEmpty() && loadedName.equals(writtenName);
             if (!untouchedBlank) {
                 clearName();
             }
             return;
         }
-        MutableComponent component = null;
-        String json;
-        if (loadedJson != null && editable.equals(loadedEditable) && italic == loadedItalic) {
-            json = loadedJson;
+        Component component;
+        if (loadedName != null && editable.equals(loadedEditable) && italic == loadedItalic) {
+            component = loadedName;
         } else {
-            // italic=false 要显式写进 JSON，原版才不会给自定义名字加斜体（nameBase 负责）
+            // italic=false 要显式写进组件，原版才不会给自定义名字加斜体（nameBase 负责）
             component = LegacyComponents.toComponent(editable, LegacyComponents.nameBase(italic), parent);
-            json = Component.Serializer.toJson(component);
         }
-        working.getOrCreateTagElement("display").putString("Name", json);
-        writtenJson = json;
+        working.set(DataComponents.CUSTOM_NAME, component);
+        writtenName = component;
         refreshPreview(component);
     }
 
     /**
      * 更新预览组件
      *
-     * @param written 刚写进物品的组件；null = 从 writtenJson 解析
+     * @param written 刚写进物品的组件；null = 用 writtenName
      */
     private void refreshPreview(@Nullable Component written) {
-        if (writtenJson == null) {
-            preview = null;
-            return;
-        }
-        Component component = written != null ? written : parse(writtenJson);
-        preview = component == null ? Component.literal(writtenJson) : LegacyComponents.wrap(component, parent);
-    }
-
-    /**
-     * 解析名字 JSON
-     *
-     * @param json JSON
-     * @return 组件，不合法返回 null
-     */
-    @Nullable
-    private static MutableComponent parse(@Nonnull String json) {
-        try {
-            return Component.Serializer.fromJson(json);
-        } catch (RuntimeException ignored) {
-            // 物品数据来自任意来源，JSON 结构不对时 Gson 会抛各种运行时异常，原版这里也是全接住
-            return null;
-        }
+        Component component = written != null ? written : writtenName;
+        preview = component == null ? null : LegacyComponents.wrap(component, parent);
     }
 
     /**

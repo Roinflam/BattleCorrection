@@ -3,15 +3,18 @@ package pers.roinflam.battlecorrection.client.editor.page;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.KeybindContents;
+import net.minecraft.network.chat.contents.PlainTextContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorScreen;
+import pers.roinflam.battlecorrection.client.editor.ItemRoots;
 import pers.roinflam.battlecorrection.client.editor.widget.ColorToolbar;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatButton;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatEditBox;
@@ -29,7 +32,8 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Lore 页：一行一个输入框，加/删/上移/下移，颜色工具条作用于当前（或最近一次）有焦点的那一行
  * <p>
- * 数据在 {@link LoreLines} 里（载入、改、写回都在那，界面只管把输入框和它对上），每次改动立刻写回物品副本的 display.Lore。
+ * 数据在 {@link LoreLines} 里（载入、改、写回都在那，界面只管把输入框和它对上），每次改动立刻写回物品副本的 Lore
+ * （1.21.1 是 {@code minecraft:lore} 组件，1.20.1 是 display.Lore）。
  * 没动过的行写回的是原文，点击 / 悬停事件、字体、十六进制色都不会因为改了别的行而丢；
  * 原文里有编辑文本表达不了的东西的行，行尾亮一个小标记，改了这一行之后标记变黄，提醒这些东西会丢。
  * <p>
@@ -42,9 +46,11 @@ import java.util.concurrent.CompletableFuture;
  * 编辑：回车在光标处断行（后半截挪到下一行，样式不变），行首退格把这一行并到上一行，
  * 粘贴多行文本按文本编辑器的方式拆开。列表上面一行预览当前行在提示框里的样子，画的就是写进物品的那个组件。
  * <p>
- * 载入要把每行 JSON 解析、按两种基础样式各解码一遍。逐字渐变的 Lore 一行就上千字符的 JSON，上百行时要几十毫秒，
- * 所以原文总长超过 {@link #ASYNC_THRESHOLD} 时放到后台线程做（只交给它原文字符串的拷贝），做完在 tick 里接回来；
- * 这期间列表不显示、不能编辑。含按键名组件（keybind）的 Lore 不放后台：解析按键名会调 GLFW，只能在主线程。
+ * 载入要把每行按两种基础样式各解码一遍。逐字渐变的 Lore 一行就上千个片段，上百行时要几十毫秒，
+ * 所以原文总量超过 {@link #ASYNC_THRESHOLD} 时放到后台线程做（交给它的是组件对象，组件不可变，后台读是安全的），
+ * 做完在 tick 里接回来；这期间列表不显示、不能编辑。含按键名组件（keybind）的 Lore 不放后台：解析按键名会调 GLFW，只能在主线程。
+ * <p>
+ * 1.21.1 的 Lore 组件最多 {@link ItemLore#MAX_LINES} 行，超出的行留在编辑框里但不写进物品，列表上方的预览行会提示。
  */
 public class LorePage extends EditorPageBase {
 
@@ -66,9 +72,14 @@ public class LorePage extends EditorPageBase {
     private static final Component LOAD_FAILED_HINT = Component.translatable("gui.battlecorrection.editor.lore.load_failed");
 
     /**
-     * 原文总长（字符数）超过这么多就放到后台载入：约等于十来行逐字渐变，普通 Lore 远远到不了
+     * 原文总量（文字长度 + 每个片段按 16 计）超过这么多就放到后台载入：约等于十来行逐字渐变，普通 Lore 远远到不了
      */
     private static final int ASYNC_THRESHOLD = 16384;
+
+    /**
+     * 估原文总量时最多往下数多少层（防止恶意嵌套把栈撑爆；数不完的按超量处理）
+     */
+    private static final int WEIGHT_MAX_DEPTH = 64;
 
     /**
      * 一行控件
@@ -118,18 +129,18 @@ public class LorePage extends EditorPageBase {
     @Nullable
     private CompletableFuture<LoreLines> pending;
     @Nullable
-    private ListTag pendingSource;
+    private ItemLore pendingSource;
     /**
      * 后台载入失败时物品上的那个列表对象：物品上还是它就不再重试（同一份数据再解析一遍只会再失败，每 tick 重交一次还白占后台线程），
      * 页面显示读取失败、不能编辑；物品上的 Lore 换了（撤销、换物品、别的页改过）再重新读
      */
     @Nullable
-    private ListTag failedSource;
+    private ItemLore failedSource;
     /**
      * 上次写进物品（或载入时读到）的那个列表对象：页面重建时物品里还是它，说明没被别的页改过，保留模型和编辑状态
      */
     @Nullable
-    private ListTag written;
+    private ItemLore written;
     private boolean synced;
 
     private int scroll;
@@ -271,6 +282,12 @@ public class LorePage extends EditorPageBase {
         int line = previewLine();
         if (line < 0) {
             g.drawString(font, PREVIEW_NONE, previewX, previewY, EditorTheme.TEXT_DIM, false);
+            return;
+        }
+        if (line >= ItemLore.MAX_LINES) {
+            // 1.21.1 的 Lore 最多这么多行，再往后的行不会写进物品
+            g.drawString(font, Component.translatable("gui.battlecorrection.editor.lore.over_limit", ItemLore.MAX_LINES),
+                    previewX, previewY, EditorTheme.WARNING, false);
             return;
         }
         // 组件在模型里缓存着，没改动时是同一个对象，这里只在它变了时重新包一层
@@ -661,31 +678,26 @@ public class LorePage extends EditorPageBase {
     }
 
     /**
-     * 物品上现在的 display.Lore
+     * 物品上现在的 Lore
+     * <p>
+     * 1.21.1 每件物品默认都带一个空的 Lore 组件，没有行就当作没有 Lore。
      *
-     * @return 列表；没有（或者不是列表）时为 null
+     * @return 组件；没有（或者一行都没有）时为 null
      */
     @Nullable
-    private ListTag currentLore() {
-        CompoundTag tag = session.tagOrNull();
-        if (tag == null || !tag.contains("display", Tag.TAG_COMPOUND)) {
-            return null;
-        }
-        CompoundTag display = tag.getCompound("display");
-        if (display.getTagType("Lore") != Tag.TAG_LIST) {
-            return null;
-        }
-        return display.getList("Lore", Tag.TAG_STRING);
+    private ItemLore currentLore() {
+        ItemLore lore = session.working().get(DataComponents.LORE);
+        return lore == null || lore.lines().isEmpty() ? null : lore;
     }
 
     /**
      * 从物品副本读 Lore
      * <p>
      * 物品上的 Lore 还是这一页上次写的（或载入时读到的）那个时（只是切了页、窗口缩放），保留模型，不重新读：
-     * 重新读会把"原文"这个基准换成页面自己生成的 JSON，之后就分不清哪些行原本有表达不了的东西了。
+     * 重新读会把"原文"这个基准换成页面自己生成的组件，之后就分不清哪些行原本有表达不了的东西了。
      */
     private void loadFromItem() {
-        ListTag current = currentLore();
+        ItemLore current = currentLore();
         if (pending != null) {
             if (synced && current == pendingSource) {
                 // 后台还在读同一份，等它
@@ -709,19 +721,17 @@ public class LorePage extends EditorPageBase {
                 return;
             }
         }
-        List<String> raws = new ArrayList<>(current == null ? 0 : current.size());
-        long chars = 0;
+        List<Component> raws = current == null ? List.of() : current.lines();
+        long weight = 0;
         boolean keybind = false;
-        if (current != null) {
-            for (int i = 0; i < current.size(); i++) {
-                String raw = current.getString(i);
-                raws.add(raw);
-                chars += raw.length();
-                keybind |= raw.contains("keybind");
-            }
+        for (Component raw : raws) {
+            long[] state = {0L, 0L};
+            measure(raw, state, 0);
+            weight += state[0];
+            keybind |= state[1] != 0L;
         }
         synced = true;
-        if (chars > ASYNC_THRESHOLD && !keybind) {
+        if (weight > ASYNC_THRESHOLD && !keybind) {
             model = null;
             written = null;
             pendingSource = current;
@@ -732,18 +742,49 @@ public class LorePage extends EditorPageBase {
     }
 
     /**
+     * 估一行原文有多大、含不含按键名组件
+     * <p>
+     * 1.20.1 按 JSON 字符串长度估、用字符串里有没有 "keybind" 判断；1.21.1 每行已经是组件，改成往下数片段。
+     *
+     * @param component 组件
+     * @param state     [0] 累计总量，[1] 非 0 = 含按键名
+     * @param depth     当前层数
+     */
+    private static void measure(@Nonnull Component component, @Nonnull long[] state, int depth) {
+        if (depth > WEIGHT_MAX_DEPTH) {
+            state[0] += ASYNC_THRESHOLD;
+            return;
+        }
+        state[0] += 16;
+        if (component.getContents() instanceof PlainTextContents plain) {
+            state[0] += plain.text().length();
+        } else if (component.getContents() instanceof KeybindContents) {
+            state[1] = 1L;
+        } else if (component.getContents() instanceof TranslatableContents translatable) {
+            for (Object arg : translatable.getArgs()) {
+                if (arg instanceof Component argument) {
+                    measure(argument, state, depth + 1);
+                }
+            }
+        }
+        for (Component sibling : component.getSiblings()) {
+            measure(sibling, state, depth + 1);
+        }
+    }
+
+    /**
      * 后台载入完成：物品上还是那一份就用结果，不是了就重读；读失败了就记下来，不再重试
      */
     private void finishAsyncLoad() {
         CompletableFuture<LoreLines> done = pending;
-        ListTag source = pendingSource;
+        ItemLore source = pendingSource;
         pending = null;
         pendingSource = null;
         LoreLines result = null;
         try {
             result = done == null ? null : done.getNow(null);
         } catch (RuntimeException ignored) {
-            // 后台线程里抛了异常（物品数据来自任意来源，例如嵌套几万层的 JSON 数组会把解析的栈撑爆）：按读取失败处理
+            // 后台线程里抛了异常（物品数据来自任意来源，例如嵌套极深的组件会把解码的栈撑爆）：按读取失败处理
         }
         if (currentLore() != source) {
             // 物品又变了：这次的结果（或失败）都不算数，按现在的物品重读
@@ -771,7 +812,7 @@ public class LorePage extends EditorPageBase {
      * @param lines  模型
      * @param source 它读的那个物品列表对象
      */
-    private void apply(@Nonnull LoreLines lines, @Nullable ListTag source) {
+    private void apply(@Nonnull LoreLines lines, @Nullable ItemLore source) {
         model = lines;
         written = source;
         synced = true;
@@ -784,6 +825,8 @@ public class LorePage extends EditorPageBase {
 
     /**
      * 把 Lore 写回物品副本
+     * <p>
+     * 一行都没有时还原成物品默认的空 Lore（1.20.1 是删掉 display.Lore，删空了连 display 一起删）。
      */
     private void writeToItem() {
         LoreLines lines = model;
@@ -791,22 +834,14 @@ public class LorePage extends EditorPageBase {
             return;
         }
         if (lines.isEmpty()) {
-            CompoundTag tag = session.tagOrNull();
-            if (tag != null && tag.contains("display", Tag.TAG_COMPOUND)) {
-                CompoundTag display = tag.getCompound("display");
-                display.remove("Lore");
-                if (display.isEmpty()) {
-                    tag.remove("display");
-                }
+            if (currentLore() != null) {
+                ItemRoots.resetToDefault(session.working(), DataComponents.LORE);
             }
             written = null;
             return;
         }
-        ListTag lore = lines.toTag();
-        CompoundTag tag = session.tag();
-        CompoundTag display = tag.getCompound("display");
-        display.put("Lore", lore);
-        tag.put("display", display);
+        ItemLore lore = lines.toLore();
+        session.working().set(DataComponents.LORE, lore);
         written = lore;
     }
 }

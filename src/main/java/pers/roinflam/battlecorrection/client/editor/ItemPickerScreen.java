@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.client.editor;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -10,7 +11,6 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.widget.FlatEditBox;
 
@@ -135,9 +135,9 @@ public class ItemPickerScreen extends Screen {
         if (cache != null && language.equals(cacheLanguage)) {
             return;
         }
-        List<Entry> entries = new ArrayList<>(ForgeRegistries.ITEMS.getKeys().size());
-        for (ResourceLocation id : ForgeRegistries.ITEMS.getKeys()) {
-            Item item = ForgeRegistries.ITEMS.getValue(id);
+        List<Entry> entries = new ArrayList<>(BuiltInRegistries.ITEM.keySet().size());
+        for (ResourceLocation id : BuiltInRegistries.ITEM.keySet()) {
+            Item item = BuiltInRegistries.ITEM.get(id);
             if (item == null || item == Items.AIR) {
                 continue;
             }
@@ -236,9 +236,17 @@ public class ItemPickerScreen extends Screen {
         clampScroll();
     }
 
+    /**
+     * 1.20.2 起 {@code Screen.render} 会先自己画一遍背景（1.21.1 在世界里是模糊 + 半透明贴图）。
+     * 背景改在 {@link #render} 开头自己画，和 1.20.1 一样只是一层暗色渐变、不模糊；super.render 里那一次就什么都不画，免得叠两层。
+     */
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
+        renderTransparentBackground(g);
         EditorTheme.panel(g, boxX, boxY, WIDTH, boxHeight);
         g.drawString(font, title, boxX + CORNER_CLEARANCE, boxY + 9, EditorTheme.ACCENT_HI, false);
         EditorTheme.headingLine(g, boxX + PAD, boxY + 20, WIDTH - 2 * PAD);
@@ -375,13 +383,14 @@ public class ItemPickerScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+        // 1.20.2 起滚轮事件分横向 / 纵向两个量，这里和 1.20.1 一样只用纵向的（delta）
         if (mouseX >= listX && mouseX < listX + listWidth && mouseY >= listY && mouseY < listY + listHeight) {
             scrollRows -= (int) Math.signum(delta) * 3;
             clampScroll();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, delta);
     }
 
     private void pickSelected() {

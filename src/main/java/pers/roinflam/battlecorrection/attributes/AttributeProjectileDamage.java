@@ -5,10 +5,10 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
  * 法术弹射物（火球、喷溅药水等）在这里照常吃弹射物加成，再由 AttributeMagicDamage 叠魔法加成。
  * 所以这里不排除 WITCH_RESISTANT_TO 标签，喷溅药水同样吃弹射物加成。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeProjectileDamage {
 
     /**
@@ -55,7 +55,7 @@ public class AttributeProjectileDamage {
             return;
         }
 
-        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.PROJECTILE_DAMAGE.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.PROJECTILE_DAMAGE);
         float configDamage = ConfigAttribute.PROJECTILE_DAMAGE.get().floatValue();
         float totalBonus = attributeValue + configDamage;
         if (totalBonus == 0) {

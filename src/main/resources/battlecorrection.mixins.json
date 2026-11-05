@@ -4,12 +4,13 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "LivingEntityMixin",
-    "CuriosContainerMixin"
+    "CuriosContainerMixin",
+    "MixinLivingEntityTick",
+    "damage.MixinLivingEntityDamageStages",
+    "damage.MixinPlayerDamageStages"
   ],
-  "client": [
-  ],
-  "server": [
-  ],
+  "client": [],
+  "server": [],
   "injectors": {
     "defaultRequire": 1
   },

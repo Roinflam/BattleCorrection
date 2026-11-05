@@ -5,10 +5,10 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * 每次近战判定前都会先清掉上一次的结果：如果上一次的伤害事件在两次读写之间被别的模组取消，
  * 残留的暴击标记不会再"白送"给下一次攻击。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeCustomCriticalChance {
 
     private static final String NBT_CRITICAL_CHECKED = "BattleCorrection_CriticalChecked";
@@ -72,7 +72,7 @@ public class AttributeCustomCriticalChance {
             clearCritical(attacker.getPersistentData());
         }
 
-        double attributeValue = AttributesUtil.getAttributeValue(attacker, ModAttributes.CUSTOM_CRITICAL_CHANCE.get());
+        double attributeValue = AttributesUtil.getAttributeValue(attacker, ModAttributes.CUSTOM_CRITICAL_CHANCE);
         double configValue = ConfigAttribute.CUSTOM_CRITICAL_CHANCE.get();
         double criticalChance = Math.max(0, attributeValue + configValue);
 

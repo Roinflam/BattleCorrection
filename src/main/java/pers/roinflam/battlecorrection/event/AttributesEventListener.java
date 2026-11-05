@@ -1,16 +1,18 @@
 package pers.roinflam.battlecorrection.event;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
+import pers.roinflam.battlecorrection.utils.util.ModifierIds;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -19,11 +21,14 @@ import java.util.UUID;
  * 属性事件监听器
  * 处理实体最大生命值调整
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributesEventListener {
 
-    public static final UUID MAX_HEALTH_ID = UUID.fromString("f1322889-6166-78d0-d738-9b12ced95231");
-    public static final String MAX_HEALTH_NAME = "battlecorrection.maxhealth";
+    public static final ResourceLocation MAX_HEALTH_ID = ModifierIds.of("max_health");
+    /**
+     * 1.20.1 用的 UUID：旧存档升级上来时这条永久修饰符变成 minecraft:<uuid>，进世界时删掉（见 {@link ModifierIds}）
+     */
+    private static final UUID LEGACY_MAX_HEALTH_UUID = UUID.fromString("f1322889-6166-78d0-d738-9b12ced95231");
 
     /**
      * 处理实体加入世界事件 - 调整最大生命值
@@ -44,15 +49,15 @@ public class AttributesEventListener {
 
                     // 移除旧的修改器
                     attributeInstance.removeModifier(MAX_HEALTH_ID);
+                    ModifierIds.removeLegacy(attributeInstance, LEGACY_MAX_HEALTH_UUID);
 
                     // 添加新的修改器（使用乘法运算）
                     // 这里必须用永久修饰符（会写进存档）：读档时原版先载入属性、再载入血量，血量会被截断到当时的最大生命。
                     // 如果改用临时修饰符，怪物每次重新加载都会先被截成原版血量上限，再被下面的"补差值"直接回满血。
                     attributeInstance.addPermanentModifier(new AttributeModifier(
                             MAX_HEALTH_ID,
-                            MAX_HEALTH_NAME,
                             extraMaxHealth,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     ));
 
                     // 计算新的最大生命值并治疗差值
@@ -75,6 +80,7 @@ public class AttributesEventListener {
                 } else {
                     // 移除修改器
                     attributeInstance.removeModifier(MAX_HEALTH_ID);
+                    ModifierIds.removeLegacy(attributeInstance, LEGACY_MAX_HEALTH_UUID);
                 }
             }
         }

@@ -1,6 +1,5 @@
 package pers.roinflam.battlecorrection.item.sword;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tier;
@@ -16,12 +15,8 @@ public class BaseSword extends SwordItem {
 
     public BaseSword(@Nonnull Tier tier, int attackDamageModifier, float attackSpeedModifier,
                      @Nonnull Properties properties) {
-        super(tier, attackDamageModifier, attackSpeedModifier, properties);
-    }
-
-    @Override
-    @Nonnull
-    public Rarity getRarity(@Nonnull ItemStack stack) {
-        return Rarity.UNCOMMON;
+        // 1.21.1：攻击力 / 攻速改成物品属性组件，稀有度也是组件（原来覆写的 getRarity 没有了）
+        super(tier, properties.rarity(Rarity.UNCOMMON)
+                .attributes(SwordItem.createAttributes(tier, attackDamageModifier, attackSpeedModifier)));
     }
 }

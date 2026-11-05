@@ -2,10 +2,17 @@ package pers.roinflam.battlecorrection.network.packet;
 
 import io.netty.buffer.Unpooled;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.network.ModNetwork;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -17,7 +24,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 /**
  * 分片传输：把大包切成若干小块发，收齐再拼回来
@@ -29,7 +35,9 @@ import java.util.function.Supplier;
  * 真正的瓶颈是原版客户端解码物品格子的 NBT，不是这条通道。
  * <p>
  * 内层包不注册到通道上，它们只当编解码器用；{@link Kind} 决定收齐后交给谁、以及这种传输该从哪个方向来。
- * 注册到通道上的是两个方向各一个的子类 {@link ChunkedC2SPacket} 和 {@link ChunkedS2CPacket}。
+ * 登记成网络包的是两个方向各一个的子类 {@link ChunkedC2SPacket} 和 {@link ChunkedS2CPacket}。
+ * <p>
+ * 1.21.1：内层缓冲是带注册表的 {@link RegistryFriendlyByteBuf}，内层包可以直接用原版的物品 / 组件编解码器。
  * <p>
  * 收包这一侧的防护（块里的数字全是对面说了算，服务端不能信）：
  * <ul>
@@ -40,13 +48,12 @@ import java.util.function.Supplier;
  *   <li>每个来源同时只保留一次进行中的传输，新的开始就把旧的丢掉；超时没收齐的也会清掉</li>
  * </ul>
  */
-public abstract class ChunkedPacket {
+public abstract class ChunkedPacket implements CustomPacketPayload {
 
     /**
      * 造具体方向的分片包（{@link ChunkedC2SPacket} / {@link ChunkedS2CPacket}）
      * <p>
-     * Forge 的 SimpleChannel 按"类"找编解码器，同一个类不能同时注册两个方向——后注册的会盖掉前面的，
-     * 客户端发出去时会被按服务端方向编码，服务端一校验方向就断线。所以两个方向必须是两个类。
+     * 两个方向各是一种包类型，各自只登记一个方向，收到方向不对的包网络层就会拒收。
      */
     @FunctionalInterface
     protected interface Factory {
@@ -190,16 +197,31 @@ public abstract class ChunkedPacket {
         return factory.create(transferId, kind, index, total, data);
     }
 
+    /**
+     * 内层包读一份复合标签（1.21.1 的 {@code readNbt(NbtAccounter)} 返回的是任意标签，不一定是复合标签）
+     *
+     * @param buf   缓冲
+     * @param quota 记账上限（{@link #VANILLA_NBT_QUOTA} / {@link #RECEIVE_NBT_QUOTA}）
+     * @return 复合标签；写的是 null 或者别的类型时返回 null
+     */
+    @Nullable
+    public static CompoundTag readCompound(@Nonnull FriendlyByteBuf buf, long quota) {
+        Tag tag = buf.readNbt(NbtAccounter.create(quota));
+        return tag instanceof CompoundTag compound ? compound : null;
+    }
+
     // 发送
 
     /**
      * 客户端 → 服务端
      *
-     * @param kind    内层包类型
-     * @param encoder 内层包的编码
+     * @param registries 客户端当前的注册表（{@code Minecraft.getInstance().level.registryAccess()}）
+     * @param kind       内层包类型
+     * @param encoder    内层包的编码
      */
-    public static void sendToServer(@Nonnull Kind kind, @Nonnull Consumer<FriendlyByteBuf> encoder) {
-        for (ChunkedPacket chunk : split(kind, encoder, ChunkedC2SPacket::new)) {
+    public static void sendToServer(@Nonnull RegistryAccess registries, @Nonnull Kind kind,
+                                    @Nonnull Consumer<RegistryFriendlyByteBuf> encoder) {
+        for (ChunkedPacket chunk : split(registries, kind, encoder, ChunkedC2SPacket::new)) {
             ModNetwork.sendToServer(chunk);
         }
     }
@@ -211,16 +233,17 @@ public abstract class ChunkedPacket {
      * @param kind    内层包类型
      * @param encoder 内层包的编码
      */
-    public static void sendToPlayer(@Nonnull ServerPlayer player, @Nonnull Kind kind, @Nonnull Consumer<FriendlyByteBuf> encoder) {
-        for (ChunkedPacket chunk : split(kind, encoder, ChunkedS2CPacket::new)) {
+    public static void sendToPlayer(@Nonnull ServerPlayer player, @Nonnull Kind kind,
+                                    @Nonnull Consumer<RegistryFriendlyByteBuf> encoder) {
+        for (ChunkedPacket chunk : split(player.registryAccess(), kind, encoder, ChunkedS2CPacket::new)) {
             ModNetwork.sendToPlayer(player, chunk);
         }
     }
 
     @Nonnull
-    private static ChunkedPacket[] split(@Nonnull Kind kind, @Nonnull Consumer<FriendlyByteBuf> encoder,
-                                         @Nonnull Factory factory) {
-        FriendlyByteBuf inner = new FriendlyByteBuf(Unpooled.buffer());
+    private static ChunkedPacket[] split(@Nonnull RegistryAccess registries, @Nonnull Kind kind,
+                                         @Nonnull Consumer<RegistryFriendlyByteBuf> encoder, @Nonnull Factory factory) {
+        RegistryFriendlyByteBuf inner = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries);
         byte[] bytes;
         try {
             encoder.accept(inner);
@@ -249,9 +272,12 @@ public abstract class ChunkedPacket {
      *
      * @param ctx 网络上下文
      */
-    public void handle(@Nonnull Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayer sender = ctx.get().getSender();
-        boolean onServer = sender != null;
+    public void handle(@Nonnull IPayloadContext ctx) {
+        boolean onServer = ctx.flow() == PacketFlow.SERVERBOUND;
+        ServerPlayer sender = onServer && ctx.player() instanceof ServerPlayer serverPlayer ? serverPlayer : null;
+        if (onServer && sender == null) {
+            return;
+        }
         String key = onServer ? "p:" + sender.getUUID() : "server";
 
         dropStale();
@@ -301,7 +327,7 @@ public abstract class ChunkedPacket {
             System.arraycopy(part, 0, joined, offset, part.length);
             offset += part.length;
         }
-        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(joined));
+        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(joined), ctx.player().registryAccess());
         try {
             switch (kind) {
                 case APPLY_ITEM -> ApplyItemEditC2SPacket.decode(buf).handle(ctx);

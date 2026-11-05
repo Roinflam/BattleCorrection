@@ -69,7 +69,7 @@ public final class CurioSlotsClient {
     @Nonnull
     public static Map<String, Integer> slotCounts(@Nonnull Player player) {
         Map<String, Integer> counts = new LinkedHashMap<>();
-        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).resolve().orElse(null);
+        ICuriosItemHandler handler = CuriosApi.getCuriosInventory(player).orElse(null);
         if (handler == null) {
             return counts;
         }

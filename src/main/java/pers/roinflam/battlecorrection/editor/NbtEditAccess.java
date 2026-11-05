@@ -1,6 +1,8 @@
 package pers.roinflam.battlecorrection.editor;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -22,6 +24,9 @@ import java.util.UUID;
  * 读：实体用 saveWithoutId（不带 id，编辑器不允许换实体类型），方块实体用 saveWithFullMetadata（带 id 和坐标，load 时会忽略）。
  * 写：实体 load 之后把 UUID 塞回去（load 会把 UUID 也读进来，防止被改）；方块实体 load 后 setChanged 并广播方块更新让客户端刷新。
  * 玩家实体一律不允许编辑，和 /data 一样。
+ * <p>
+ * 1.21.1：方块实体的读写要带注册表（{@code saveWithFullMetadata(Provider)} / {@code loadWithComponents(tag, Provider)}，
+ * 后者和 /data 命令一样连同 NBT 里的 components 一起读），行为和 1.20.1 的 {@code load} 相同。
  */
 public final class NbtEditAccess {
 
@@ -75,7 +80,9 @@ public final class NbtEditAccess {
 
     @Nonnull
     public static CompoundTag read(@Nonnull BlockEntity blockEntity) {
-        return blockEntity.saveWithFullMetadata();
+        Level level = blockEntity.getLevel();
+        return blockEntity.saveWithFullMetadata(level != null ? level.registryAccess()
+                : RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
     }
 
     /**
@@ -95,9 +102,10 @@ public final class NbtEditAccess {
      * 写回方块实体并通知客户端刷新
      */
     public static void write(@Nonnull BlockEntity blockEntity, @Nonnull CompoundTag tag) {
-        blockEntity.load(tag);
-        blockEntity.setChanged();
         Level level = blockEntity.getLevel();
+        blockEntity.loadWithComponents(tag, level != null ? level.registryAccess()
+                : RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        blockEntity.setChanged();
         if (level != null) {
             BlockPos pos = blockEntity.getBlockPos();
             BlockState state = level.getBlockState(pos);

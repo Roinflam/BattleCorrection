@@ -7,7 +7,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 /**
@@ -70,7 +69,9 @@ public enum ModToolTiers implements Tier {
         return this.damage;
     }
 
-    @Override
+    /**
+     * 挖掘等级（3 = 钻石）。1.21.1 的 {@link Tier} 不再有这个方法，等级改由 {@link #getIncorrectBlocksForDrops()} 表达
+     */
     public int getLevel() {
         return this.level;
     }
@@ -86,9 +87,12 @@ public enum ModToolTiers implements Tier {
         return this.repairIngredient.get();
     }
 
+    /**
+     * 挖不出掉落的方块（1.21.1 取代了 1.20.1 的 {@code getTag()} 返回 {@code NEEDS_DIAMOND_TOOL}）：和钻石工具一样
+     */
     @Override
-    @Nullable
-    public TagKey<Block> getTag() {
-        return BlockTags.NEEDS_DIAMOND_TOOL;
+    @Nonnull
+    public TagKey<Block> getIncorrectBlocksForDrops() {
+        return BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
     }
 }

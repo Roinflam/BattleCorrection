@@ -1,6 +1,9 @@
 package pers.roinflam.battlecorrection.client.editor.page;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.nbt.CompoundTag;
@@ -10,13 +13,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.neoforged.fml.ModList;
 import pers.roinflam.battlecorrection.client.editor.CurioSlotsClient;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
@@ -36,23 +40,34 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * 属性页
  * <p>
- * 左边是物品上已有的属性修饰符（原版 AttributeModifiers 和本模组饰品栏专属的 BattleCorrectionCurioModifiers 合在一起显示），
+ * 左边是物品上已有的属性修饰符（原版的属性组件和本模组饰品栏专属的 BattleCorrectionCurioModifiers 合在一起显示），
  * 点一行选中后在下面改数值、运算方式、生效位置或删除；右边是全部已注册的属性，带搜索，
- * 按"原版 → 本模组 → 其他模组（按模组名）"排序，鼠标悬停显示说明（原版、本模组、Forge 的有写，其他模组的没有）。
+ * 按"原版 → 本模组 → 其他模组（按模组名）"排序，鼠标悬停显示说明（原版、本模组、NeoForge 的有写，其他模组的没有）。
  * <p>
  * 生效位置决定写到哪个列表：
  * <ul>
- *   <li>主手/副手/头/胸/腿/脚/全部装备槽：原版 AttributeModifiers，Slot 字段对应装备槽（"全部"不写 Slot）</li>
- *   <li>饰品栏（任意 / 某个饰品栏）：本模组的 BattleCorrectionCurioModifiers，戴在饰品栏时由 CurioMarkEvents 加到身上</li>
+ *   <li>主手/副手/头/胸/腿/脚/全部装备槽：原版的 {@code minecraft:attribute_modifiers} 组件，slot 对应装备槽组（"全部"是 any）。
+ *   1.21.1 多了双手、盔甲、身体（马铠、狼铠这类）三个槽组，也列在里面</li>
+ *   <li>饰品栏（任意 / 某个饰品栏）：本模组的 BattleCorrectionCurioModifiers（在 custom_data 里，格式和 1.20.1 一样），
+ *   戴在饰品栏时由 CurioMarkEvents 加到身上</li>
  * </ul>
- * 读不出来的条目（属性所在模组被删了、UUID 坏了）原样保留，显示为红字，只能删。
+ * 读不出来的饰品栏条目（属性所在模组被删了、UUID 坏了）原样保留，显示为红字，只能删。原版属性组件里不会有这种条目：
+ * 1.21.1 读存档时属性不存在的物品整件读不出来。
+ * <p>
+ * 1.21.1 的原版修饰符按 ID（{@code ResourceLocation}）区分，不再是 UUID + 名字：新加的条目给 {@code battlecorrection:} 下的随机 ID，
+ * 同一属性上 ID 重复的写回时换一个新的。左边列表只显示组件补丁里的原版修饰符（和 1.20.1 只显示 AttributeModifiers 标签一样）：
+ * 物品自带的默认属性（剑的攻击伤害之类）不列出来；加了任何一条就会盖掉默认属性，全删光就还原默认，都和 1.20.1 一致。
+ * 运算方式改名为 add_value / add_multiplied_base / add_multiplied_total，含义不变。
  * 运算方式和原版一样：加法直接加；乘以基础 = 基础值 ×(1 + 所有此类之和)；乘以总量 = 前面算完的结果 ×(1 + 值)。
  * <p>
  * 数值框里直接输 {@code 20%} 会按百分比理解（0.2）并自动切成"乘以基础"；乘法类的数值在框里也按百分比显示。
@@ -63,7 +78,6 @@ public class AttributesPage extends EditorPageBase {
 
     private static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#.##", DecimalFormatSymbols.getInstance(Locale.ROOT));
     private static final String MODIFIER_NAME = "battlecorrection.editor";
-    private static final String TAG_ATTRIBUTE_MODIFIERS = "AttributeModifiers";
     private static final String DESCRIPTION_KEY_PREFIX = "gui.battlecorrection.editor.attr.desc.";
     private static final int COLUMN_GAP = 8;
     private static final int BOX_HEIGHT = 14;
@@ -74,7 +88,7 @@ public class AttributesPage extends EditorPageBase {
      * 生效位置
      *
      * @param kind 类型
-     * @param id   装备槽名（mainhand 等）或饰品栏 ID（any 等）
+     * @param id   装备槽组名（mainhand 等，见 {@link EquipmentSlotGroup}）或饰品栏 ID（any 等）
      */
     private record Location(Kind kind, String id) {
 
@@ -84,10 +98,33 @@ public class AttributesPage extends EditorPageBase {
             CURIO
         }
 
-        static final Location ALL_EQUIPMENT = new Location(Kind.EQUIPMENT_ALL, "");
+        static final Location ALL_EQUIPMENT = new Location(Kind.EQUIPMENT_ALL, EquipmentSlotGroup.ANY.getSerializedName());
 
         boolean isCurio() {
             return kind == Kind.CURIO;
+        }
+
+        /**
+         * 原版属性组件里的装备槽组；饰品栏位置返回 ANY（用不到）
+         */
+        @Nonnull
+        EquipmentSlotGroup group() {
+            if (kind == Kind.EQUIPMENT) {
+                for (EquipmentSlotGroup group : EquipmentSlotGroup.values()) {
+                    if (group.getSerializedName().equals(id)) {
+                        return group;
+                    }
+                }
+            }
+            return EquipmentSlotGroup.ANY;
+        }
+
+        /**
+         * 原版属性组件里的装备槽组对应的位置
+         */
+        @Nonnull
+        static Location of(@Nonnull EquipmentSlotGroup group) {
+            return group == EquipmentSlotGroup.ANY ? ALL_EQUIPMENT : new Location(Kind.EQUIPMENT, group.getSerializedName());
         }
 
         @Nonnull
@@ -108,27 +145,37 @@ public class AttributesPage extends EditorPageBase {
      */
     private static final class Entry implements ScrollList.Row {
         @Nullable
-        final Attribute attribute;
+        final Holder<Attribute> attribute;
         final String attributeId;
         double amount;
         AttributeModifier.Operation operation;
         Location location;
-        final UUID uuid;
+        /**
+         * 原版修饰符的 ID（1.21.1 按它区分修饰符）；饰品栏条目读进来时没有，挪到装备槽时再生成
+         */
+        @Nullable
+        ResourceLocation id;
+        /**
+         * 饰品栏条目的 UUID（数据格式和 1.20.1 一样）；原版条目读进来时没有，挪到饰品栏时再生成
+         */
+        @Nullable
+        UUID uuid;
         final String name;
         /**
-         * 读不出来的条目：原样保留的 NBT，非 null 时不可编辑
+         * 读不出来的饰品栏条目：原样保留的 NBT，非 null 时不可编辑
          */
         @Nullable
         final CompoundTag raw;
 
-        Entry(@Nullable Attribute attribute, @Nonnull String attributeId, double amount,
+        Entry(@Nullable Holder<Attribute> attribute, @Nonnull String attributeId, double amount,
               @Nonnull AttributeModifier.Operation operation, @Nonnull Location location,
-              @Nonnull UUID uuid, @Nonnull String name, @Nullable CompoundTag raw) {
+              @Nullable ResourceLocation id, @Nullable UUID uuid, @Nonnull String name, @Nullable CompoundTag raw) {
             this.attribute = attribute;
             this.attributeId = attributeId;
             this.amount = amount;
             this.operation = operation;
             this.location = location;
+            this.id = id;
             this.uuid = uuid;
             this.name = name;
             this.raw = raw;
@@ -144,7 +191,7 @@ public class AttributesPage extends EditorPageBase {
             if (attribute == null) {
                 return Component.translatable("gui.battlecorrection.editor.attr.unknown", attributeId);
             }
-            return Component.translatable(attribute.getDescriptionId());
+            return Component.translatable(attribute.value().getDescriptionId());
         }
 
         @Nullable
@@ -166,17 +213,17 @@ public class AttributesPage extends EditorPageBase {
      * 全部属性列表里的一项
      */
     private static final class Choice implements ScrollList.Row {
-        final Attribute attribute;
+        final Holder<Attribute> attribute;
         final ResourceLocation id;
         final Component name;
         final int group;
         final String modName;
         final String searchText;
 
-        Choice(@Nonnull Attribute attribute, @Nonnull ResourceLocation id) {
+        Choice(@Nonnull Holder<Attribute> attribute, @Nonnull ResourceLocation id) {
             this.attribute = attribute;
             this.id = id;
-            this.name = Component.translatable(attribute.getDescriptionId());
+            this.name = Component.translatable(attribute.value().getDescriptionId());
             this.group = groupOf(id.getNamespace());
             this.modName = modDisplayName(id.getNamespace());
             this.searchText = (name.getString() + " " + id + " " + modName).toLowerCase(Locale.ROOT);
@@ -270,7 +317,7 @@ public class AttributesPage extends EditorPageBase {
     private final PopupList<OperationRow> operationPopup = new PopupList<>();
     private Component status = Component.empty();
     private int statusColor = EditorTheme.TEXT_DIM;
-    private Location lastLocation = new Location(Location.Kind.EQUIPMENT, EquipmentSlot.MAINHAND.getName());
+    private Location lastLocation = Location.of(EquipmentSlotGroup.MAINHAND);
     private boolean binding;
 
     @Nullable
@@ -428,10 +475,10 @@ public class AttributesPage extends EditorPageBase {
      *
      * @param entry 已有条目，null = 只是右边列表里的候选
      */
-    private void renderAttributeTooltip(@Nonnull GuiGraphics g, int mouseX, int mouseY, @Nonnull Attribute attribute,
+    private void renderAttributeTooltip(@Nonnull GuiGraphics g, int mouseX, int mouseY, @Nonnull Holder<Attribute> attribute,
                                         @Nonnull ResourceLocation id, @Nullable Entry entry) {
         List<FormattedCharSequence> lines = new ArrayList<>();
-        lines.addAll(font.split(Component.translatable(attribute.getDescriptionId()).withStyle(ChatFormatting.WHITE), TOOLTIP_WIDTH));
+        lines.addAll(font.split(Component.translatable(attribute.value().getDescriptionId()).withStyle(ChatFormatting.WHITE), TOOLTIP_WIDTH));
         lines.addAll(font.split(Component.literal(id.toString()).withStyle(ChatFormatting.DARK_GRAY), TOOLTIP_WIDTH));
         lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.attr.from", modDisplayName(id.getNamespace()))
                 .withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
@@ -439,7 +486,7 @@ public class AttributesPage extends EditorPageBase {
             lines.addAll(font.split(Component.literal(formatAmount(entry.amount, entry.operation) + "  ")
                     .append(entry.location.name()).withStyle(ChatFormatting.AQUA), TOOLTIP_WIDTH));
         }
-        lines.addAll(font.split(rangeLine(attribute).withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
+        lines.addAll(font.split(rangeLine(attribute.value()).withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
         lines.addAll(font.split(description(id).withStyle(ChatFormatting.WHITE), TOOLTIP_WIDTH));
         g.renderTooltip(font, lines, mouseX, mouseY);
     }
@@ -525,9 +572,9 @@ public class AttributesPage extends EditorPageBase {
     private static String formatAmount(double amount, @Nonnull AttributeModifier.Operation operation) {
         String sign = amount >= 0 ? "+" : "";
         switch (operation) {
-            case MULTIPLY_BASE:
+            case ADD_MULTIPLIED_BASE:
                 return sign + NUMBER_FORMAT.format(amount * 100) + "% " + I18n.get("gui.battlecorrection.editor.attr.op.short.multiply_base");
-            case MULTIPLY_TOTAL:
+            case ADD_MULTIPLIED_TOTAL:
                 return sign + NUMBER_FORMAT.format(amount * 100) + "% " + I18n.get("gui.battlecorrection.editor.attr.op.short.multiply_total");
             default:
                 return sign + NUMBER_FORMAT.format(amount);
@@ -536,13 +583,28 @@ public class AttributesPage extends EditorPageBase {
 
     /**
      * 运算方式的显示名
+     * <p>
+     * 1.21.1 运算方式改了名（ADDITION → ADD_VALUE 等），翻译键沿用 1.20.1 的写法，显示不变。
      *
      * @param operation 运算方式
      * @return 组件
      */
     @Nonnull
     private static Component operationName(@Nonnull AttributeModifier.Operation operation) {
-        return Component.translatable("gui.battlecorrection.editor.attr.op." + operation.name().toLowerCase(Locale.ROOT));
+        String key = switch (operation) {
+            case ADD_MULTIPLIED_BASE -> "multiply_base";
+            case ADD_MULTIPLIED_TOTAL -> "multiply_total";
+            default -> "addition";
+        };
+        return Component.translatable("gui.battlecorrection.editor.attr.op." + key);
+    }
+
+    /**
+     * 新的原版修饰符 ID：{@code battlecorrection:editor/<随机>}
+     */
+    @Nonnull
+    private static ResourceLocation newModifierId() {
+        return ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "editor/" + UUID.randomUUID());
     }
 
     /**
@@ -550,24 +612,24 @@ public class AttributesPage extends EditorPageBase {
      */
     private void buildChoices() {
         allChoices.clear();
-        for (Attribute attribute : ForgeRegistries.ATTRIBUTES.getValues()) {
-            ResourceLocation id = ForgeRegistries.ATTRIBUTES.getKey(attribute);
-            if (id != null) {
-                allChoices.add(new Choice(attribute, id));
-            }
-        }
+        BuiltInRegistries.ATTRIBUTE.holders().forEach(attribute ->
+                allChoices.add(new Choice(attribute, attribute.key().location())));
         allChoices.sort(Comparator.comparingInt((Choice choice) -> choice.group)
                 .thenComparing(choice -> choice.modName, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(choice -> choice.name.getString(), String.CASE_INSENSITIVE_ORDER));
     }
 
     /**
-     * 建立生效位置列表：六个装备槽、全部装备槽，装了 Curios 再加上任意饰品栏和每个饰品栏
+     * 建立生效位置列表：六个装备槽（顺序和 1.20.1 一样）、1.21.1 新增的双手 / 盔甲 / 身体槽组、全部装备槽，
+     * 装了 Curios 再加上任意饰品栏和每个饰品栏
      */
     private void buildLocations() {
         locations.clear();
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            locations.add(new Location(Location.Kind.EQUIPMENT, slot.getName()));
+        EquipmentSlotGroup[] groups = {EquipmentSlotGroup.MAINHAND, EquipmentSlotGroup.OFFHAND, EquipmentSlotGroup.FEET,
+                EquipmentSlotGroup.LEGS, EquipmentSlotGroup.CHEST, EquipmentSlotGroup.HEAD,
+                EquipmentSlotGroup.HAND, EquipmentSlotGroup.ARMOR, EquipmentSlotGroup.BODY};
+        for (EquipmentSlotGroup group : groups) {
+            locations.add(Location.of(group));
         }
         locations.add(Location.ALL_EQUIPMENT);
         if (CuriosIntegration.isCuriosLoaded()) {
@@ -613,7 +675,7 @@ public class AttributesPage extends EditorPageBase {
         // 乘法类的数值按百分比显示（0.2 → 20%），加法按原数
         String amountText = "";
         if (editable) {
-            amountText = entry.operation == AttributeModifier.Operation.ADDITION
+            amountText = entry.operation == AttributeModifier.Operation.ADD_VALUE
                     ? NUMBER_FORMAT.format(entry.amount)
                     : NUMBER_FORMAT.format(entry.amount * 100) + "%";
         }
@@ -645,8 +707,8 @@ public class AttributesPage extends EditorPageBase {
         if (currentList == null) {
             return;
         }
-        Entry entry = new Entry(choice.attribute, choice.id.toString(), 1.0D, AttributeModifier.Operation.ADDITION,
-                lastLocation, CurioMark.newModifierUuid(), MODIFIER_NAME, null);
+        Entry entry = new Entry(choice.attribute, choice.id.toString(), 1.0D, AttributeModifier.Operation.ADD_VALUE,
+                lastLocation, newModifierId(), CurioMark.newModifierUuid(), MODIFIER_NAME, null);
         entries.add(entry);
         writeToItem();
         currentList.setItems(entries);
@@ -684,13 +746,13 @@ public class AttributesPage extends EditorPageBase {
         if (percent) {
             // 带 % 就按百分比：20% = 0.2；还是加法的话顺手切成"乘以基础"
             value /= 100.0D;
-            if (entry.operation == AttributeModifier.Operation.ADDITION) {
-                entry.operation = AttributeModifier.Operation.MULTIPLY_BASE;
+            if (entry.operation == AttributeModifier.Operation.ADD_VALUE) {
+                entry.operation = AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
                 if (operationButton != null) {
                     operationButton.setMessage(operationName(entry.operation));
                 }
             }
-        } else if (entry.operation != AttributeModifier.Operation.ADDITION) {
+        } else if (entry.operation != AttributeModifier.Operation.ADD_VALUE) {
             // 乘法类的框里显示的是百分比，用户去掉 % 输的裸数也按百分比理解
             value /= 100.0D;
         }
@@ -799,85 +861,117 @@ public class AttributesPage extends EditorPageBase {
      */
     private void loadFromItem() {
         entries.clear();
-        CompoundTag tag = session.tagOrNull();
-        if (tag == null) {
-            return;
+        ItemStack working = session.working();
+        // 原版的：只读组件补丁里的那份（物品自带的默认属性不算，见类注释）
+        Optional<? extends ItemAttributeModifiers> patched = working.getComponentsPatch().get(DataComponents.ATTRIBUTE_MODIFIERS);
+        if (patched != null && patched.isPresent()) {
+            for (ItemAttributeModifiers.Entry entry : patched.get().modifiers()) {
+                AttributeModifier modifier = entry.modifier();
+                String attributeId = entry.attribute().unwrapKey().map(key -> key.location().toString()).orElse("?");
+                entries.add(new Entry(entry.attribute(), attributeId, modifier.amount(), modifier.operation(),
+                        Location.of(entry.slot()), modifier.id(), null, "", null));
+            }
         }
-        readList(tag, TAG_ATTRIBUTE_MODIFIERS, false);
-        readList(tag, CurioMark.TAG_MODIFIERS, true);
+        // 饰品栏专属的：在 custom_data 里，格式和 1.20.1 一样
+        CustomData data = working.get(DataComponents.CUSTOM_DATA);
+        if (data != null) {
+            CompoundTag tag = data.copyTag();
+            if (tag.contains(CurioMark.TAG_MODIFIERS, Tag.TAG_LIST)) {
+                readCurioList(tag.getList(CurioMark.TAG_MODIFIERS, Tag.TAG_COMPOUND));
+            }
+        }
     }
 
     /**
-     * 读一个修饰符列表
+     * 读饰品栏专属的修饰符列表
      *
-     * @param tag   物品 NBT
-     * @param key   列表键
-     * @param curio true = 饰品栏专属列表
+     * @param list 列表
      */
-    private void readList(@Nonnull CompoundTag tag, @Nonnull String key, boolean curio) {
-        if (!tag.contains(key, Tag.TAG_LIST)) {
-            return;
-        }
-        ListTag list = tag.getList(key, Tag.TAG_COMPOUND);
+    private void readCurioList(@Nonnull ListTag list) {
         for (int i = 0; i < list.size(); i++) {
             CompoundTag compound = list.getCompound(i);
             String attributeId = compound.getString("AttributeName");
             ResourceLocation id = ResourceLocation.tryParse(attributeId);
-            Attribute attribute = id == null ? null : ForgeRegistries.ATTRIBUTES.getValue(id);
-            AttributeModifier modifier = AttributeModifier.load(compound);
-
+            Holder<Attribute> attribute = id == null ? null : BuiltInRegistries.ATTRIBUTE.getHolder(id).orElse(null);
             String slot = compound.getString("Slot");
-            Location location;
-            if (curio) {
-                location = new Location(Location.Kind.CURIO, slot.isEmpty() ? CurioMark.ANY : slot);
-            } else {
-                location = slot.isEmpty() ? Location.ALL_EQUIPMENT : new Location(Location.Kind.EQUIPMENT, slot);
-            }
+            Location location = new Location(Location.Kind.CURIO, slot.isEmpty() ? CurioMark.ANY : slot);
 
-            if (attribute == null || modifier == null) {
-                entries.add(new Entry(null, attributeId, 0.0D, AttributeModifier.Operation.ADDITION, location,
-                        UUID.randomUUID(), "", compound.copy()));
+            UUID uuid = compound.hasUUID("UUID") ? compound.getUUID("UUID") : null;
+            boolean validUuid = uuid != null && (uuid.getMostSignificantBits() != 0L || uuid.getLeastSignificantBits() != 0L);
+            if (attribute == null || !validUuid || !compound.contains("Amount", Tag.TAG_ANY_NUMERIC)) {
+                entries.add(new Entry(null, attributeId, 0.0D, AttributeModifier.Operation.ADD_VALUE, location,
+                        null, UUID.randomUUID(), "", compound.copy()));
                 continue;
             }
-            entries.add(new Entry(attribute, attributeId, modifier.getAmount(), modifier.getOperation(), location,
-                    modifier.getId(), modifier.getName(), null));
+            AttributeModifier.Operation operation = AttributeModifier.Operation.BY_ID.apply(compound.getInt("Operation"));
+            entries.add(new Entry(attribute, attributeId, compound.getDouble("Amount"), operation, location,
+                    null, uuid, compound.getString("Name"), null));
         }
     }
 
     /**
      * 把两个列表写回物品副本
+     * <p>
+     * 原版的一条都不剩时还原物品默认的属性（1.20.1 是删掉 AttributeModifiers 标签）；"在提示框里显示"的开关（标签页的隐藏信息）原样保留。
      */
     private void writeToItem() {
-        ListTag vanilla = new ListTag();
+        ItemStack working = session.working();
+        List<ItemAttributeModifiers.Entry> vanilla = new ArrayList<>();
+        Set<String> usedIds = new HashSet<>();
         ListTag curio = new ListTag();
         for (Entry entry : entries) {
-            ListTag target = entry.location.isCurio() ? curio : vanilla;
-            if (entry.raw != null) {
-                target.add(entry.raw.copy());
+            if (entry.location.isCurio()) {
+                if (entry.raw != null) {
+                    curio.add(entry.raw.copy());
+                    continue;
+                }
+                if (entry.attribute == null) {
+                    continue;
+                }
+                if (entry.uuid == null) {
+                    entry.uuid = CurioMark.newModifierUuid();
+                }
+                CompoundTag compound = new CompoundTag();
+                compound.putString("AttributeName", entry.attributeId);
+                compound.putString("Name", entry.name.isEmpty() ? MODIFIER_NAME : entry.name);
+                compound.putDouble("Amount", entry.amount);
+                compound.putInt("Operation", entry.operation.id());
+                compound.putUUID("UUID", entry.uuid);
+                compound.putString("Slot", entry.location.id());
+                curio.add(compound);
                 continue;
             }
-            CompoundTag compound = new CompoundTag();
-            compound.putString("AttributeName", entry.attributeId);
-            compound.putString("Name", entry.name.isEmpty() ? MODIFIER_NAME : entry.name);
-            compound.putDouble("Amount", entry.amount);
-            compound.putInt("Operation", entry.operation.toValue());
-            compound.putUUID("UUID", entry.uuid);
-            if (entry.location.kind() != Location.Kind.EQUIPMENT_ALL) {
-                compound.putString("Slot", entry.location.id());
+            if (entry.attribute == null) {
+                continue;
             }
-            target.add(compound);
+            // 同一属性上 ID 不能重复（重复的修饰符只有一条会生效），撞了就换一个新的
+            if (entry.id == null || !usedIds.add(entry.attributeId + "|" + entry.id)) {
+                entry.id = newModifierId();
+                usedIds.add(entry.attributeId + "|" + entry.id);
+            }
+            vanilla.add(new ItemAttributeModifiers.Entry(entry.attribute,
+                    new AttributeModifier(entry.id, entry.amount, entry.operation), entry.location.group()));
         }
 
-        ItemStack working = session.working();
+        ItemAttributeModifiers current = working.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
         if (vanilla.isEmpty()) {
-            working.removeTagKey(TAG_ATTRIBUTE_MODIFIERS);
+            ItemAttributeModifiers prototype = working.getPrototype().getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                    ItemAttributeModifiers.EMPTY);
+            working.set(DataComponents.ATTRIBUTE_MODIFIERS, prototype.withTooltip(current.showInTooltip()));
         } else {
-            session.tag().put(TAG_ATTRIBUTE_MODIFIERS, vanilla);
+            working.set(DataComponents.ATTRIBUTE_MODIFIERS, new ItemAttributeModifiers(vanilla, current.showInTooltip()));
         }
-        if (curio.isEmpty()) {
-            working.removeTagKey(CurioMark.TAG_MODIFIERS);
-        } else {
-            session.tag().put(CurioMark.TAG_MODIFIERS, curio);
+
+        CompoundTag data = working.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        boolean hadCurio = data.contains(CurioMark.TAG_MODIFIERS);
+        if (curio.isEmpty() && !hadCurio) {
+            return;
         }
+        CustomData.update(DataComponents.CUSTOM_DATA, working, tag -> {
+            tag.remove(CurioMark.TAG_MODIFIERS);
+            if (!curio.isEmpty()) {
+                tag.put(CurioMark.TAG_MODIFIERS, curio);
+            }
+        });
     }
 }

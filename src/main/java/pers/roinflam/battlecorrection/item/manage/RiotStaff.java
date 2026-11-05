@@ -43,12 +43,12 @@ public class RiotStaff extends ItemStaff {
         if (hand == InteractionHand.MAIN_HAND && !player.level().isClientSide()) {
             if (target instanceof Mob targetMob && target.isAlive()) {
                 // 移除其他暴动类效果
-                targetMob.removeEffect(ModMobEffects.RIOT_EFFECT.get());
-                targetMob.removeEffect(ModMobEffects.BRAWL_EFFECT.get());
-                targetMob.removeEffect(ModMobEffects.ELIMINATION_EFFECT.get());
+                targetMob.removeEffect(ModMobEffects.RIOT_EFFECT);
+                targetMob.removeEffect(ModMobEffects.BRAWL_EFFECT);
+                targetMob.removeEffect(ModMobEffects.ELIMINATION_EFFECT);
 
                 // 添加暴动效果（10分钟，不显示粒子和图标）
-                targetMob.addEffect(new MobEffectInstance(ModMobEffects.RIOT_EFFECT.get(), 12000, 0, false, false));
+                targetMob.addEffect(new MobEffectInstance(ModMobEffects.RIOT_EFFECT, 12000, 0, false, false));
 
                 // 立即设置一次随机目标
                 MobTargetUtil.retargetNearby(targetMob, false);

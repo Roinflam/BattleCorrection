@@ -334,7 +334,8 @@ public class NbtTreeView extends AbstractWidget {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+        // 1.20.2 起滚轮事件分横向 / 纵向两个量，这里和 1.20.1 一样只用纵向的（delta）
         if (!visible || !isMouseOver(mouseX, mouseY)) {
             return false;
         }

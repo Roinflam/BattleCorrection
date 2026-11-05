@@ -12,9 +12,9 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 import javax.annotation.Nonnull;
@@ -125,7 +125,7 @@ public class EnemyStaff extends ItemStaff {
     /**
      * 玩家下线时清理其未完成的选择
      */
-    @Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+    @EventBusSubscriber(modid = Reference.MOD_ID)
     public static final class SelectionCleaner {
 
         private SelectionCleaner() {

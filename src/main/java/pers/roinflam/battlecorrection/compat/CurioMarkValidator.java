@@ -12,9 +12,9 @@ import top.theillusivec4.curios.api.SlotResult;
  * <p>
  * Curios 判断"物品能不能进某个饰品栏"有两条路：
  * <ol>
- *   <li>手动拖放：DynamicStackHandler#isItemValid，先发 CurioEquipEvent，我们在 {@link CurioMarkEvents#onCurioEquip} 里放行。</li>
+ *   <li>手动拖放：DynamicStackHandler#isItemValid，先发 CurioCanEquipEvent（1.20.1 叫 CurioEquipEvent），我们在 {@link CurioMarkEvents#onCurioEquip} 里放行。</li>
  *   <li>Shift 快速放、提示框里的"栏位:"、以及 isItemValid 没被事件放行时的默认判定：CuriosApi.getItemStackSlots，
- *   只按每种饰品栏配置的校验器（validators）算，默认只有 curios:tag（看物品标签）。NBT 上的标记它根本不看。</li>
+ *   只按每种饰品栏配置的校验器（validators）算，默认只有 curios:tag（看物品标签）。物品数据上的标记它根本不看。</li>
  * </ol>
  * 这里往 Curios 注册一个校验器，再用 data/battlecorrection/curios/slots/*.json 给它自带的 10 种饰品栏都挂上
  * （校验器是并集，不影响原来的 curios:tag）。这样标记物品在第二条路上也是合法的：Shift 能放、提示框由 Curios 自己显示栏位、
@@ -27,7 +27,7 @@ public final class CurioMarkValidator {
     /**
      * 校验器 ID，slots/*.json 里的 validators 就写这个
      */
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "mark");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "mark");
 
     private CurioMarkValidator() {
     }

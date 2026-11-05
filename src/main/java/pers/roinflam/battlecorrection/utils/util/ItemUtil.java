@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.utils.util;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentUtils;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,25 +28,29 @@ public class ItemUtil {
      * 编辑器能存上 MB 的 NBT，所以 JSON 超过 {@link #CHAT_ITEM_JSON_LIMIT} 的物品只显示名字，颜色、斜体照旧；
      * 自定义名字本身就长得离谱时退回物品的原名。
      *
-     * @param stack 物品
+     * <p>
+     * 1.21.1 的悬停提示里是整件物品的数据组件，按 JSON 估长度要带注册表（附魔等是数据驱动的）。
+     *
+     * @param stack      物品
+     * @param registries 注册表（命令里用 {@code source.registryAccess()}）
      * @return 能放心发出去的物品名
      */
     @Nonnull
-    public static Component chatName(@Nonnull ItemStack stack) {
+    public static Component chatName(@Nonnull ItemStack stack, @Nonnull HolderLookup.Provider registries) {
         Component name = stack.getDisplayName();
-        if (jsonLength(name) <= CHAT_ITEM_JSON_LIMIT) {
+        if (jsonLength(name, registries) <= CHAT_ITEM_JSON_LIMIT) {
             return name;
         }
         MutableComponent plain = name.copy().withStyle(style -> style.withHoverEvent(null));
-        if (jsonLength(plain) <= CHAT_ITEM_JSON_LIMIT) {
+        if (jsonLength(plain, registries) <= CHAT_ITEM_JSON_LIMIT) {
             return plain;
         }
         return ComponentUtils.wrapInSquareBrackets(stack.getItem().getName(stack))
                 .withStyle(stack.getRarity().getStyleModifier());
     }
 
-    private static int jsonLength(@Nonnull Component component) {
-        return Component.Serializer.toJson(component).length();
+    private static int jsonLength(@Nonnull Component component, @Nonnull HolderLookup.Provider registries) {
+        return Component.Serializer.toJson(component, registries).length();
     }
 
 }

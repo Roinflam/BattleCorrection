@@ -4,8 +4,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 /**
@@ -22,7 +22,7 @@ public class ModCreativeTabs {
     /**
      * 战斗修正标签页
      */
-    public static final RegistryObject<CreativeModeTab> BATTLE_CORRECTION_TAB = CREATIVE_MODE_TABS.register(
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> BATTLE_CORRECTION_TAB = CREATIVE_MODE_TABS.register(
             "battlecorrection_tab",
             () -> CreativeModeTab.builder()
                     .icon(() -> new ItemStack(ModItems.ENEMY_STAFF.get()))

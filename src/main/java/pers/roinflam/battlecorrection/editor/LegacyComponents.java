@@ -6,7 +6,7 @@ import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.contents.LiteralContents;
+import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
 
 import javax.annotation.Nonnull;
@@ -696,7 +696,7 @@ public final class LegacyComponents {
             return;
         }
         ComponentContents contents = component.getContents();
-        if (!(contents instanceof LiteralContents) && contents != ComponentContents.EMPTY) {
+        if (!(contents instanceof PlainTextContents)) {
             lossy.add(Lossy.DYNAMIC);
         }
         if (contents instanceof TranslatableContents translatable) {

@@ -3,20 +3,19 @@ package pers.roinflam.battlecorrection.client.editor.page;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.fml.ModList;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
 import pers.roinflam.battlecorrection.client.editor.ItemEditorScreen;
@@ -44,9 +43,14 @@ import java.util.Locale;
  * 以及附魔描述——描述用的是 {@code enchantment.<模组>.<id>.desc} 这个通用翻译键（附魔描述类模组都用它），
  * 本模组自带原版 39 个的中英文，别的模组有就显示，没有就不显示。
  * <p>
- * 存盘：普通物品写 Enchantments，附魔书写 StoredEnchantments，格式 {id, lvl}。
- * 等级上限 255：原版读取时会把再大的值截到 255，写更大没意义。
- * 读不出来的条目（所在模组被删了、或者标签页那个"附魔光效"用的空条目）原样保留，不显示、不改动。
+ * 存盘：普通物品写 {@code minecraft:enchantments}，附魔书写 {@code minecraft:stored_enchantments}
+ * （1.20.1 是 Enchantments / StoredEnchantments 列表）。组件里"在提示框里显示"的开关（标签页的隐藏信息）原样保留。
+ * 等级上限 255：1.21.1 的附魔组件编解码器只认 1 ~ 255，再大整件物品存不了盘。
+ * <p>
+ * 1.21.1 附魔是数据驱动的，列表从当前世界的附魔注册表取（服务器数据包加的附魔也在里面）。
+ * 1.20.1 里"读不出来的条目原样保留"在 1.21.1 不需要了：附魔不存在的物品在读存档时就整件读不出来，到不了编辑器；
+ * 标签页的"附魔光效"改用独立的 {@code minecraft:enchantment_glint_override} 组件，也不再借用附魔列表。
+ * 组件里的附魔没有先后顺序（原版提示框按 {@code #minecraft:tooltip_order} 排），左边列表的顺序只在这一页没被别的页改过时保持。
  */
 public class EnchantmentsPage extends EditorPageBase {
 
@@ -61,37 +65,37 @@ public class EnchantmentsPage extends EditorPageBase {
      * 物品上已有的一条附魔
      */
     private static final class Entry implements ScrollList.Row {
-        final Enchantment enchantment;
+        final Holder<Enchantment> enchantment;
         final ResourceLocation id;
         int level;
 
-        Entry(@Nonnull Enchantment enchantment, @Nonnull ResourceLocation id, int level) {
+        Entry(@Nonnull Holder<Enchantment> enchantment, @Nonnull ResourceLocation id, int level) {
             this.enchantment = enchantment;
             this.id = id;
             this.level = level;
         }
 
         boolean overMax() {
-            return level > enchantment.getMaxLevel();
+            return level > enchantment.value().getMaxLevel();
         }
 
         @Nonnull
         @Override
         public Component label() {
-            return Component.translatable(enchantment.getDescriptionId());
+            return nameOf(enchantment);
         }
 
         @Nullable
         @Override
         public Component secondary() {
             MutableComponent text = Component.translatable("gui.battlecorrection.editor.enchant.level_of", level,
-                    enchantment.getMaxLevel());
+                    enchantment.value().getMaxLevel());
             return overMax() ? text.withStyle(style -> style.withColor(EditorTheme.WARNING & 0xFFFFFF)) : text;
         }
 
         @Override
         public int color() {
-            return enchantment.isCurse() ? EditorTheme.DANGER : EditorTheme.TEXT;
+            return isCurse(enchantment) ? EditorTheme.DANGER : EditorTheme.TEXT;
         }
     }
 
@@ -99,17 +103,17 @@ public class EnchantmentsPage extends EditorPageBase {
      * 全部附魔列表里的一项
      */
     private static final class Choice implements ScrollList.Row {
-        final Enchantment enchantment;
+        final Holder<Enchantment> enchantment;
         final ResourceLocation id;
         final Component name;
         final Component modName;
         final boolean applicable;
         final String searchText;
 
-        Choice(@Nonnull Enchantment enchantment, @Nonnull ResourceLocation id, boolean applicable) {
+        Choice(@Nonnull Holder<Enchantment> enchantment, @Nonnull ResourceLocation id, boolean applicable) {
             this.enchantment = enchantment;
             this.id = id;
-            this.name = Component.translatable(enchantment.getDescriptionId());
+            this.name = nameOf(enchantment);
             this.modName = Component.literal(modDisplayName(id.getNamespace()));
             this.applicable = applicable;
             this.searchText = (name.getString() + " " + id + " " + modName.getString()).toLowerCase(Locale.ROOT);
@@ -129,7 +133,7 @@ public class EnchantmentsPage extends EditorPageBase {
 
         @Override
         public int color() {
-            if (enchantment.isCurse()) {
+            if (isCurse(enchantment)) {
                 return EditorTheme.DANGER;
             }
             return applicable ? EditorTheme.TEXT : EditorTheme.TEXT_DIM;
@@ -172,7 +176,11 @@ public class EnchantmentsPage extends EditorPageBase {
     }
 
     private final List<Entry> entries = new ArrayList<>();
-    private final List<CompoundTag> keptRaw = new ArrayList<>();
+    /**
+     * 上次写进物品（或载入时读到）的附魔组件：页面重建时物品上还是它，就保留左边列表的顺序
+     */
+    @Nullable
+    private ItemEnchantments written;
     private final List<Choice> allChoices = new ArrayList<>();
     private final PopupList<LevelRow> levelPopup = new PopupList<>();
     private boolean binding;
@@ -272,7 +280,7 @@ public class EnchantmentsPage extends EditorPageBase {
         if (currentList != null && currentList.hoveredItem() != null) {
             Entry hovered = currentList.hoveredItem();
             renderEnchantmentTooltip(g, mouseX, mouseY, hovered.enchantment, hovered.id, hovered.level,
-                    hovered.enchantment.canEnchant(session.working()));
+                    session.working().supportsEnchantment(hovered.enchantment));
         }
     }
 
@@ -302,11 +310,11 @@ public class EnchantmentsPage extends EditorPageBase {
      * @param applicable 原版认为能不能附在这件物品上
      */
     private void renderEnchantmentTooltip(@Nonnull GuiGraphics g, int mouseX, int mouseY,
-                                          @Nonnull Enchantment enchantment, @Nonnull ResourceLocation id,
+                                          @Nonnull Holder<Enchantment> enchantment, @Nonnull ResourceLocation id,
                                           int level, boolean applicable) {
         List<FormattedCharSequence> lines = new ArrayList<>();
-        MutableComponent title = Component.translatable(enchantment.getDescriptionId())
-                .withStyle(enchantment.isCurse() ? ChatFormatting.RED : ChatFormatting.WHITE);
+        MutableComponent title = nameOf(enchantment).copy()
+                .withStyle(isCurse(enchantment) ? ChatFormatting.RED : ChatFormatting.WHITE);
         if (level > 0) {
             title.append(Component.literal(" " + level).withStyle(ChatFormatting.AQUA));
         }
@@ -315,12 +323,12 @@ public class EnchantmentsPage extends EditorPageBase {
         lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.enchant.from",
                 modDisplayName(id.getNamespace())).withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
         lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.enchant.max_level",
-                enchantment.getMaxLevel()).withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
-        if (level > enchantment.getMaxLevel()) {
+                enchantment.value().getMaxLevel()).withStyle(ChatFormatting.GRAY), TOOLTIP_WIDTH));
+        if (level > enchantment.value().getMaxLevel()) {
             lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.enchant.over_max")
                     .withStyle(ChatFormatting.YELLOW), TOOLTIP_WIDTH));
         }
-        if (enchantment.isCurse()) {
+        if (isCurse(enchantment)) {
             lines.addAll(font.split(Component.translatable("gui.battlecorrection.editor.enchant.curse")
                     .withStyle(ChatFormatting.RED), TOOLTIP_WIDTH));
         }
@@ -333,6 +341,21 @@ public class EnchantmentsPage extends EditorPageBase {
             lines.addAll(font.split(Component.translatable(descriptionKey).withStyle(ChatFormatting.WHITE), TOOLTIP_WIDTH));
         }
         g.renderTooltip(font, lines, mouseX, mouseY);
+    }
+
+    /**
+     * 附魔名：1.21.1 附魔的名字是附魔定义里的 description 组件（原版就是一个翻译组件）
+     */
+    @Nonnull
+    private static Component nameOf(@Nonnull Holder<Enchantment> enchantment) {
+        return enchantment.value().description();
+    }
+
+    /**
+     * 是不是诅咒：1.21.1 改成看附魔标签 {@code #minecraft:curse}
+     */
+    private static boolean isCurse(@Nonnull Holder<Enchantment> enchantment) {
+        return enchantment.is(EnchantmentTags.CURSE);
     }
 
     /**
@@ -354,13 +377,8 @@ public class EnchantmentsPage extends EditorPageBase {
     private void buildChoices() {
         allChoices.clear();
         ItemStack working = session.working();
-        for (Enchantment enchantment : ForgeRegistries.ENCHANTMENTS.getValues()) {
-            ResourceLocation id = ForgeRegistries.ENCHANTMENTS.getKey(enchantment);
-            if (id == null) {
-                continue;
-            }
-            allChoices.add(new Choice(enchantment, id, enchantment.canEnchant(working)));
-        }
+        session.registries().lookupOrThrow(Registries.ENCHANTMENT).listElements().forEach(enchantment ->
+                allChoices.add(new Choice(enchantment, enchantment.key().location(), working.supportsEnchantment(enchantment))));
         // 能附的在前；同组内 Minecraft 先、其他模组按模组名；再按附魔名
         allChoices.sort(Comparator.comparing((Choice choice) -> !choice.applicable)
                 .thenComparing(choice -> !"minecraft".equals(choice.id.getNamespace()))
@@ -424,7 +442,7 @@ public class EnchantmentsPage extends EditorPageBase {
         if (currentList == null) {
             return;
         }
-        int max = entry.enchantment.getMaxLevel();
+        int max = entry.enchantment.value().getMaxLevel();
         List<LevelRow> rows = new ArrayList<>();
         for (int level = 1; level <= Math.max(max, entry.level); level++) {
             if (level <= max || level == entry.level) {
@@ -447,7 +465,7 @@ public class EnchantmentsPage extends EditorPageBase {
             return;
         }
         for (Entry entry : entries) {
-            if (entry.enchantment == choice.enchantment) {
+            if (entry.enchantment.equals(choice.enchantment)) {
                 currentList.select(entry);
                 bindForm(entry);
                 openLevelPopup(entry);
@@ -532,66 +550,52 @@ public class EnchantmentsPage extends EditorPageBase {
     }
 
     /**
-     * 这个物品用哪个键存附魔
-     *
-     * @return 键名
+     * 物品上现在的附魔组件（附魔书是 stored_enchantments）
      */
     @Nonnull
-    private String enchantmentsKey() {
-        return session.working().is(Items.ENCHANTED_BOOK) ? TAG_STORED_ENCHANTMENTS : TAG_ENCHANTMENTS;
+    private ItemEnchantments currentEnchantments() {
+        ItemStack working = session.working();
+        return working.getOrDefault(EnchantmentHelper.getComponentType(working), ItemEnchantments.EMPTY);
     }
 
     /**
      * 从物品副本读附魔
+     * <p>
+     * 物品上的附魔还是这一页上次写的那份时不重新读，保留左边列表的顺序（组件本身不记顺序）。
      */
     private void loadFromItem() {
-        entries.clear();
-        keptRaw.clear();
-        CompoundTag tag = session.tagOrNull();
-        String key = enchantmentsKey();
-        if (tag == null || !tag.contains(key, Tag.TAG_LIST)) {
+        ItemEnchantments current = currentEnchantments();
+        if (written != null && written.equals(current)) {
+            written = current;
             return;
         }
-        ListTag list = tag.getList(key, Tag.TAG_COMPOUND);
-        for (int i = 0; i < list.size(); i++) {
-            CompoundTag raw = list.getCompound(i);
-            ResourceLocation id = EnchantmentHelper.getEnchantmentId(raw);
-            Enchantment enchantment = id == null ? null : ForgeRegistries.ENCHANTMENTS.getValue(id);
-            if (enchantment == null) {
-                keptRaw.add(raw.copy());
+        entries.clear();
+        for (var entry : current.entrySet()) {
+            Holder<Enchantment> enchantment = entry.getKey();
+            ResourceLocation id = enchantment.unwrapKey().map(key -> key.location()).orElse(null);
+            if (id == null) {
                 continue;
             }
-            // 同一附魔出现两次时原版只认第一条，这里也只保留第一条
-            boolean duplicate = false;
-            for (Entry entry : entries) {
-                if (entry.enchantment == enchantment) {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (!duplicate) {
-                entries.add(new Entry(enchantment, id, Mth.clamp(raw.getInt("lvl"), 1, MAX_LEVEL)));
-            }
+            entries.add(new Entry(enchantment, id, Mth.clamp(entry.getIntValue(), 1, MAX_LEVEL)));
         }
+        written = current;
     }
 
     /**
      * 把附魔写回物品副本
+     * <p>
+     * 在原组件的基础上改（保留"在提示框里显示"的开关），一条都不剩时写空组件：和物品默认值一样时补丁项自动去掉，
+     * 相当于 1.20.1 删掉附魔列表。
      */
     private void writeToItem() {
         ItemStack working = session.working();
-        String key = enchantmentsKey();
-        if (entries.isEmpty() && keptRaw.isEmpty()) {
-            working.removeTagKey(key);
-            return;
-        }
-        ListTag list = new ListTag();
+        ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(currentEnchantments());
+        mutable.removeIf(enchantment -> true);
         for (Entry entry : entries) {
-            list.add(EnchantmentHelper.storeEnchantment(entry.id, entry.level));
+            mutable.set(entry.enchantment, Mth.clamp(entry.level, 1, MAX_LEVEL));
         }
-        for (CompoundTag raw : keptRaw) {
-            list.add(raw.copy());
-        }
-        session.tag().put(key, list);
+        ItemEnchantments result = mutable.toImmutable();
+        working.set(EnchantmentHelper.getComponentType(working), result);
+        written = result;
     }
 }

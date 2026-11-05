@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.utils.util;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -16,6 +17,8 @@ import javax.annotation.Nullable;
  * 饰品栏的属性（Curios 自己的、命令追加的、物品上原版格式的 AttributeModifiers）都已经由
  * {@code CurioMarkEvents} 在戴上时作为真正的修饰符加到实体身上，读出来的值天然包含它们。
  * 本模组的 15 个属性都是 setSyncable(true)，客户端读到的是服务端同步过来的值，两端一致。
+ * <p>
+ * 1.21.1：属性一律以 {@link Holder} 传（{@code ModAttributes} 里的 {@code DeferredHolder} 本身就是）。
  */
 public class AttributesUtil {
 
@@ -26,7 +29,7 @@ public class AttributesUtil {
      * @param attribute 属性
      * @return 属性值；实体没有这个属性时返回属性默认值
      */
-    public static double getAttributeValue(@Nonnull LivingEntity entity, @Nonnull Attribute attribute) {
+    public static double getAttributeValue(@Nonnull LivingEntity entity, @Nonnull Holder<Attribute> attribute) {
         return getAttributeValue(entity, attribute, 0.0D);
     }
 
@@ -38,10 +41,10 @@ public class AttributesUtil {
      * @param extraValue 额外加上的值
      * @return 属性值 + 额外值
      */
-    public static double getAttributeValue(@Nonnull LivingEntity entity, @Nonnull Attribute attribute,
+    public static double getAttributeValue(@Nonnull LivingEntity entity, @Nonnull Holder<Attribute> attribute,
                                            double extraValue) {
         @Nullable AttributeInstance attributeInstance = entity.getAttribute(attribute);
-        double value = attributeInstance != null ? attributeInstance.getValue() : attribute.getDefaultValue();
+        double value = attributeInstance != null ? attributeInstance.getValue() : attribute.value().getDefaultValue();
         return value + extraValue;
     }
 }

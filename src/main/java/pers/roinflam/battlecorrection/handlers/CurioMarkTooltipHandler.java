@@ -1,14 +1,18 @@
 package pers.roinflam.battlecorrection.handlers;
 
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
 import pers.roinflam.battlecorrection.compat.CurioMark;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -38,14 +42,9 @@ import java.util.Set;
  * 排在最后能保证本模组这几行不被顺手清掉。
  * <p>
  * 这个类引用了 Curios 的类，只能在装了 Curios 时手动注册到事件总线，
- * 不能加 @Mod.EventBusSubscriber（否则没装 Curios 时启动就会找不到类而崩溃）。
+ * 不能加 @EventBusSubscriber（否则没装 Curios 时启动就会找不到类而崩溃）。
  */
 public final class CurioMarkTooltipHandler {
-
-    /**
-     * 原版"隐藏属性修饰符"的 HideFlags 位（第 2 位）
-     */
-    private static final int HIDE_ATTRIBUTES_FLAG = 2;
 
     /**
      * Curios 通用标题"佩戴饰品时："的翻译键
@@ -208,34 +207,41 @@ public final class CurioMarkTooltipHandler {
      * @return 蓝色（增加）或红色（减少）的一行文本；数值为 0 时返回 null
      */
     @Nullable
-    private static Component formatModifier(@Nonnull Attribute attribute, @Nonnull AttributeModifier modifier) {
-        double amount = modifier.getAmount();
+    private static Component formatModifier(@Nonnull Holder<Attribute> attribute, @Nonnull AttributeModifier modifier) {
+        double amount = modifier.amount();
         if (amount == 0) {
             return null;
         }
 
         // 与原版一致：乘法类显示百分比，击退抗性按 ×10 显示
         double displayAmount;
-        if (modifier.getOperation() == AttributeModifier.Operation.ADDITION) {
-            displayAmount = attribute == Attributes.KNOCKBACK_RESISTANCE ? amount * 10.0D : amount;
+        if (modifier.operation() == AttributeModifier.Operation.ADD_VALUE) {
+            displayAmount = attribute.is(Attributes.KNOCKBACK_RESISTANCE) ? amount * 10.0D : amount;
         } else {
             displayAmount = amount * 100.0D;
         }
 
         boolean positive = amount > 0;
-        String key = "attribute.modifier." + (positive ? "plus." : "take.") + modifier.getOperation().toValue();
-        String value = ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(positive ? displayAmount : -displayAmount);
-        return Component.translatable(key, value, Component.translatable(attribute.getDescriptionId()))
+        String key = "attribute.modifier." + (positive ? "plus." : "take.") + modifier.operation().id();
+        String value = ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(positive ? displayAmount : -displayAmount);
+        return Component.translatable(key, value, Component.translatable(attribute.value().getDescriptionId()))
                 .withStyle(positive ? ChatFormatting.BLUE : ChatFormatting.RED);
     }
 
     /**
      * 物品是否设置了"隐藏属性修饰符"
+     * <p>
+     * 1.20.1 是 HideFlags 的第 2 位；1.21.1 拆成了属性修饰符组件自己的 {@code show_in_tooltip}
+     * （原版修复器就是这么换的），整个提示框都隐藏时（{@code hide_tooltip}）也不画。
      *
      * @param stack 物品
      * @return true = 隐藏，不显示属性行
      */
     private static boolean isHidingAttributes(@Nonnull ItemStack stack) {
-        return stack.getTag() != null && (stack.getTag().getInt("HideFlags") & HIDE_ATTRIBUTES_FLAG) != 0;
+        if (stack.has(DataComponents.HIDE_TOOLTIP)) {
+            return true;
+        }
+        ItemAttributeModifiers modifiers = stack.get(DataComponents.ATTRIBUTE_MODIFIERS);
+        return modifiers != null && !modifiers.showInTooltip();
     }
 }

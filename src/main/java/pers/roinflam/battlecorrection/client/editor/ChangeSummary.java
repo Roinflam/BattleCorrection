@@ -36,23 +36,29 @@ public final class ChangeSummary {
     private static final int MAX_LIST_COMPARE = 64;
 
     /**
+     * 物品根下存组件的键
+     */
+    private static final String COMPONENTS = "components";
+
+    /**
      * 认得的路径 → 翻译键后缀（gui.battlecorrection.editor.change.xxx）
      */
     private static final Map<String, String> KNOWN = new LinkedHashMap<>();
 
     static {
+        // 1.21.1 的物品根是 {id, count, components}，各项数据是 components 下的组件（1.20.1 是 tag 下的键）
         KNOWN.put("id", "item");
-        KNOWN.put("Count", "count");
-        KNOWN.put("tag.display.Name", "name");
-        KNOWN.put("tag.display.Lore", "lore");
-        KNOWN.put("tag.Enchantments", "enchantments");
-        KNOWN.put("tag.StoredEnchantments", "stored_enchantments");
-        KNOWN.put("tag.AttributeModifiers", "attributes");
-        KNOWN.put("tag.Unbreakable", "unbreakable");
-        KNOWN.put("tag.HideFlags", "hide_flags");
-        KNOWN.put("tag.Damage", "damage");
-        KNOWN.put("tag.RepairCost", "repair_cost");
-        KNOWN.put("tag.CustomModelData", "model");
+        KNOWN.put("count", "count");
+        KNOWN.put("components.minecraft:custom_name", "name");
+        KNOWN.put("components.minecraft:lore", "lore");
+        KNOWN.put("components.minecraft:enchantments", "enchantments");
+        KNOWN.put("components.minecraft:stored_enchantments", "stored_enchantments");
+        KNOWN.put("components.minecraft:attribute_modifiers", "attributes");
+        KNOWN.put("components.minecraft:unbreakable", "unbreakable");
+        KNOWN.put("components.minecraft:hide_additional_tooltip", "hide_flags");
+        KNOWN.put("components.minecraft:damage", "damage");
+        KNOWN.put("components.minecraft:repair_cost", "repair_cost");
+        KNOWN.put("components.minecraft:custom_model_data", "model");
     }
 
     /**
@@ -101,6 +107,12 @@ public final class ChangeSummary {
         if (before != null && before.equals(after)) {
             return;
         }
+        // 1.21.1 的新物品没有 components（1.20.1 的可损坏物品总带着 tag.Damage），整块加上或删掉时
+        // 也按组件逐项列出，不然只显示一行 "components"
+        if (path.equals(COMPONENTS) && (before == null || after == null)) {
+            before = before == null ? new CompoundTag() : before;
+            after = after == null ? new CompoundTag() : after;
+        }
         if (before == null || after == null) {
             add(entries, total, limit, before == null ? '+' : '-', path);
             return;
@@ -137,10 +149,12 @@ public final class ChangeSummary {
      */
     @Nonnull
     private static String labelOf(@Nonnull String path) {
+        // 组件路径显示时省掉开头的 "components."，不然 minecraft:attribute_modifiers 这类长名字在确认框里放不下
+        String shown = path.startsWith(COMPONENTS + ".") ? path.substring(COMPONENTS.length() + 1) : path;
         String suffix = KNOWN.get(path);
         if (suffix == null) {
-            return path.isEmpty() ? "(root)" : path;
+            return shown.isEmpty() ? "(root)" : shown;
         }
-        return I18n.get("gui.battlecorrection.editor.change." + suffix) + "  " + path;
+        return I18n.get("gui.battlecorrection.editor.change." + suffix) + "  " + shown;
     }
 }

@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.event;
 
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -7,15 +8,16 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import pers.roinflam.battlecorrection.event.damage.LivingAttackEvent;
+import pers.roinflam.battlecorrection.event.damage.LivingDamageEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
+import pers.roinflam.battlecorrection.utils.util.ModifierIds;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -25,11 +27,14 @@ import java.util.UUID;
  * 受伤事件监听器
  * 处理PVP伤害调整、受击无敌时间修改和攻击冷却开关
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class InjuryEventListener {
 
-    public static final UUID ATTACK_COOLDOWN_ID = UUID.fromString("a05141e5-4898-7440-0615-9ac825922a2a");
-    public static final String ATTACK_COOLDOWN_NAME = "battlecorrection.attack_cooldown";
+    public static final ResourceLocation ATTACK_COOLDOWN_ID = ModifierIds.of("attack_cooldown");
+    /**
+     * 1.20.1 用的 UUID：早期版本写过永久修饰符，旧存档升级上来时变成 minecraft:<uuid>，进世界时删掉（见 {@link ModifierIds}）
+     */
+    private static final UUID LEGACY_ATTACK_COOLDOWN_UUID = UUID.fromString("a05141e5-4898-7440-0615-9ac825922a2a");
 
     /**
      * 关闭攻击冷却时加到攻击速度上的数值
@@ -185,7 +190,7 @@ public class InjuryEventListener {
      * 处理实体加入世界事件 - 攻击冷却开关
      * <p>
      * 使用临时修饰符（不写进存档），卸载模组后玩家不会残留"永远没有攻击冷却"。
-     * 无论开关状态都先按同一个 UUID 移除一次，老存档里早期版本留下的永久修饰符
+     * 无论开关状态都先按同一个 ID 移除一次，老存档里早期版本留下的永久修饰符
      * 会在玩家下次进入世界时被自动清掉。
      *
      * @param evt 实体加入世界事件
@@ -205,14 +210,14 @@ public class InjuryEventListener {
         if (hadModifier) {
             attributeInstance.removeModifier(ATTACK_COOLDOWN_ID);
         }
+        hadModifier |= ModifierIds.removeLegacy(attributeInstance, LEGACY_ATTACK_COOLDOWN_UUID);
 
         if (!ConfigBattle.ATTACK_COOLDOWN.get()) {
             // 禁用攻击冷却
             attributeInstance.addTransientModifier(new AttributeModifier(
                     ATTACK_COOLDOWN_ID,
-                    ATTACK_COOLDOWN_NAME,
                     NO_COOLDOWN_ATTACK_SPEED,
-                    AttributeModifier.Operation.ADDITION
+                    AttributeModifier.Operation.ADD_VALUE
             ));
             if (LogUtil.isDetailed()) {
                 LogUtil.debugEvent("攻击冷却禁用", player.getName().getString(), "移除了攻击冷却限制");

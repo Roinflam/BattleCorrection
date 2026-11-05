@@ -1,9 +1,9 @@
 package pers.roinflam.battlecorrection.attributes;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingHealEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
  * 治疗恢复加成属性
  * 提高自身受到的治疗效果，如自然恢复、瞬间治疗药水等
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeRestoreHeal {
 
     /**
@@ -61,7 +61,7 @@ public class AttributeRestoreHeal {
         LivingEntity entity = evt.getEntity();
         float originalAmount = evt.getAmount();
 
-        float equipmentMultiplier = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.RESTORE_HEAL.get());
+        float equipmentMultiplier = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.RESTORE_HEAL);
         float configMultiplier = ConfigAttribute.RESTORE_HEAL.get().floatValue();
         float finalMultiplier = (equipmentMultiplier - 1.0f) + configMultiplier;
         float newAmount = originalAmount * finalMultiplier;

@@ -3,10 +3,10 @@ package pers.roinflam.battlecorrection.utils.util;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.utils.Reference;
 import pers.roinflam.battlecorrection.utils.ReflectionCache;
 
@@ -28,7 +28,7 @@ import java.util.UUID;
  * 只在服务端记录：两端都写同一张静态表的话，
  * 单人游戏时客户端线程和内置服务端线程会同时修改 HashMap。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class EntityLivingUtil {
 
     /**

@@ -7,11 +7,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingDamageEvent;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
  * 魔法由 {@link MagicDamageClassifier} 判定，是独立层，在基础层之上再乘一次。
  * 例如玩家的火球 = 弹射物倍率 × 魔法倍率，玩家亲手打出的射线法术 = 近战倍率 × 魔法倍率。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class DamageEventListener {
 
     /**

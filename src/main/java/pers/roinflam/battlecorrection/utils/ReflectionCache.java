@@ -1,7 +1,6 @@
 package pers.roinflam.battlecorrection.utils;
 
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 
 import javax.annotation.Nonnull;
 import java.lang.reflect.Method;
@@ -12,7 +11,8 @@ import java.lang.reflect.Method;
  * <p>
  * 只有 updatingUsingItem 一个反射目标（弓速、使用速度的加速效果用）。
  * <p>
- * 注意：ObfuscationReflectionHelper 要求传入 SRG 名（如 m_21329_），它会在开发环境里自动映射成可读名。
+ * 1.21.1 的 NeoForge 运行时（开发环境和正式环境）都用原版的可读名，直接按 updatingUsingItem 取；
+ * 1.20.1 那样传 SRG 名（m_21329_）在这里找不到。
  */
 public class ReflectionCache {
 
@@ -33,13 +33,9 @@ public class ReflectionCache {
     private static void initialize() {
         LogUtil.info("开始初始化反射缓存...");
 
-        // 获取 updatingUsingItem 方法
-        // 可读名: updatingUsingItem, SRG名: m_21329_
+        // 获取 updatingUsingItem 方法（LivingEntity 里的 private void updatingUsingItem()）
         try {
-            updatingUsingItemMethod = ObfuscationReflectionHelper.findMethod(
-                    LivingEntity.class,
-                    "m_21329_"
-            );
+            updatingUsingItemMethod = LivingEntity.class.getDeclaredMethod("updatingUsingItem");
             updatingUsingItemMethod.setAccessible(true);
             updatingUsingItemAvailable = true;
             LogUtil.info("成功获取 updatingUsingItem 方法");

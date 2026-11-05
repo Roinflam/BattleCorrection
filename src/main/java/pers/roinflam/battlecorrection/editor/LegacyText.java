@@ -1,7 +1,7 @@
 package pers.roinflam.battlecorrection.editor;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.SharedConstants;
+import net.minecraft.util.StringUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,7 +13,7 @@ import java.util.Locale;
 /**
  * 颜色码文本的语法层：编辑器里用 {@code &a} 这种写法，原版文本里是 {@code §a}
  * <p>
- * 为什么不直接编辑 §：原版的 EditBox 会把 § 当非法字符过滤掉（SharedConstants.isAllowedChatCharacter），
+ * 为什么不直接编辑 §：原版的 EditBox 会把 § 当非法字符过滤掉（StringUtil.isAllowedChatCharacter），
  * 打不进也粘不进。用 & 代替是 Bukkit 那边的老习惯，服主都熟。
  * <p>
  * 编辑文本（editable）的写法：
@@ -596,7 +596,7 @@ public final class LegacyText {
         StringBuilder filtered = null;
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            boolean keep = c == SECTION || SharedConstants.isAllowedChatCharacter(c);
+            boolean keep = c == SECTION || StringUtil.isAllowedChatCharacter(c);
             if (!keep && filtered == null) {
                 filtered = new StringBuilder(text.length());
                 filtered.append(text, 0, i);

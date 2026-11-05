@@ -50,12 +50,12 @@ public class EliminationStaff extends ItemStaff {
 
             for (Mob mob : nearbyMobs) {
                 // 移除其他暴动类效果
-                mob.removeEffect(ModMobEffects.RIOT_EFFECT.get());
-                mob.removeEffect(ModMobEffects.BRAWL_EFFECT.get());
-                mob.removeEffect(ModMobEffects.ELIMINATION_EFFECT.get());
+                mob.removeEffect(ModMobEffects.RIOT_EFFECT);
+                mob.removeEffect(ModMobEffects.BRAWL_EFFECT);
+                mob.removeEffect(ModMobEffects.ELIMINATION_EFFECT);
 
                 // 添加消灭效果
-                mob.addEffect(new MobEffectInstance(ModMobEffects.ELIMINATION_EFFECT.get(), 12000, 0, false, false));
+                mob.addEffect(new MobEffectInstance(ModMobEffects.ELIMINATION_EFFECT, 12000, 0, false, false));
 
                 // 只挑不同种类的生物作为目标
                 Mob randomTarget = MobTargetUtil.pickRandom(nearbyMobs, mob, true);

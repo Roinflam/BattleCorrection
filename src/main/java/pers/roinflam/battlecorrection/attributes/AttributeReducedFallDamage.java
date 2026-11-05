@@ -3,10 +3,10 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
  * 减少摔落伤害属性
  * 忽略一定数值的摔落伤害，超过部分减少相应伤害
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeReducedFallDamage {
 
     /**
@@ -42,7 +42,7 @@ public class AttributeReducedFallDamage {
         LivingEntity hurter = evt.getEntity();
         float originalDamage = evt.getAmount();
 
-        float equipmentValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.REDUCED_FALL_DAMAGE.get(), 0);
+        float equipmentValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.REDUCED_FALL_DAMAGE, 0);
         float configValue = ConfigAttribute.REDUCED_FALL_DAMAGE.get().floatValue();
         float totalValue = equipmentValue + configValue;
 

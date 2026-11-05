@@ -115,6 +115,6 @@ public final class PopupList<T extends ScrollList.Row> {
      * @return true = 已处理
      */
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        return list != null && list.mouseScrolled(mouseX, mouseY, delta);
+        return list != null && list.mouseScrolled(mouseX, mouseY, 0.0D, delta);
     }
 }

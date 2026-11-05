@@ -1,21 +1,19 @@
 package pers.roinflam.battlecorrection.network.packet;
 
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.network.NetworkEvent;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditAccess;
 import pers.roinflam.battlecorrection.editor.NbtEditTarget;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 
 import javax.annotation.Nonnull;
-import java.util.function.Supplier;
 
 /**
  * 客户端 → 服务端：把编辑后的实体 / 方块实体 NBT 写回
@@ -40,12 +38,12 @@ public class ApplyNbtEditC2SPacket {
     @Nonnull
     public static ApplyNbtEditC2SPacket decode(@Nonnull FriendlyByteBuf buf) {
         NbtEditTarget target = NbtEditTarget.read(buf);
-        CompoundTag tag = buf.readNbt(new NbtAccounter(ChunkedPacket.VANILLA_NBT_QUOTA));
+        CompoundTag tag = ChunkedPacket.readCompound(buf, ChunkedPacket.VANILLA_NBT_QUOTA);
         return new ApplyNbtEditC2SPacket(target, tag == null ? new CompoundTag() : tag);
     }
 
-    public void handle(@Nonnull Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayer player = ctx.get().getSender();
+    public void handle(@Nonnull IPayloadContext ctx) {
+        ServerPlayer player = ctx.player() instanceof ServerPlayer serverPlayer ? serverPlayer : null;
         if (player == null) {
             return;
         }

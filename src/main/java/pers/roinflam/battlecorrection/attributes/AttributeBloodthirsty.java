@@ -3,10 +3,10 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingDamageEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
  * 吸血属性
  * 根据近战伤害值恢复等量的生命值（需要完整攻击才能触发）
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeBloodthirsty {
 
     /**
@@ -53,7 +53,7 @@ public class AttributeBloodthirsty {
         }
 
         float damage = evt.getAmount();
-        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.BLOODTHIRSTY.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.BLOODTHIRSTY);
         float configValue = ConfigAttribute.BLOODTHIRSTY.get().floatValue();
         float healRatio = (attributeValue - 1) + configValue;
         float healAmount = damage * healRatio;

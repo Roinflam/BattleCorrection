@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.client.editor.page;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,7 +15,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
@@ -40,8 +40,9 @@ import java.util.concurrent.CompletionException;
 /**
  * SNBT 页：整份 NBT 以 SNBT 文本编辑（SNBT 就是原版 /data、/give 里写 NBT 用的文本格式）
  * <p>
- * 物品显示的是存盘时的完整结构 {@code {id:"minecraft:stick",Count:1b,tag:{...}}}，实体 / 方块实体是整份 NBT；
- * Forge 附加的 ForgeCaps 是运行时能力数据，编辑器改不了，显示时去掉（见 {@link EditorSession#loadRoot()}）。
+ * 物品显示的是存盘时的完整结构 {@code {id:"minecraft:stick",count:1,components:{...}}}（1.21.1 的写法，
+ * 1.20.1 是 {@code {id, Count, tag}}；粘进 1.20.1 的写法也认，应用时用原版数据修复器升级），实体 / 方块实体是整份 NBT。
+ * 1.20.1 里 Forge 附加的 ForgeCaps 在 1.21.1 不存在了（见 {@link EditorSession#loadRoot()}）。
  * <p>
  * 文本、光标、选区、滚动位置和文本级撤销历史都放在页面持有的 {@link TextDocument} 里，编辑框只是它的视图：
  * 切页再回来、窗口缩放、开帮助界面再回来时控件会重建，没应用的文本、光标和滚动位置都还在。
@@ -983,7 +984,7 @@ public class RawNbtPage extends EditorPageBase {
         if (id.equals(session.itemId())) {
             return;
         }
-        Item item = ForgeRegistries.ITEMS.containsKey(id) ? ForgeRegistries.ITEMS.getValue(id) : null;
+        Item item = BuiltInRegistries.ITEM.containsKey(id) ? BuiltInRegistries.ITEM.get(id) : null;
         if (item == null || item == Items.AIR) {
             itemProblem = I18n.get("gui.battlecorrection.editor.item.unknown", id);
             return;
@@ -1214,7 +1215,7 @@ public class RawNbtPage extends EditorPageBase {
             scheduleSearch(0, false);
         }
         screen.setFocused(searchBox);
-        searchBox.moveCursorToEnd();
+        searchBox.moveCursorToEnd(false);
         searchBox.setHighlightPos(0);
     }
 

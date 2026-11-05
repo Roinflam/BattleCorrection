@@ -6,10 +6,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -19,17 +17,12 @@ import java.util.List;
 public abstract class ItemStaff extends Item {
 
     public ItemStaff(@Nonnull Properties properties) {
-        super(properties);
+        // 1.21.1：稀有度是物品组件，在属性里给（原来覆写的 getRarity 没有了）
+        super(properties.rarity(Rarity.EPIC));
     }
 
     @Override
-    @Nonnull
-    public Rarity getRarity(@Nonnull ItemStack stack) {
-        return Rarity.EPIC;
-    }
-
-    @Override
-    public void appendHoverText(@Nonnull ItemStack stack, @Nullable Level level,
+    public void appendHoverText(@Nonnull ItemStack stack, @Nonnull TooltipContext context,
                                 @Nonnull List<Component> tooltipComponents,
                                 @Nonnull TooltipFlag isAdvanced) {
         // 获取物品的tooltip翻译键
@@ -39,6 +32,6 @@ public abstract class ItemStaff extends Item {
         // 添加灰色斜体的tooltip
         tooltipComponents.add(tooltip.copy().withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
 
-        super.appendHoverText(stack, level, tooltipComponents, isAdvanced);
+        super.appendHoverText(stack, context, tooltipComponents, isAdvanced);
     }
 }

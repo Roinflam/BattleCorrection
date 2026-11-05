@@ -4,10 +4,10 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -24,14 +24,14 @@ import javax.annotation.Nullable;
  * <p>
  * 魔法伤害判定统一交给 {@link MagicDamageClassifier}：
  * 原版规则（WITCH_RESISTANT_TO 标签、伤害类型 message_id 含 "magic"）
- * 加上可配置的第三方规则（forge:is_magic 标签、伤害类型命名空间、白/黑名单），
+ * 加上可配置的第三方规则（neoforge:is_magic / c:is_magic 标签、伤害类型命名空间、白/黑名单），
  * Ars Nouveau / Goety / ISB / SweetMagic 这些 message_id 不带 magic 的法术也能被认出来；
  * 召唤物替主人挥砍的命中一律不算魔法。
  * <p>
  * 只对"有攻击者"的魔法攻击加成：中毒这类没有来源的伤害在原版里也是 magic 类型，
  * 否则全局加成也会加到它们身上，全局值设成 5 时中毒每跳会从 1 变成 6。
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeMagicDamage {
 
     /**
@@ -66,7 +66,7 @@ public class AttributeMagicDamage {
         }
 
         // 有攻击者：应用属性加成 + 配置加成
-        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.MAGIC_DAMAGE.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.MAGIC_DAMAGE);
         float configDamage = ConfigAttribute.MAGIC_DAMAGE.get().floatValue();
         float totalBonus = attributeValue + configDamage;
 

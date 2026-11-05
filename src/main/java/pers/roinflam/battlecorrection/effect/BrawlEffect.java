@@ -33,21 +33,22 @@ public class BrawlEffect extends MobEffect {
      * @param amplifier 效果等级
      */
     @Override
-    public void applyEffectTick(@Nonnull LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(@Nonnull LivingEntity entity, int amplifier) {
         if (entity instanceof Mob mob && !entity.level().isClientSide() && MobTargetUtil.shouldRetarget(mob)) {
             MobTargetUtil.retargetNearby(mob, false);
         }
+        return true;
     }
 
     /**
-     * 每 tick 都执行 applyEffectTick
+     * 每 tick 都执行 applyEffectTick（1.21.1 改名为 shouldApplyEffectTickThisTick）
      *
      * @param duration  剩余持续时间
      * @param amplifier 效果等级
      * @return 始终为 true
      */
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
 }

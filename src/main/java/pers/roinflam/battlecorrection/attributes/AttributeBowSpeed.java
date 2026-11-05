@@ -4,10 +4,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
+import pers.roinflam.battlecorrection.event.LivingTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -30,7 +30,7 @@ import javax.annotation.Nonnull;
  * <p>
  * 客户端和服务端都会执行，因为useItemRemaining字段不会自动同步
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeBowSpeed {
 
     /**
@@ -52,7 +52,7 @@ public class AttributeBowSpeed {
      * @param evt 生物 tick 事件
      */
     @SubscribeEvent
-    public static void onLivingUpdate(@Nonnull LivingEvent.LivingTickEvent evt) {
+    public static void onLivingUpdate(@Nonnull LivingTickEvent evt) {
         LivingEntity entity = evt.getEntity();
 
         // 检查是否正在使用物品
@@ -66,7 +66,7 @@ public class AttributeBowSpeed {
         }
 
         // 计算总速度
-        float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED);
         float configValue = ConfigAttribute.BOW_SPEED.get().floatValue();
         float speed = (attributeValue - 1.0f) + configValue;
 
@@ -110,7 +110,7 @@ public class AttributeBowSpeed {
         }
 
         // 计算总速度
-        float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(entity, ModAttributes.BOW_SPEED);
         float configValue = ConfigAttribute.BOW_SPEED.get().floatValue();
         float speed = (attributeValue - 1.0f) + configValue;
 

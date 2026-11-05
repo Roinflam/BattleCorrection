@@ -3,10 +3,10 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingAttackEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
  * 免疫伤害属性
  * 按照当前概率免疫攻击，最高100%
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeImmuneDamage {
 
     /**
@@ -41,7 +41,7 @@ public class AttributeImmuneDamage {
         }
 
         LivingEntity hurter = evt.getEntity();
-        float attributeValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.IMMUNE_DAMAGE.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(hurter, ModAttributes.IMMUNE_DAMAGE);
         float equipmentChance = (attributeValue - 1) * 100;
         float configChance = ConfigAttribute.IMMUNE_DAMAGE.get().floatValue();
         float totalChance = equipmentChance + configChance;

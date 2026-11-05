@@ -12,7 +12,7 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraftforge.fml.loading.FMLPaths;
+import net.neoforged.fml.loading.FMLPaths;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.widget.ChannelSlider;
 import pers.roinflam.battlecorrection.client.editor.widget.ColorSquare;
@@ -1003,9 +1003,17 @@ public class ColorPaletteScreen extends Screen {
 
     // 绘制
 
+    /**
+     * 1.20.2 起 {@code Screen.render} 会先自己画一遍背景（1.21.1 在世界里是模糊 + 半透明贴图）。
+     * 背景改在 {@link #render} 开头自己画，和 1.20.1 一样只是一层暗色渐变、不模糊；super.render 里那一次就什么都不画，免得叠两层。
+     */
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
+        renderTransparentBackground(g);
         renderPanel(g);
         super.render(g, mouseX, mouseY, partialTick);
     }

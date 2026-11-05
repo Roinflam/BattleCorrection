@@ -1,12 +1,12 @@
 package pers.roinflam.battlecorrection.compat;
 
-import com.google.gson.JsonObject;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.crafting.conditions.ICondition;
-import net.minecraftforge.common.crafting.conditions.IConditionSerializer;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
-import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
 
 import javax.annotation.Nonnull;
@@ -21,37 +21,43 @@ import javax.annotation.Nonnull;
  * 为什么要这么做：Curios 只给"至少被分配了一种饰品栏"的实体装饰品栏能力，一种都没有的玩家连能力都没有，
  * 命令和编辑器都改不了他的饰品栏。开发环境只装 Curios 时玩家就是这种状态，得先靠数据包给一种。
  * <p>
- * 这个类只用 Forge 的东西，不引用 Curios，没装 Curios 也能加载。
+ * 1.21.1：条件写在 JSON 的 {@code neoforge:conditions} 键下（Curios 9 读文件时调 {@code ICondition.conditionsMatched}），
+ * 条件类型按编解码器注册（{@code NeoForgeRegistries.Keys.CONDITION_CODECS}），不再有 1.20.1 的序列化器。
+ * <p>
+ * 这个类只用 NeoForge 的东西，不引用 Curios，没装 Curios 也能加载。
  */
 public final class DevCurioSlotsCondition implements ICondition {
 
     /**
      * 条件 ID
      */
-    public static final ResourceLocation ID = new ResourceLocation(Reference.MOD_ID, "dev_curio_slots");
+    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "dev_curio_slots");
 
     /**
      * 唯一实例（条件没有参数）
      */
     public static final DevCurioSlotsCondition INSTANCE = new DevCurioSlotsCondition();
 
-    private static final IConditionSerializer<DevCurioSlotsCondition> SERIALIZER = new Serializer();
+    /**
+     * 编解码器：条件没有参数，读写都是这个唯一实例
+     */
+    public static final MapCodec<DevCurioSlotsCondition> CODEC = MapCodec.unit(INSTANCE);
+
+    private static final DeferredRegister<MapCodec<? extends ICondition>> CONDITION_CODECS =
+            DeferredRegister.create(NeoForgeRegistries.Keys.CONDITION_CODECS, Reference.MOD_ID);
+
+    static {
+        CONDITION_CODECS.register(ID.getPath(), () -> CODEC);
+    }
 
     private DevCurioSlotsCondition() {
     }
 
     /**
-     * 注册序列化器（通用初始化阶段调用一次）
+     * 把条件类型登记到模组总线（主类构造器里调用一次）
      */
-    public static void register() {
-        CraftingHelper.register(SERIALIZER);
-        LogUtil.info("已注册数据包条件 " + ID + "（devCurioSlots 当前 " + ConfigAttribute.DEV_CURIO_SLOTS.get() + "）");
-    }
-
-    @Nonnull
-    @Override
-    public ResourceLocation getID() {
-        return ID;
+    public static void register(@Nonnull IEventBus modEventBus) {
+        CONDITION_CODECS.register(modEventBus);
     }
 
     @Override
@@ -59,25 +65,9 @@ public final class DevCurioSlotsCondition implements ICondition {
         return ConfigAttribute.DEV_CURIO_SLOTS.get();
     }
 
-    /**
-     * 序列化器：条件没有参数，读写都是空的
-     */
-    private static final class Serializer implements IConditionSerializer<DevCurioSlotsCondition> {
-
-        @Override
-        public void write(@Nonnull JsonObject json, @Nonnull DevCurioSlotsCondition value) {
-        }
-
-        @Nonnull
-        @Override
-        public DevCurioSlotsCondition read(@Nonnull JsonObject json) {
-            return INSTANCE;
-        }
-
-        @Nonnull
-        @Override
-        public ResourceLocation getID() {
-            return ID;
-        }
+    @Nonnull
+    @Override
+    public MapCodec<? extends ICondition> codec() {
+        return CODEC;
     }
 }

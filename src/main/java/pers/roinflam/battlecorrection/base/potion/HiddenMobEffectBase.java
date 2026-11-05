@@ -18,12 +18,13 @@ public abstract class HiddenMobEffectBase extends MobEffect {
     }
 
     @Override
-    public void applyEffectTick(@Nonnull LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(@Nonnull LivingEntity entity, int amplifier) {
         // 子类重写
+        return true;
     }
 
     @Override
-    public boolean isDurationEffectTick(int duration, int amplifier) {
+    public boolean shouldApplyEffectTickThisTick(int duration, int amplifier) {
         return true;
     }
 

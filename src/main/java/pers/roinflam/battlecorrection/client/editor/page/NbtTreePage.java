@@ -1,5 +1,6 @@
 package pers.roinflam.battlecorrection.client.editor.page;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.Util;
@@ -8,7 +9,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.nbt.ByteTag;
+import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.CollectionTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -22,7 +23,6 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 import pers.roinflam.battlecorrection.client.editor.EditorSession;
 import pers.roinflam.battlecorrection.client.editor.EditorTheme;
@@ -77,8 +77,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class NbtTreePage extends EditorPageBase {
 
     private static final String KEY_ID = "id";
-    private static final String KEY_COUNT = "Count";
-    private static final String KEY_TAG = "tag";
+    /**
+     * 1.21.1 物品根的数量键（int）；1.20.1 是 byte 的 Count
+     */
+    private static final String KEY_COUNT = "count";
+    /**
+     * 1.21.1 物品根下放组件的复合标签；1.20.1 是 tag
+     */
+    private static final String KEY_TAG = "components";
     private static final String LANG = "gui.battlecorrection.editor.tree.";
     private static final int BOX_HEIGHT = 14;
     private static final int GAP = 4;
@@ -279,6 +285,11 @@ public class NbtTreePage extends EditorPageBase {
     private final Component nameLabel = Component.translatable(LANG + "name");
     private final Component valueLabel = Component.translatable(LANG + "value");
     private final Component capsNote = Component.translatable(LANG + "caps_note");
+    /**
+     * 树上有没写进物品的改动时，物品解析给出的原因；null = 树和物品一致（见 {@link #pushToSession()}）
+     */
+    @Nullable
+    private String unapplied;
     private int capsNoteWidth;
 
     /**
@@ -312,8 +323,14 @@ public class NbtTreePage extends EditorPageBase {
                 model.setExpanded(NbtPath.ROOT.child(KEY_TAG), true);
             }
         }
-        // 每次挂载都从 session 重读：别的页、撤销重做都可能改过物品
-        reloadFromSession();
+        // 每次挂载都从 session 重读：别的页、撤销重做都可能改过物品。
+        // 树上还有没写进物品的改动时（只会是窗口缩放导致的重建，切页、撤销都会先被 beforeLeave 拦住）保留树上的内容
+        if (unapplied == null) {
+            reloadFromSession();
+        } else {
+            model.setRoot(root);
+            dataChanged();
+        }
 
         capsNoteWidth = font.width(capsNote);
         statusShown = null;
@@ -685,7 +702,7 @@ public class NbtTreePage extends EditorPageBase {
                         return false;
                     }
                     screen.setFocused(nameBox);
-                    nameBox.moveCursorToEnd();
+                    nameBox.moveCursorToEnd(false);
                     nameBox.setHighlightPos(0);
                     return true;
                 default:
@@ -701,7 +718,7 @@ public class NbtTreePage extends EditorPageBase {
             TreeNode node = model.selectedForRender();
             if (node != null && !node.isContainer() && valueBox != null && valueBox.active) {
                 screen.setFocused(valueBox);
-                valueBox.moveCursorToEnd();
+                valueBox.moveCursorToEnd(false);
                 valueBox.setHighlightPos(0);
                 return true;
             }
@@ -793,7 +810,7 @@ public class NbtTreePage extends EditorPageBase {
             return;
         }
         screen.setFocused(searchBox);
-        searchBox.moveCursorToEnd();
+        searchBox.moveCursorToEnd(false);
         searchBox.setHighlightPos(0);
     }
 
@@ -830,7 +847,7 @@ public class NbtTreePage extends EditorPageBase {
         formNode = node;
         // 路径栏一直跟着选中走；跳转之后这里也会换成规范写法（负下标换成正的）
         pathBox.setValue(node == null ? "" : node.path.toString());
-        pathBox.moveCursorToStart();
+        pathBox.moveCursorToStart(false);
         if (node == null) {
             nameBox.setMaxLength(NAME_MAX_LENGTH);
             nameBox.setValue("");
@@ -873,7 +890,7 @@ public class NbtTreePage extends EditorPageBase {
             valueBox.setMaxLength(Math.max(VALUE_MAX_LENGTH, editable.length()));
             valueBox.setValue(editable);
             setBoxEnabled(valueBox, true);
-            valueBox.moveCursorToStart();
+            valueBox.moveCursorToStart(false);
         }
         ampButton.active = node.tag instanceof StringTag && !isIdNode(node);
         applyButton.active = nameBox.active || valueBox.active;
@@ -916,14 +933,14 @@ public class NbtTreePage extends EditorPageBase {
     }
 
     /**
-     * 物品模式下根节点的直接子节点（id / Count / tag）
+     * 物品模式下根节点的直接子节点（id / count / components）
      */
     private boolean isItemRootChild(@Nonnull TreeNode node) {
         return session.isItem() && node.parent != null && node.parent.isRoot();
     }
 
     /**
-     * 物品必须有的 id 和 Count：可以改值，不能删
+     * 物品必须有的 id 和 count：可以改值，不能删
      */
     private boolean isRequiredRootChild(@Nonnull TreeNode node) {
         return isItemRootChild(node) && (KEY_ID.equals(node.key) || KEY_COUNT.equals(node.key));
@@ -1004,7 +1021,7 @@ public class NbtTreePage extends EditorPageBase {
     @Nullable
     private static Item lookupItem(@Nonnull String text) {
         ResourceLocation id = parseItemId(text);
-        return id == null || !ForgeRegistries.ITEMS.containsKey(id) ? null : ForgeRegistries.ITEMS.getValue(id);
+        return id == null || !BuiltInRegistries.ITEM.containsKey(id) ? null : BuiltInRegistries.ITEM.get(id);
     }
 
     @Nullable
@@ -1021,6 +1038,11 @@ public class NbtTreePage extends EditorPageBase {
     }
 
     private void setStatus(@Nonnull Component text, int color) {
+        if (unapplied != null && color == EditorTheme.SUCCESS) {
+            // 树上的改动还没写进物品：别显示"已应用"，显示为什么还没写进去
+            text = Component.translatable(LANG + "status.unapplied", unapplied);
+            color = EditorTheme.WARNING;
+        }
         status = text;
         statusColor = color;
         statusShown = null;
@@ -1066,8 +1088,8 @@ public class NbtTreePage extends EditorPageBase {
                     setStatus("count_range", EditorTheme.DANGER, ApplyItemEditC2SPacket.MIN_COUNT, ApplyItemEditC2SPacket.MAX_COUNT);
                     return;
                 }
-                // NBT 里 Count 是 byte
-                newTag = ByteTag.valueOf((byte) count);
+                // 1.21.1 的根里 count 是 int（1.20.1 的 Count 是 byte）
+                newTag = IntTag.valueOf((int) count);
             } else {
                 NbtType type = node.type();
                 if (type == null) {
@@ -1146,11 +1168,11 @@ public class NbtTreePage extends EditorPageBase {
             setStatus("id_invalid", EditorTheme.DANGER, typed);
             return;
         }
-        if (!ForgeRegistries.ITEMS.containsKey(id)) {
+        if (!BuiltInRegistries.ITEM.containsKey(id)) {
             setStatus("id_unknown", EditorTheme.DANGER, id.toString());
             return;
         }
-        Item item = ForgeRegistries.ITEMS.getValue(id);
+        Item item = BuiltInRegistries.ITEM.get(id);
         if (item == null || item == Items.AIR) {
             setStatus("id_air", EditorTheme.DANGER);
             return;
@@ -1294,7 +1316,7 @@ public class NbtTreePage extends EditorPageBase {
         // 新节点马上起名 / 填值
         if (nameBox != null && nameBox.active) {
             screen.setFocused(nameBox);
-            nameBox.moveCursorToEnd();
+            nameBox.moveCursorToEnd(false);
             nameBox.setHighlightPos(0);
         } else if (valueBox != null && valueBox.active) {
             screen.setFocused(valueBox);
@@ -1325,7 +1347,7 @@ public class NbtTreePage extends EditorPageBase {
 
         CompoundTag compound = (CompoundTag) container.tag;
         if (container.isRoot() && session.isItem()) {
-            // 物品的根下面只允许 tag；id 和 Count 一直都在
+            // 物品的根下面只允许 components；id 和 count 一直都在
             if (compound.contains(KEY_TAG) || !(tag instanceof CompoundTag)) {
                 setStatus("root_add", EditorTheme.WARNING);
                 return null;
@@ -1836,9 +1858,10 @@ public class NbtTreePage extends EditorPageBase {
     // 与物品副本同步
 
     /**
-     * 从 session 重读根（物品是 {id, Count, tag}，实体/方块实体是整份 NBT），展开 / 选中状态保留
+     * 从 session 重读根（物品是 {id, count, components}，实体/方块实体是整份 NBT），展开 / 选中状态保留
      */
     private void reloadFromSession() {
+        unapplied = null;
         root = session.loadRoot();
         model.setRoot(root);
         dataChanged();
@@ -1846,20 +1869,48 @@ public class NbtTreePage extends EditorPageBase {
 
     /**
      * 把树写回 session
+     * <p>
+     * 1.21.1 的物品数据是组件，components 下每一项都得是认得的组件、值得合格，改到一半的时候（刚加了个子项还没起名、
+     * 刚把类型换了还没填值）常常过不了解析。物品模式下解析不过就先不写进物品，树上的改动留着，状态栏说明原因
+     * （{@link #unapplied}），之后哪一步改对了再一起写进去；离开这一页前还过不了就拦住（{@link #beforeLeave()}），
+     * 和 SNBT 页没点应用的文本一样。1.20.1 的 tag 下什么键都能放，没有这个问题，解析不过直接整份重读。
      *
-     * @return false = session 拒收（已在状态栏提示，树已恢复成物品副本里的样子）
+     * @return false = session 拒收（已在状态栏提示，树已恢复成 session 里的样子）
      */
     private boolean pushToSession() {
         try {
             session.pushRoot(root);
         } catch (IllegalArgumentException e) {
-            // 树上已经改了但 session 没收：整份重读，免得树上显示的和物品实际的对不上
+            if (session.isItem()) {
+                unapplied = String.valueOf(e.getMessage());
+                dataChanged();
+                return true;
+            }
+            // 树上已经改了但 session 没收：整份重读，免得树上显示的和实际的对不上
             reloadFromSession();
             onNodeSelected(model.selected());
             setStatus(Component.literal(String.valueOf(e.getMessage())), EditorTheme.DANGER);
             return false;
         }
+        unapplied = null;
         dataChanged();
+        syncCountFromSession();
+        return true;
+    }
+
+    @Override
+    public boolean beforeLeave() {
+        if (unapplied == null) {
+            return true;
+        }
+        try {
+            session.pushRoot(root);
+        } catch (IllegalArgumentException e) {
+            unapplied = String.valueOf(e.getMessage());
+            setStatus(Component.translatable(LANG + "status.unapplied", unapplied), EditorTheme.DANGER);
+            return false;
+        }
+        unapplied = null;
         syncCountFromSession();
         return true;
     }
@@ -1883,10 +1934,10 @@ public class NbtTreePage extends EditorPageBase {
             return;
         }
         int actual = session.working().getCount();
-        if (root.get(KEY_COUNT) instanceof ByteTag count && count.getAsInt() == actual) {
+        if (root.get(KEY_COUNT) instanceof IntTag count && count.getAsInt() == actual) {
             return;
         }
-        root.putByte(KEY_COUNT, (byte) actual);
+        root.putInt(KEY_COUNT, actual);
         TreeNode node = model.resolve(NbtPath.ROOT.child(KEY_COUNT), false);
         Tag tag = root.get(KEY_COUNT);
         if (node != null && tag != null) {

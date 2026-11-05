@@ -1,11 +1,13 @@
 package pers.roinflam.battlecorrection.editor;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -13,7 +15,7 @@ import javax.annotation.Nullable;
 /**
  * 手动最低品质标记
  * <p>
- * 提示框模组可以读物品 {@code tag} 根下的四个键：{@code Epic}、{@code Legendary}、{@code Myth}、{@code Genesis}，
+ * 提示框模组可以读物品数据里的四个键（1.20.1 在 {@code tag} 根下，1.21.1 在 {@code minecraft:custom_data} 组件里，键名不变）：{@code Epic}、{@code Legendary}、{@code Myth}、{@code Genesis}，
  * 当作"最低品质"：自动判定（附魔数量、稀有度等）比它高就取自动的，比它低就至少提到它。
  * 判定规则和读取方保持一致：值是数字 → 非 0 才算；不是数字（字符串、compound 之类）→ 一律算有。
  * 四个键同时存在时按 创世 &gt; 神话 &gt; 传说 &gt; 史诗 取最高。
@@ -103,10 +105,11 @@ public enum ItemQuality {
      */
     @Nonnull
     public static ItemQuality read(@Nonnull ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null) {
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
+        if (data == null) {
             return NONE;
         }
+        CompoundTag tag = data.copyTag();
         for (ItemQuality quality : READ_ORDER) {
             if (hasMark(tag, quality.nbtKey)) {
                 return quality;
@@ -117,21 +120,22 @@ public enum ItemQuality {
 
     /**
      * 把手动最低品质写到物品上（先清四个键，再写目标一个）
+     * <p>
+     * 改空了 custom_data 整个去掉（{@link CustomData#update} 负责），和 1.20.1 删空 tag 的效果一样。
      *
      * @param stack   物品
      * @param quality 目标档位
      */
     public static void apply(@Nonnull ItemStack stack, @Nonnull ItemQuality quality) {
-        if (quality == NONE) {
-            CompoundTag tag = stack.getTag();
-            if (tag != null) {
-                clear(tag);
-            }
+        if (quality == NONE && stack.get(DataComponents.CUSTOM_DATA) == null) {
             return;
         }
-        CompoundTag tag = stack.getOrCreateTag();
-        clear(tag);
-        tag.putBoolean(quality.nbtKey, true);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            clear(tag);
+            if (quality != NONE) {
+                tag.putBoolean(quality.nbtKey, true);
+            }
+        });
     }
 
     private static void clear(@Nonnull CompoundTag tag) {

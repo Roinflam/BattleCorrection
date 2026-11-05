@@ -1,16 +1,20 @@
 package pers.roinflam.battlecorrection.network.packet;
 
+import pers.roinflam.battlecorrection.utils.Reference;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
 import pers.roinflam.battlecorrection.compat.CurioSlotManager;
 import pers.roinflam.battlecorrection.compat.CuriosIntegration;
 import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 
 import javax.annotation.Nonnull;
-import java.util.function.Supplier;
 
 /**
  * 客户端 → 服务端：把自己某种饰品栏的数量设成指定值（编辑器"玩家饰品栏"页，测试用）
@@ -18,7 +22,13 @@ import java.util.function.Supplier;
  * 校验和物品编辑一样：功能开关 → OP 且创造 → 装了 Curios → ID 合法。只能改自己的，改不了别人。
  * 真正的操作在 {@link CurioSlotManager}，那个类引用了 Curios，所以先确认 Curios 存在再去碰它。
  */
-public class SetCurioSlotsC2SPacket {
+public class SetCurioSlotsC2SPacket implements CustomPacketPayload {
+
+    public static final Type<SetCurioSlotsC2SPacket> TYPE =
+            new Type<>(ResourceLocation.fromNamespaceAndPath(Reference.MOD_ID, "set_curio_slots"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, SetCurioSlotsC2SPacket> STREAM_CODEC =
+            CustomPacketPayload.codec(SetCurioSlotsC2SPacket::encode, SetCurioSlotsC2SPacket::decode);
 
     private final String slotId;
     private final int amount;
@@ -60,8 +70,8 @@ public class SetCurioSlotsC2SPacket {
      *
      * @param ctx 网络上下文
      */
-    public void handle(@Nonnull Supplier<NetworkEvent.Context> ctx) {
-        ServerPlayer player = ctx.get().getSender();
+    public void handle(@Nonnull IPayloadContext ctx) {
+        ServerPlayer player = ctx.player() instanceof ServerPlayer serverPlayer ? serverPlayer : null;
         if (player == null) {
             return;
         }
@@ -84,5 +94,11 @@ public class SetCurioSlotsC2SPacket {
             return;
         }
         player.sendSystemMessage(CurioSlotManager.setSlotCount(player, slotId, amount));
+    }
+
+    @Nonnull
+    @Override
+    public Type<SetCurioSlotsC2SPacket> type() {
+        return TYPE;
     }
 }

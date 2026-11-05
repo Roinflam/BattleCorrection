@@ -3,10 +3,10 @@ package pers.roinflam.battlecorrection.attributes;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import pers.roinflam.battlecorrection.event.damage.LivingHurtEvent;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import pers.roinflam.battlecorrection.config.ConfigAttribute;
 import pers.roinflam.battlecorrection.init.ModAttributes;
 import pers.roinflam.battlecorrection.utils.LogUtil;
@@ -19,7 +19,7 @@ import javax.annotation.Nonnull;
  * 箭矢伤害加成属性
  * 增加弓箭攻击造成的伤害（投掷三叉戟在原版里也属于箭矢类）
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID)
+@EventBusSubscriber(modid = Reference.MOD_ID)
 public class AttributeArrowDamage {
 
     /**
@@ -46,7 +46,7 @@ public class AttributeArrowDamage {
             return;
         }
 
-        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.ARROW_DAMAGE.get());
+        float attributeValue = (float) AttributesUtil.getAttributeValue(attacker, ModAttributes.ARROW_DAMAGE);
         float configDamage = ConfigAttribute.ARROW_DAMAGE.get().floatValue();
         float totalBonus = attributeValue + configDamage;
         if (totalBonus == 0) {

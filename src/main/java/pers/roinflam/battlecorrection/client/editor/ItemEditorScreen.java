@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.lwjgl.glfw.GLFW;
@@ -29,7 +30,6 @@ import pers.roinflam.battlecorrection.editor.ItemEditorAccess;
 import pers.roinflam.battlecorrection.network.packet.ApplyItemEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.ApplyNbtEditC2SPacket;
 import pers.roinflam.battlecorrection.network.packet.ChunkedPacket;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.ChatFormatting;
 
 import javax.annotation.Nonnull;
@@ -46,7 +46,7 @@ import java.util.List;
  * 窗口大小变化时原版会重新调 init()，这里重新算布局再把当前页挂一遍。
  * 列表类页面（附魔、属性）会要求收起预览栏（{@link EditorPageBase#wantsPreview()}），切页时重新算布局。
  * <p>
- * 保存：先给当前页一个 beforeLeave 的机会（SNBT 页要解析），再清理空标签，把副本的 NBT、数量和物品 ID 发给服务端，关界面。
+ * 保存：先给当前页一个 beforeLeave 的机会（SNBT 页要解析），再清理空数据，把副本整件（{@code {id, count, components}} 根）发给服务端，关界面。
  * Esc 或"取消"直接关，什么都不发。Ctrl+S = 保存。
  * <p>
  * 其它顺手的功能：
@@ -320,9 +320,17 @@ public class ItemEditorScreen extends Screen {
         mountPage(page);
     }
 
+    /**
+     * 1.20.2 起 {@code Screen.render} 会先自己画一遍背景（1.21.1 在世界里是模糊 + 半透明贴图）。
+     * 背景改在 {@link #render} 开头自己画，和 1.20.1 一样只是一层暗色渐变、不模糊；super.render 里那一次就什么都不画，免得叠两层。
+     */
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
+        renderTransparentBackground(g);
 
         // 面板：切角 + 斜面 + 四角准线，边框上一颗青光巡游
         EditorTheme.panel(g, panelX, panelY, panelWidth, panelHeight);
@@ -480,8 +488,11 @@ public class ItemEditorScreen extends Screen {
         if (previewComponents != null && revision == previewRevision && wrapWidth == previewWrapWidth && shift == previewShift) {
             return;
         }
-        // 在副本上取：原版遇到解析不了的 Lore 会把它从被查询的物品上直接删掉，不能让预览动到正在编辑的那一份
-        List<Component> lines = session.working().copy().getTooltipLines(minecraft == null ? null : minecraft.player, TooltipFlag.Default.NORMAL);
+        // 1.21.1 的提示框要带上下文（注册表、地图数据等）；物品数据都是解析好的组件，不会像 1.20.1 那样在取提示框时被改动
+        Item.TooltipContext context = minecraft != null && minecraft.level != null
+                ? Item.TooltipContext.of(minecraft.level) : Item.TooltipContext.of(session.registries());
+        List<Component> lines = session.working().getTooltipLines(context, minecraft == null ? null : minecraft.player,
+                TooltipFlag.Default.NORMAL);
         List<FormattedCharSequence> wrapped = new ArrayList<>();
         for (Component line : lines) {
             wrapped.addAll(font.split(line, wrapWidth));
@@ -542,12 +553,13 @@ public class ItemEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double delta) {
+        // 1.20.2 起滚轮事件分横向 / 纵向两个量，这里和 1.20.1 一样只用纵向的（delta）
         inputBoost = INPUT_BOOST_TICKS;
         if (current.mouseScrolled(mouseX, mouseY, delta)) {
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, delta);
     }
 
     @Override
@@ -716,7 +728,7 @@ public class ItemEditorScreen extends Screen {
             return;
         }
         ItemImport.Result result = ItemImport.parse(minecraft.keyboardHandler.getClipboard(),
-                session.itemId().toString(), session.working().getCount());
+                session.itemId().toString(), session.working().getCount(), session.registries());
         if (result.root() == null) {
             flash(Component.translatable("gui.battlecorrection.editor.import.failed", String.valueOf(result.error())), EditorTheme.DANGER);
             return;
@@ -798,6 +810,8 @@ public class ItemEditorScreen extends Screen {
 
     /**
      * 把当前物品导出成 /give 命令放进剪贴板
+     * <p>
+     * 1.20.5 起 /give 的物品写法是 {@code id[组件=值,...]}（1.20.1 是 {@code id{NBT}}），见 {@link ItemRoots#giveArgument}。
      */
     private void copyGiveCommand() {
         if (!session.isItem() || minecraft == null || minecraft.player == null) {
@@ -805,10 +819,7 @@ public class ItemEditorScreen extends Screen {
         }
         session.cleanupEmpty();
         ItemStack working = session.working();
-        CompoundTag tag = working.getTag();
-        String command = "/give @p " + session.itemId()
-                + (tag == null || tag.isEmpty() ? "" : tag.toString())
-                + " " + working.getCount();
+        String command = "/give @p " + ItemRoots.giveArgument(working, session.registries()) + " " + working.getCount();
         minecraft.keyboardHandler.setClipboard(command);
         String key = command.length() > 256
                 ? "message.battlecorrection.editor.command_copied_long"
@@ -832,13 +843,12 @@ public class ItemEditorScreen extends Screen {
         // 都走分片传输，NBT 多大都能发
         if (session.isItem()) {
             session.cleanupEmpty();
-            ItemStack working = session.working();
             ApplyItemEditC2SPacket packet = new ApplyItemEditC2SPacket(session.target(), session.originalItemId(),
-                    session.itemId(), working.getTag() == null ? null : working.getTag().copy(), working.getCount());
-            ChunkedPacket.sendToServer(ChunkedPacket.Kind.APPLY_ITEM, packet::encode);
+                    ItemRoots.save(session.working(), session.registries()));
+            ChunkedPacket.sendToServer(session.registries(), ChunkedPacket.Kind.APPLY_ITEM, packet::encode);
         } else {
             ApplyNbtEditC2SPacket packet = new ApplyNbtEditC2SPacket(session.nbtTarget(), session.nbtWorking().copy());
-            ChunkedPacket.sendToServer(ChunkedPacket.Kind.APPLY_NBT, packet::encode);
+            ChunkedPacket.sendToServer(session.registries(), ChunkedPacket.Kind.APPLY_NBT, packet::encode);
         }
         closeDiscard();
     }

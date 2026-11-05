@@ -1,6 +1,6 @@
 package pers.roinflam.battlecorrection.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.Arrays;
 import java.util.List;
@@ -11,62 +11,62 @@ import java.util.List;
  */
 public class ConfigBattle {
 
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec SPEC;
 
     // PVP设置
-    public static final ForgeConfigSpec.DoubleValue PVP;
-    public static final ForgeConfigSpec.DoubleValue PVP_HURT_ITSELF;
+    public static final ModConfigSpec.DoubleValue PVP;
+    public static final ModConfigSpec.DoubleValue PVP_HURT_ITSELF;
 
     // 战斗机制
-    public static final ForgeConfigSpec.BooleanValue COMBO_CORRECTION;
-    public static final ForgeConfigSpec.BooleanValue ATTACK_COOLDOWN;
-    public static final ForgeConfigSpec.DoubleValue HURT_TIME_ENTITY;
-    public static final ForgeConfigSpec.DoubleValue HURT_TIME_PLAYER;
+    public static final ModConfigSpec.BooleanValue COMBO_CORRECTION;
+    public static final ModConfigSpec.BooleanValue ATTACK_COOLDOWN;
+    public static final ModConfigSpec.DoubleValue HURT_TIME_ENTITY;
+    public static final ModConfigSpec.DoubleValue HURT_TIME_PLAYER;
 
     // 玩家攻击倍率
-    public static final ForgeConfigSpec.DoubleValue PLAYER_MELEE_ATTACK;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_ARROW_ATTACK;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_PROJECTILE_ATTACK;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_MAGIC_ATTACK;
+    public static final ModConfigSpec.DoubleValue PLAYER_MELEE_ATTACK;
+    public static final ModConfigSpec.DoubleValue PLAYER_ARROW_ATTACK;
+    public static final ModConfigSpec.DoubleValue PLAYER_PROJECTILE_ATTACK;
+    public static final ModConfigSpec.DoubleValue PLAYER_MAGIC_ATTACK;
 
     // 玩家承受伤害倍率
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_MELEE;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_ARROW;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_PROJECTILE;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_MAGIC;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_MELEE;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_ARROW;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_PROJECTILE;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_MAGIC;
 
     // 玩家承受环境伤害倍率
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_ENVIRONMENT;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FALL;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FIRE;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_DROWNING;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_FREEZING;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_SUFFERS_EXPLOSION;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_PERCENT;
-    public static final ForgeConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_FLAT;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_ENVIRONMENT;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_FALL;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_FIRE;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_DROWNING;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_FREEZING;
+    public static final ModConfigSpec.DoubleValue PLAYER_SUFFERS_EXPLOSION;
+    public static final ModConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_PERCENT;
+    public static final ModConfigSpec.DoubleValue PLAYER_ENVIRONMENT_MIN_FLAT;
 
     // 实体属性
-    public static final ForgeConfigSpec.DoubleValue EXTRA_MAX_HEALTH;
+    public static final ModConfigSpec.DoubleValue EXTRA_MAX_HEALTH;
 
     // 饥饿恢复
-    public static final ForgeConfigSpec.DoubleValue EXTRA_SATURATION_HEAL;
-    public static final ForgeConfigSpec.DoubleValue EXTRA_SATURATION_PERCENTAGE_HEAL;
-    public static final ForgeConfigSpec.DoubleValue EXTRA_HUNGER_HEAL;
-    public static final ForgeConfigSpec.DoubleValue EXTRA_HUNGER_PERCENTAGE_HEAL;
+    public static final ModConfigSpec.DoubleValue EXTRA_SATURATION_HEAL;
+    public static final ModConfigSpec.DoubleValue EXTRA_SATURATION_PERCENTAGE_HEAL;
+    public static final ModConfigSpec.DoubleValue EXTRA_HUNGER_HEAL;
+    public static final ModConfigSpec.DoubleValue EXTRA_HUNGER_PERCENTAGE_HEAL;
 
     // 饥饿伤害衰减
-    public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY;
-    public static final ForgeConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY_LIMIT;
+    public static final ModConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY;
+    public static final ModConfigSpec.DoubleValue HUNGER_DAMAGE_DECAY_LIMIT;
 
     // 第三方魔法识别
     /** 是否把第三方魔法模组的法术伤害识别为魔法伤害（总开关） */
-    public static final ForgeConfigSpec.BooleanValue ENABLE_THIRD_PARTY_MAGIC_RECOGNITION;
+    public static final ModConfigSpec.BooleanValue ENABLE_THIRD_PARTY_MAGIC_RECOGNITION;
     /** 按命名空间整体算魔法的模组 id 列表 */
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_NAMESPACES;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_NAMESPACES;
     /** 精确算魔法的伤害类型 id 列表 */
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_WHITELIST;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_WHITELIST;
     /** 精确不算魔法的伤害类型 id 列表（优先级最高） */
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_BLACKLIST;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> MAGIC_DAMAGE_TYPE_BLACKLIST;
 
     /** 命名空间默认值：目前确认过伤害源结构的五个魔法模组 */
     public static final List<String> DEFAULT_MAGIC_DAMAGE_NAMESPACES = Arrays.asList(
@@ -80,10 +80,10 @@ public class ConfigBattle {
             "goety:summon", "goety:sword", "goety:loot_explode", "goety:loot_explode_owned", "goety:dismissed");
 
     // 调试
-    public static final ForgeConfigSpec.BooleanValue ENABLE_DETAILED_LOGGING;
+    public static final ModConfigSpec.BooleanValue ENABLE_DETAILED_LOGGING;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         // PVP设置
         builder.comment(
@@ -423,9 +423,9 @@ public class ConfigBattle {
 
         ENABLE_THIRD_PARTY_MAGIC_RECOGNITION = builder
                 .comment(
-                        "[EN] Enable third-party magic recognition (forge:is_magic tag + namespace/whitelist/blacklist rules)",
+                        "[EN] Enable third-party magic recognition (neoforge:is_magic / c:is_magic tag + namespace/whitelist/blacklist rules)",
                         "     true = Enabled (default), false = vanilla rule only",
-                        "[中文] 启用第三方魔法识别（forge:is_magic tag + 命名空间/白名单/黑名单规则）",
+                        "[中文] 启用第三方魔法识别（neoforge:is_magic / c:is_magic tag + 命名空间/白名单/黑名单规则）",
                         "     true = 启用(默认), false = 只保留原版规则"
                 )
                 .define("enableThirdPartyMagicRecognition", true);
@@ -437,21 +437,21 @@ public class ConfigBattle {
                         "[中文] 整个命名空间都算魔法的模组 id",
                         "     例如 goety 覆盖 goety:direct_shock、goety:hellfire 等全部类型"
                 )
-                .defineList("magicDamageNamespaces", DEFAULT_MAGIC_DAMAGE_NAMESPACES, o -> o instanceof String);
+                .defineListAllowEmpty("magicDamageNamespaces", DEFAULT_MAGIC_DAMAGE_NAMESPACES, () -> "", o -> o instanceof String);
 
         MAGIC_DAMAGE_TYPE_WHITELIST = builder
                 .comment(
                         "[EN] Exact damage-type ids always treated as magic, e.g. 'somemod:arcane_bolt'",
                         "[中文] 精确算魔法的伤害类型 id，例如 somemod:arcane_bolt"
                 )
-                .defineList("magicDamageTypeWhitelist", DEFAULT_MAGIC_DAMAGE_TYPE_WHITELIST, o -> o instanceof String);
+                .defineListAllowEmpty("magicDamageTypeWhitelist", DEFAULT_MAGIC_DAMAGE_TYPE_WHITELIST, () -> "", o -> o instanceof String);
 
         MAGIC_DAMAGE_TYPE_BLACKLIST = builder
                 .comment(
                         "[EN] Exact damage-type ids never treated as magic (highest priority, overrides every other rule)",
                         "[中文] 精确不算魔法的伤害类型 id（优先级最高，压过其他所有规则）"
                 )
-                .defineList("magicDamageTypeBlacklist", DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST, o -> o instanceof String);
+                .defineListAllowEmpty("magicDamageTypeBlacklist", DEFAULT_MAGIC_DAMAGE_TYPE_BLACKLIST, () -> "", o -> o instanceof String);
 
         builder.pop();
 

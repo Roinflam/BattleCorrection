@@ -1,7 +1,7 @@
 package pers.roinflam.battlecorrection.config;
 
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
+import net.neoforged.fml.event.config.ModConfigEvent;
 
 import javax.annotation.Nonnull;
 
@@ -11,37 +11,37 @@ import javax.annotation.Nonnull;
  */
 public class ConfigAttribute {
 
-    public static final ForgeConfigSpec SPEC;
+    public static final ModConfigSpec SPEC;
 
     // 伤害加成
-    public static final ForgeConfigSpec.DoubleValue MAGIC_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue ARROW_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue PROJECTILE_DAMAGE;
+    public static final ModConfigSpec.DoubleValue MAGIC_DAMAGE;
+    public static final ModConfigSpec.DoubleValue ARROW_DAMAGE;
+    public static final ModConfigSpec.DoubleValue PROJECTILE_DAMAGE;
 
     // 治疗与吸血
-    public static final ForgeConfigSpec.DoubleValue RESTORE_HEAL;
-    public static final ForgeConfigSpec.DoubleValue BLOODTHIRSTY;
-    public static final ForgeConfigSpec.DoubleValue ALMIGHTY_BLOODTHIRSTY;
-    public static final ForgeConfigSpec.BooleanValue LIFESTEAL_HEAL_BONUS;
+    public static final ModConfigSpec.DoubleValue RESTORE_HEAL;
+    public static final ModConfigSpec.DoubleValue BLOODTHIRSTY;
+    public static final ModConfigSpec.DoubleValue ALMIGHTY_BLOODTHIRSTY;
+    public static final ModConfigSpec.BooleanValue LIFESTEAL_HEAL_BONUS;
 
     // 防御属性
-    public static final ForgeConfigSpec.DoubleValue IMMUNE_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue IGNORE_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue REDUCED_FALL_DAMAGE;
+    public static final ModConfigSpec.DoubleValue IMMUNE_DAMAGE;
+    public static final ModConfigSpec.DoubleValue IGNORE_DAMAGE;
+    public static final ModConfigSpec.DoubleValue REDUCED_FALL_DAMAGE;
 
     // 速度属性
-    public static final ForgeConfigSpec.DoubleValue BOW_SPEED;
-    public static final ForgeConfigSpec.DoubleValue PREPARATION_SPEED;
-    public static final ForgeConfigSpec.DoubleValue JUMP_LIFT;
+    public static final ModConfigSpec.DoubleValue BOW_SPEED;
+    public static final ModConfigSpec.DoubleValue PREPARATION_SPEED;
+    public static final ModConfigSpec.DoubleValue JUMP_LIFT;
 
     // 暴击系统
-    public static final ForgeConfigSpec.DoubleValue VANILLA_CRITICAL_HIT_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue CUSTOM_CRITICAL_CHANCE;
-    public static final ForgeConfigSpec.DoubleValue CUSTOM_CRITICAL_DAMAGE;
-    public static final ForgeConfigSpec.DoubleValue CRITICAL_OVERFLOW_CONVERSION;
+    public static final ModConfigSpec.DoubleValue VANILLA_CRITICAL_HIT_DAMAGE;
+    public static final ModConfigSpec.DoubleValue CUSTOM_CRITICAL_CHANCE;
+    public static final ModConfigSpec.DoubleValue CUSTOM_CRITICAL_DAMAGE;
+    public static final ModConfigSpec.DoubleValue CRITICAL_OVERFLOW_CONVERSION;
 
     // 饰品栏标记
-    public static final ForgeConfigSpec.BooleanValue CURIO_MARK_ENABLED;
+    public static final ModConfigSpec.BooleanValue CURIO_MARK_ENABLED;
 
     /**
      * 未标记饰品上原版格式属性（AttributeModifiers NBT、物品自带的、其他模组追加的）的生效范围
@@ -61,18 +61,18 @@ public class ConfigAttribute {
         ALL
     }
 
-    public static final ForgeConfigSpec.EnumValue<CurioNbtAttributes> CURIO_NBT_ATTRIBUTES;
+    public static final ModConfigSpec.EnumValue<CurioNbtAttributes> CURIO_NBT_ATTRIBUTES;
 
     // 开发测试：给玩家 Curios 自带的 10 种默认饰品栏
-    public static final ForgeConfigSpec.BooleanValue DEV_CURIO_SLOTS;
+    public static final ModConfigSpec.BooleanValue DEV_CURIO_SLOTS;
 
     // 物品编辑器
-    public static final ForgeConfigSpec.BooleanValue ITEM_EDITOR_ENABLED;
-    public static final ForgeConfigSpec.IntValue ITEM_EDITOR_MAX_NBT_KB;
-    public static final ForgeConfigSpec.BooleanValue ITEM_EDITOR_QUALITY_TAGS;
+    public static final ModConfigSpec.BooleanValue ITEM_EDITOR_ENABLED;
+    public static final ModConfigSpec.IntValue ITEM_EDITOR_MAX_NBT_KB;
+    public static final ModConfigSpec.BooleanValue ITEM_EDITOR_QUALITY_TAGS;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         // 伤害加成
         builder.comment(

@@ -7,11 +7,12 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
+import net.neoforged.neoforge.common.Tags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import pers.roinflam.battlecorrection.config.ConfigBattle;
 import pers.roinflam.battlecorrection.utils.LogUtil;
 import pers.roinflam.battlecorrection.utils.Reference;
@@ -45,7 +46,8 @@ import java.util.Set;
  *   <li><b>第三方规则</b>（总开关 {@code enableThirdPartyMagicRecognition}）：
  *       <ul>
  *         <li>白名单（配置 {@code magicDamageTypeWhitelist}）精确命中 id；</li>
- *         <li>伤害类型在 {@code forge:is_magic} tag 里（Ars Nouveau、Goety 都往这个社区约定 tag 里挂）；</li>
+ *         <li>伤害类型在 {@code neoforge:is_magic} 或 {@code c:is_magic} tag 里（魔法模组往这类社区约定 tag 里挂；
+ *             1.20.1 的 Forge 叫 {@code forge:is_magic}）；</li>
  *         <li>伤害类型 id 的命名空间在 {@code magicDamageNamespaces} 里（如 {@code goety:direct_shock} 的 {@code goety}）。</li>
  *       </ul>
  *   </li>
@@ -64,17 +66,24 @@ import java.util.Set;
  * 每次伤害事件只做几次 HashSet 查询；配置加载/重载（{@link ModConfigEvent}）或配置界面保存时
  * 调用 {@link #invalidateCache()} 重建。</p>
  */
-@Mod.EventBusSubscriber(modid = Reference.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Reference.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public final class MagicDamageClassifier {
 
     /**
-     * 社区约定的"魔法伤害"tag：{@code forge:is_magic}
+     * 社区约定的"魔法伤害"tag：NeoForge 自带的 {@code neoforge:is_magic}（{@link Tags.DamageTypes#IS_MAGIC}）
      *
-     * <p>Forge 47 本身没有这个常量，Ars Nouveau 和 Goety 都是自己 {@code TagKey.create} 出来的，
-     * 这里照样建一个即可。tag 在数据包里不存在时 {@link DamageSource#is(TagKey)} 只会返回 false，不会报错。</p>
+     * <p>1.20.1 用的是 {@code forge:is_magic}，1.21.1 的 NeoForge 把它改成了自己的命名空间。</p>
      */
-    public static final TagKey<DamageType> FORGE_IS_MAGIC =
-            TagKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("forge", "is_magic"));
+    public static final TagKey<DamageType> NEOFORGE_IS_MAGIC = Tags.DamageTypes.IS_MAGIC;
+
+    /**
+     * 通用约定的"魔法伤害"tag：{@code c:is_magic}
+     *
+     * <p>有的模组按跨加载器的 {@code c:} 约定挂在这里。tag 在数据包里不存在时 {@link DamageSource#is(TagKey)}
+     * 只会返回 false，不会报错。</p>
+     */
+    public static final TagKey<DamageType> COMMON_IS_MAGIC =
+            TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("c", "is_magic"));
 
     /**
      * 配置解析后的只读快照
@@ -155,7 +164,7 @@ public final class MagicDamageClassifier {
     }
 
     /**
-     * 第三方魔法判定：白名单 → forge:is_magic tag → 命名空间
+     * 第三方魔法判定：白名单 → neoforge:is_magic / c:is_magic tag → 命名空间
      *
      * @param source  伤害源
      * @param typeId  伤害类型 id，可为 null（伤害类型没有注册键时）
@@ -170,7 +179,11 @@ public final class MagicDamageClassifier {
         if (typeId != null && current.whitelist().contains(typeId)) {
             return true;
         }
-        if (source.is(FORGE_IS_MAGIC)) {
+        // NeoForge 自带的数据把原版的 wither、dragon_breath 等也挂进了 is_magic，1.20.1 的 forge:is_magic 里没有原版伤害。
+        // 原版伤害算不算魔法只按上面的原版规则判断，这里跳过 minecraft 命名空间，结果和 1.20.1 一致；
+        // 其他模组挂进 tag 的伤害照常识别
+        boolean vanillaType = typeId != null && typeId.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE);
+        if (!vanillaType && (source.is(NEOFORGE_IS_MAGIC) || source.is(COMMON_IS_MAGIC))) {
             return true;
         }
         return typeId != null && current.namespaces().contains(typeId.getNamespace());

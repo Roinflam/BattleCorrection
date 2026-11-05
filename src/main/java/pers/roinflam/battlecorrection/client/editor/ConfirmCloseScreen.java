@@ -58,9 +58,17 @@ public class ConfirmCloseScreen extends Screen {
                 .style(FlatButton.Style.PRIMARY));
     }
 
+    /**
+     * 1.20.2 起 {@code Screen.render} 会先自己画一遍背景（1.21.1 在世界里是模糊 + 半透明贴图）。
+     * 背景改在 {@link #render} 开头自己画，和 1.20.1 一样只是一层暗色渐变、不模糊；super.render 里那一次就什么都不画，免得叠两层。
+     */
+    @Override
+    public void renderBackground(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+    }
+
     @Override
     public void render(@Nonnull GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        renderBackground(g);
+        renderTransparentBackground(g);
         EditorTheme.panel(g, boxX, boxY, WIDTH, boxHeight);
         g.drawString(font, title, boxX + (WIDTH - font.width(title)) / 2, boxY + 12, EditorTheme.ACCENT_HI, false);
         EditorTheme.headingLine(g, boxX + 20, boxY + 23, WIDTH - 40);

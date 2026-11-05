@@ -1,5 +1,5 @@
 {
-  "conditions": [
+  "neoforge:conditions": [
     {
       "type": "battlecorrection:dev_curio_slots"
     }
